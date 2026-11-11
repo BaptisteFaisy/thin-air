@@ -196,6 +196,18 @@ export async function identifiantActif(page: Page): Promise<string> {
   return page.evaluate(() => (document.activeElement as HTMLElement | null)?.id ?? "");
 }
 
+/** L'épaisseur en px du contour de focus de l'élément actif (0 s'il est invisible). */
+export async function contourFocus(page: Page): Promise<number> {
+  return page.evaluate(() => {
+    const element = document.activeElement as HTMLElement | null;
+    if (element === null) return 0;
+    const style = getComputedStyle(element);
+    if (style.outlineStyle === "none") return 0;
+    const largeur = Number.parseFloat(style.outlineWidth);
+    return Number.isFinite(largeur) ? largeur : 0;
+  });
+}
+
 /** Le texte de la note en cours, tel qu'il est lu à l'écran (§12.4). */
 export async function noteAffichee(page: Page): Promise<string> {
   return (await page.locator("p.note").innerText()).trim();
