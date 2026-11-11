@@ -8,6 +8,7 @@ export * from "./roles.js";
 export * from "./gestures.js";
 export * from "./music.js";
 export * from "./takeGen.js";
+export * from "./events.js";
 export * from "./instrument.js";
 export * from "./voices.js";
 export * from "./schedule.js";
