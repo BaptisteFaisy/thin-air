@@ -10,6 +10,7 @@ export * from "./music.js";
 export * from "./takeGen.js";
 export * from "./events.js";
 export * from "./instrument.js";
+export * from "./notes.js";
 export * from "./voices.js";
 export * from "./schedule.js";
 export * from "./loop.js";
