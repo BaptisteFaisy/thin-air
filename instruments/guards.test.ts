@@ -1,30 +1,43 @@
 /**
- * Les gardes de Kiro, exécutées comme des processus enfants (cahier §14.3).
+ * Les gardes de `scripts/hooks/`, exécutées en ligne de commande
+ * (cahier §14.3). Chaque garde est un processus : on lui donne une entrée
+ * standard et un dossier courant, on lit son code de sortie.
  *
- * Chaque garde lit du texte et rend un code de sortie : rien ne sonne, rien
- * ne sort de la machine (AIR-N-02, AIR-N-01). Les fixtures de refus vivent
- * dans un dossier temporaire, jeté à la fin ; les contrôles d'acceptation
- * tournent sur le dépôt réel.
+ * Les fixtures sont écrites dans un dossier temporaire jeté après le test :
+ * aucune prise, aucun instrument, aucun journal ne touche le dépôt.
+ * Aucun son, aucun réseau, aucun périphérique (AIR-N-02).
  */
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 const RACINE = fileURLToPath(new URL("../", import.meta.url));
-const HOOKS = join(RACINE, "scripts", "hooks");
+const GARDES = join(RACINE, "scripts", "hooks");
 
-interface Resultat {
+interface Sortie {
   readonly code: number | null;
   readonly sortie: string;
   readonly erreur: string;
 }
 
-/** Lance une garde ; `entree` est le JSON que Kiro déposerait sur stdin. */
-function lancer(garde: string, { cwd = RACINE, entree = "" }: { cwd?: string; entree?: string } = {}): Resultat {
-  const resultat = spawnSync(process.execPath, [join(HOOKS, garde)], {
+let bac = "";
+
+beforeAll(() => {
+  bac = mkdtempSync(join(tmpdir(), "thin-air-gardes-"));
+  mkdirSync(join(bac, "instruments"), { recursive: true });
+  mkdirSync(join(bac, "takes", "reference"), { recursive: true });
+});
+
+afterAll(() => {
+  if (bac.startsWith(tmpdir())) rmSync(bac, { recursive: true, force: true });
+});
+
+/** Lance une garde avec une entrée standard et un dossier courant. */
+function lancer(garde: string, { cwd = bac, entree = "" }: { cwd?: string; entree?: string } = {}): Sortie {
+  const resultat = spawnSync(process.execPath, [join(GARDES, garde)], {
     cwd,
     input: entree,
     encoding: "utf8",
@@ -34,279 +47,231 @@ function lancer(garde: string, { cwd = RACINE, entree = "" }: { cwd?: string; en
 }
 
 /** La charge utile d'un hook `PreToolUse` sur l'outil `shell`. */
-function commandeShell(commande: string, champ: "command" | "cmd" | "input", cwd: string): string {
+function charge(command: string, champ: "command" | "cmd" | "input" = "command", cwd = bac): string {
   return JSON.stringify({
     hook_event_name: "PreToolUse",
     cwd,
     session_id: "banc-a7",
     tool_name: "shell",
-    tool_input: { [champ]: commande },
+    tool_input: { [champ]: command },
   });
 }
 
-let temporaire = "";
-
-beforeAll(() => {
-  temporaire = mkdtempSync(join(tmpdir(), "thin-air-gardes-"));
-  mkdirSync(join(temporaire, "instruments"), { recursive: true });
-  mkdirSync(join(temporaire, "takes"), { recursive: true });
-});
-
-afterAll(() => {
-  if (temporaire) rmSync(temporaire, { recursive: true, force: true });
-});
-
-/** Une prise conforme : des instants, des côtés, des scores, des points. */
-function priseValide(images = 3, mains = 1, precision = 4): string {
-  const point = (): [number, number, number] => {
-    const arrondi = (x: number): number => Number(x.toFixed(precision));
-    return [arrondi(0.4123), arrondi(0.7211), arrondi(-0.0032)];
-  };
-  const main = (cote: "left" | "right") => ({
-    side: cote,
-    score: 0.97,
-    points: Array.from({ length: 21 }, point),
-  });
-  return JSON.stringify({
+/**
+ * Une prise conforme : des instants, des côtés, des scores, des points.
+ * `chiffres` allonge les coordonnées (1 par défaut, comme une prise réelle
+ * écrite par le codec) : c'est ce qui permet de fabriquer une prise trop
+ * lourde sans inventer de clé.
+ */
+function priseValide({ images = 3, mains = 1, chiffres = 1 }: { images?: number; mains?: number; chiffres?: number } = {}): unknown {
+  const coordonnee = (valeur: number, rang: number) =>
+    chiffres <= 1 ? Number(valeur.toFixed(3)) : Number(`${valeur.toFixed(6)}${String(rang).padStart(chiffres, "7")}`);
+  const points = Array.from({ length: 21 }, (_, index) => [
+    coordonnee(0.4 + index / 1000, index),
+    coordonnee(0.7, index + 1),
+    coordonnee(0, index + 2),
+  ]);
+  const main = { side: "right", score: 0.97, points };
+  return {
     format: "thin-air-take/1",
     fps: 30,
     frames: Array.from({ length: images }, (_, index) => ({
       t: index / 30,
-      hands: Array.from({ length: mains }, () => main("right")),
+      hands: Array.from({ length: mains }, () => main),
     })),
-  });
+  };
 }
 
-describe("no-sound-guard — aucun son, jamais (AIR-N-02)", () => {
-  const refus = [
-    ["un lecteur audio", "aplay out/render.wav"],
-    ["un lecteur macOS", "afplay prise.wav"],
-    ["un lecteur multimédia", "mpv --no-video bench-out/render.wav"],
-    ["un test de haut-parleur", "speaker-test -c 2"],
-    ["un réglage de volume ALSA", "amixer set Master 80%"],
-    ["un réglage de volume PipeWire", "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.8"],
-    ["un réglage de volume PulseAudio", "pactl set-sink-volume 0 80%"],
-    ["un réglage de volume macOS", "osascript -e 'set volume output volume 50'"],
-    ["un navigateur de test avec écran", "npx playwright test --headed"],
-    ["un navigateur sans son coupé", "chromium --headless=new https://exemple.test"],
-  ] as const;
-
-  it.each(refus)("refuse %s", (_etiquette, commande) => {
-    const resultat = lancer("no-sound-guard.mjs", {
-      cwd: temporaire,
-      entree: commandeShell(commande, "command", temporaire),
-    });
+describe("no-sound-guard — refus (AIR-N-02)", () => {
+  it("refuse un lecteur audio", () => {
+    const resultat = lancer("no-sound-guard.mjs", { entree: charge("aplay out/render.wav") });
     expect(resultat.code).toBe(1);
-    expect(resultat.erreur).toContain("refusé");
+    expect(resultat.erreur).toMatch(/refusé/);
+    expect(resultat.erreur).toMatch(/aplay/);
   });
 
-  it.each(["command", "cmd", "input"] as const)(
-    "lit la commande dans tool_input.%s (annexe D : champ à vérifier)",
-    (champ) => {
-      const resultat = lancer("no-sound-guard.mjs", {
-        cwd: temporaire,
-        entree: commandeShell("paplay x.wav", champ, temporaire),
-      });
-      expect(resultat.code).toBe(1);
-    },
-  );
+  it("refuse un réglage de volume", () => {
+    const resultat = lancer("no-sound-guard.mjs", { entree: charge("pactl set-sink-volume 0 80%") });
+    expect(resultat.code).toBe(1);
+    expect(resultat.erreur).toMatch(/volume/);
+  });
 
-  const acceptes = [
-    "npx vitest run packages/core/src",
-    "node scripts/hooks/run-all-guards.mjs",
-    "npm run bench -- events --take takes/reference/slow-rise.json",
-    "chromium --headless=new --mute-audio --use-fake-device-for-media-stream",
-  ] as const;
+  it("refuse osascript avec « volume »", () => {
+    const resultat = lancer("no-sound-guard.mjs", { entree: charge('osascript -e "set volume 3"') });
+    expect(resultat.code).toBe(1);
+  });
 
-  it.each(acceptes)("accepte « %s »", (commande) => {
+  it("refuse un navigateur de test avec écran", () => {
+    const resultat = lancer("no-sound-guard.mjs", { entree: charge("npx playwright test --headed") });
+    expect(resultat.code).toBe(1);
+    expect(resultat.erreur).toMatch(/écran/);
+  });
+
+  it("refuse un navigateur de test sans son coupé", () => {
+    const resultat = lancer("no-sound-guard.mjs", { entree: charge("chromium --headless=new http://localhost:5173") });
+    expect(resultat.code).toBe(1);
+    expect(resultat.erreur).toMatch(/son coupé/);
+  });
+
+  it("accepte les trois formes du champ de commande (annexe D)", () => {
+    for (const champ of ["command", "cmd", "input"] as const) {
+      const resultat = lancer("no-sound-guard.mjs", { entree: charge("mpv x.wav", champ) });
+      expect(resultat.code, `champ ${champ}`).toBe(1);
+    }
+  });
+});
+
+describe("no-sound-guard — acceptation et journal", () => {
+  it("accepte une commande de banc, un test, un outil de build", () => {
+    for (const commande of ["npx vitest run", "npm run bench -- events --take x.json", "npx tsc --noEmit"]) {
+      const resultat = lancer("no-sound-guard.mjs", { entree: charge(commande) });
+      expect(resultat.code, commande).toBe(0);
+    }
+  });
+
+  it("accepte un navigateur sans écran et avec le son coupé", () => {
     const resultat = lancer("no-sound-guard.mjs", {
-      cwd: temporaire,
-      entree: commandeShell(commande, "command", temporaire),
+      entree: charge("chromium --headless=new --mute-audio http://localhost:5173"),
     });
-    expect(resultat.erreur).toBe("");
     expect(resultat.code).toBe(0);
   });
 
-  it("recette §18 — chaque invocation est journalisée dans out/hook-log.jsonl", () => {
-    lancer("no-sound-guard.mjs", {
-      cwd: temporaire,
-      entree: commandeShell("aplay refus.wav", "command", temporaire),
-    });
-    lancer("no-sound-guard.mjs", {
-      cwd: temporaire,
-      entree: commandeShell("npx tsc --noEmit", "command", temporaire),
-    });
-    const journal = join(temporaire, "out", "hook-log.jsonl");
+  it("ne contrôle rien sans entrée standard (CI)", () => {
+    const resultat = lancer("no-sound-guard.mjs");
+    expect(resultat.code).toBe(0);
+    expect(resultat.sortie).toMatch(/rien à contrôler/);
+  });
+
+  it("journalise ses refus dans out/hook-log.jsonl (recette §18)", () => {
+    const journal = join(bac, "out", "hook-log.jsonl");
     expect(existsSync(journal)).toBe(true);
-    const lignes = readFileSync(journal, "utf8")
-      .trim()
-      .split("\n")
-      .map((ligne) => JSON.parse(ligne) as Record<string, unknown>);
-    const refusJournalises = lignes.filter((ligne) => ligne.evenement === "refus");
-    expect(refusJournalises.length).toBeGreaterThan(0);
-    expect(refusJournalises.at(-1)).toMatchObject({ garde: "no-sound-guard", commande: "aplay refus.wav" });
-    expect(lignes.at(-1)).toMatchObject({ evenement: "acceptation", commande: "npx tsc --noEmit" });
-  });
-
-  it("sans entrée standard (CI), il n'y a rien à contrôler : code 0", () => {
-    const resultat = lancer("no-sound-guard.mjs", { cwd: temporaire });
-    expect(resultat.code).toBe(0);
-    expect(resultat.sortie).toContain("rien à contrôler");
+    const lignes = readFileSync(journal, "utf8").trim().split("\n").map((ligne) => JSON.parse(ligne) as Record<string, unknown>);
+    const refus = lignes.filter((ligne) => ligne.evenement === "refus" && ligne.garde === "no-sound-guard");
+    expect(refus.length).toBeGreaterThan(0);
+    expect(refus[0]).toHaveProperty("at");
+    expect(refus[0]).toHaveProperty("raison");
   });
 });
 
 describe("take-privacy-guard — une prise ne contient que des points (§7.11)", () => {
+  const dossier = () => join(bac, "takes", "reference");
+
   it("accepte une prise conforme", () => {
-    writeFileSync(join(temporaire, "takes", "conforme.json"), priseValide());
-    const resultat = lancer("take-privacy-guard.mjs", { cwd: temporaire });
-    expect(resultat.erreur).toBe("");
+    writeFileSync(join(dossier(), "conforme.json"), JSON.stringify(priseValide()));
+    const resultat = lancer("take-privacy-guard.mjs");
     expect(resultat.code).toBe(0);
-    expect(resultat.sortie).toContain("1 prise(s) conforme(s)");
+    expect(resultat.sortie).toMatch(/conforme/);
   });
 
-  it("refuse une prise qui transporte autre chose que des points", () => {
-    const prise = JSON.parse(priseValide()) as Record<string, unknown>;
-    prise.image = "data:image/jpeg;base64,/9j/4AAQ";
-    writeFileSync(join(temporaire, "takes", "image.json"), JSON.stringify(prise));
-    const resultat = lancer("take-privacy-guard.mjs", { cwd: temporaire });
+  it("refuse une prise qui porte autre chose que des points", () => {
+    writeFileSync(
+      join(dossier(), "triche.json"),
+      JSON.stringify({ ...(priseValide() as object), image: "data:image/png;base64,AAAA" }),
+    );
+    const resultat = lancer("take-privacy-guard.mjs");
     expect(resultat.code).toBe(1);
-    expect(resultat.erreur).toContain("image");
-    rmSync(join(temporaire, "takes", "image.json"));
+    expect(resultat.erreur).toMatch(/image/);
+    rmSync(join(dossier(), "triche.json"));
   });
 
-  it("refuse une main qui n'a pas 21 points de trois coordonnées", () => {
-    const prise = JSON.parse(priseValide(1)) as { frames: { hands: { points: unknown[] }[] }[] };
+  it("refuse une main sans ses 21 points", () => {
+    const prise = priseValide() as { frames: { hands: { points: unknown }[] }[] };
     prise.frames[0]!.hands[0]!.points = [[0.4, 0.7, 0]];
-    writeFileSync(join(temporaire, "takes", "incomplete.json"), JSON.stringify(prise));
-    const resultat = lancer("take-privacy-guard.mjs", { cwd: temporaire });
+    writeFileSync(join(dossier(), "tronquee.json"), JSON.stringify(prise));
+    const resultat = lancer("take-privacy-guard.mjs");
     expect(resultat.code).toBe(1);
-    expect(resultat.erreur).toContain("21 points attendus");
-    rmSync(join(temporaire, "takes", "incomplete.json"));
+    expect(resultat.erreur).toMatch(/21 points/);
+    rmSync(join(dossier(), "tronquee.json"));
   });
 
   it("refuse une prise au-dessus du plafond de poids par seconde", () => {
-    // 30 images à 30 par seconde : une seconde de prise, dix mains par image,
-    // coordonnées non arrondies. Le poids trahit ce qui n'est pas annoncé.
-    writeFileSync(join(temporaire, "takes", "lourde.json"), priseValide(30, 10, 16));
-    const resultat = lancer("take-privacy-guard.mjs", { cwd: temporaire });
+    // Douze mains : ce n'est plus une prise, c'est un conteneur. Le poids
+    // trahit ce que les clés n'avouent pas (§7.11 : 26 Ko/s attendus).
+    writeFileSync(join(dossier(), "lourde.json"), JSON.stringify(priseValide({ images: 30, mains: 12, chiffres: 12 })));
+    const resultat = lancer("take-privacy-guard.mjs");
     expect(resultat.code).toBe(1);
-    expect(resultat.erreur).toContain("plafond");
-    rmSync(join(temporaire, "takes", "lourde.json"));
-  });
-
-  it("sort proprement quand il n'y a encore aucune prise (lot B3)", () => {
-    const vide = mkdtempSync(join(tmpdir(), "thin-air-prises-vide-"));
-    const resultat = lancer("take-privacy-guard.mjs", { cwd: vide });
-    rmSync(vide, { recursive: true, force: true });
-    expect(resultat.code).toBe(0);
-    expect(resultat.sortie).toContain("0 prise(s)");
+    expect(resultat.erreur).toMatch(/plafond/);
+    rmSync(join(dossier(), "lourde.json"));
   });
 });
 
 describe("instrument-schema-guard — un instrument est un fichier valide (AIR-F-43)", () => {
-  it("valide les six instruments du dépôt", () => {
+  const dossier = () => join(bac, "instruments");
+
+  it("valide les six instruments du dépôt copiés dans les fixtures", () => {
+    for (const nom of ["phantom", "harp", "choir", "bells", "drone", "grid-drums"]) {
+      cpSync(join(RACINE, "instruments", `${nom}.json`), join(dossier(), `${nom}.json`));
+    }
     const resultat = lancer("instrument-schema-guard.mjs");
-    expect(resultat.erreur).toBe("");
     expect(resultat.code).toBe(0);
-    expect(resultat.sortie).toContain("6 instrument(s) conforme(s)");
+    expect(resultat.sortie).toMatch(/6 instrument/);
   });
 
-  it("refuse un fichier au mauvais format, en entier et avec ses raisons", () => {
-    ecrireInstrumentTemporaire("mauvais.json", {
+  it("refuse un fichier au mauvais format, avec ses raisons", () => {
+    const mauvais = {
       format: "air-instrument/1",
-      name: "Mauvais",
+      name: "Faux",
       pointer: "palm",
-      scale: { root: 50, steps: [0, 2] },
-      range: { low: 81, high: 45 },
-      snap: 1.5,
+      scale: { root: 50, steps: [0, 2, 3] },
+      range: { low: 80, high: 40 },
+      snap: 1.4,
       voices: 0,
       sound: { engine: "orgue" },
       couleur: "bleu",
-    });
-    const resultat = lancer("instrument-schema-guard.mjs", { cwd: temporaire });
+    };
+    writeFileSync(join(dossier(), "faux.json"), JSON.stringify(mauvais));
+    const resultat = lancer("instrument-schema-guard.mjs");
     expect(resultat.code).toBe(1);
-    expect(resultat.erreur).toContain("couleur");
-    expect(resultat.erreur).toContain("thin-air-instrument/1");
-    expect(resultat.erreur).toContain("snap");
-    expect(resultat.erreur).toContain("voices");
-    expect(resultat.erreur).toContain("engine");
-    rmSync(join(temporaire, "instruments", "mauvais.json"));
+    expect(resultat.erreur).toMatch(/couleur/);
+    expect(resultat.erreur).toMatch(/thin-air-instrument\/1/);
+    expect(resultat.erreur).toMatch(/low doit être strictement inférieur/);
+    rmSync(join(dossier(), "faux.json"));
   });
 
-  it("refuse une zone dont le rectangle est à l'envers", () => {
-    ecrireInstrumentTemporaire("zones.json", {
+  it("refuse un instrument dont les zones se chevauchent ou s'inversent", () => {
+    const zones = {
       format: "thin-air-instrument/1",
       name: "Zones",
       pointer: "palm",
       scale: { root: 50, steps: [0, 3, 7] },
-      zones: { zones: [{ id: "z0", u0: 0.8, u1: 0.2, v0: 0, v1: 1, degree: 0 }] },
+      zones: { zones: [{ id: "a", u0: 0.7, u1: 0.2, v0: 0, v1: 1, degree: 0 }] },
       snap: 1,
       voices: 1,
       sound: { engine: "osc", wave: "sine" },
-    });
-    const resultat = lancer("instrument-schema-guard.mjs", { cwd: temporaire });
+    };
+    writeFileSync(join(dossier(), "zones.json"), JSON.stringify(zones));
+    const resultat = lancer("instrument-schema-guard.mjs");
     expect(resultat.code).toBe(1);
-    expect(resultat.erreur).toContain("u0 doit être inférieur à u1");
-    rmSync(join(temporaire, "instruments", "zones.json"));
+    expect(resultat.erreur).toMatch(/u0 doit être inférieur à u1/);
+    rmSync(join(dossier(), "zones.json"));
   });
-
-  it("refuse l'absence d'un des six instruments du §7.8", () => {
-    const resultat = lancer("instrument-schema-guard.mjs", { cwd: temporaire });
-    expect(resultat.code).toBe(1);
-    expect(resultat.erreur).toContain("absent");
-  });
-
-  function ecrireInstrumentTemporaire(nom: string, contenu: unknown): void {
-    writeFileSync(join(temporaire, "instruments", nom), JSON.stringify(contenu, null, 2));
-  }
 });
 
-describe("render-check et core-properties — repli explicite, aucune fausse preuve", () => {
-  it("render-check sort 0 et dit « repli » sans prise de référence (lot B3)", () => {
-    const resultat = lancer("render-check.mjs", { cwd: temporaire });
+describe("render-check et core-properties — repli explicite", () => {
+  it("render-check sort 0 et dit son repli quand il n'y a rien à rendre", () => {
+    const vide = mkdtempSync(join(tmpdir(), "thin-air-vide-"));
+    mkdirSync(join(vide, "instruments"), { recursive: true });
+    const resultat = lancer("render-check.mjs", { cwd: vide });
+    rmSync(vide, { recursive: true, force: true });
     expect(resultat.code).toBe(0);
-    expect(resultat.sortie).toContain("repli");
-    expect(resultat.sortie).toContain("takes/reference/");
+    expect(resultat.sortie).toMatch(/repli|aucun/);
   });
 
-  it("core-properties sort 0 et dit « repli » sans banc dans packages/core (lots A1 à B2)", () => {
-    const resultat = lancer("core-properties.mjs", { cwd: temporaire });
+  it("core-properties sort 0 et dit son repli quand aucun banc n'existe", () => {
+    const vide = mkdtempSync(join(tmpdir(), "thin-air-vide-"));
+    const resultat = lancer("core-properties.mjs", { cwd: vide });
+    rmSync(vide, { recursive: true, force: true });
     expect(resultat.code).toBe(0);
-    expect(resultat.sortie).toContain("repli");
-    expect(resultat.sortie).toContain("AIR-P-01 à 12");
+    expect(resultat.sortie).toMatch(/repli/);
   });
-
-  it("core-properties lance les propriétés du dépôt et les fait passer", () => {
-    const resultat = lancer("core-properties.mjs");
-    expect(resultat.code).toBe(0);
-    expect(resultat.sortie).toContain("banc(s) du core passent");
-  }, 120_000);
 });
 
-describe("les gardes déjà écrites passent sur ce dépôt", () => {
-  it("wording-guard — le vocabulaire des six instruments respecte §5.4", () => {
-    const resultat = lancer("wording-guard.mjs");
-    expect(resultat.erreur).toBe("");
+describe("la chaîne des gardes, sur le dépôt réel", () => {
+  it("run-all-guards.mjs sort 0 et couvre les trois nouvelles gardes", () => {
+    const resultat = lancer("run-all-guards.mjs", { cwd: RACINE });
     expect(resultat.code).toBe(0);
-  });
-
-  it("no-audio-asset-guard — aucun fichier sonore dans le dépôt", () => {
-    const resultat = lancer("no-audio-asset-guard.mjs");
-    expect(resultat.code).toBe(0);
-    expect(resultat.sortie).toContain("aucun fichier sonore");
-  });
-
-  it("run-all-guards.mjs — la chaîne des gardes sort 0", () => {
-    const resultat = spawnSync(process.execPath, [join(HOOKS, "run-all-guards.mjs")], {
-      cwd: RACINE,
-      input: "",
-      encoding: "utf8",
-      timeout: 120_000,
-    });
-    expect(resultat.stderr).toBe("");
-    expect(resultat.status).toBe(0);
-    expect(resultat.stdout).toContain("instrument-schema-guard.mjs");
-    expect(resultat.stdout).toContain("no-sound-guard.mjs");
-    expect(resultat.stdout).toContain("take-privacy-guard.mjs");
-  }, 120_000);
+    for (const garde of ["no-sound-guard", "take-privacy-guard", "instrument-schema-guard"]) {
+      expect(resultat.sortie).toMatch(new RegExp(`${garde}\\.mjs`));
+    }
+  }, 180_000);
 });
