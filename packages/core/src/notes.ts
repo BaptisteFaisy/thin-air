@@ -73,7 +73,7 @@ export class NoteMagnet {
 
   /** Hauteur aimantée : `m + a × (q(m) − m)`, donc entière à 1 et pure à 0. */
   next(midi: number): number {
-    const cible = this.nearestDegree(midi);
+    const cible = this.nearest(midi);
     if (this.note === null) this.note = cible;
     else if (cible !== this.note) this.climb(midi, cible);
 
@@ -93,6 +93,11 @@ export class NoteMagnet {
     const seuil = milieu + (dir * Math.abs(voisin - note) * this.hysteresis);
     const passe = dir > 0 ? midi >= seuil : midi <= seuil;
     if (passe) this.note = cible;
+  }
+
+  /** Numéro MIDI de la note franche la plus proche. */
+  private nearest(midi: number): number {
+    return noteFromDegree(this.root, this.steps, this.nearestDegree(midi));
   }
 
   /** Degré de la note de la gamme la plus proche. */
