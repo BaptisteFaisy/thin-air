@@ -3,7 +3,8 @@
 **Date : 2026-11-11.** Outils : axe-core 4.14.0 injecté dans Chromium headless
 par Playwright 1.65.0 ; parcours clavier et `prefers-reduced-motion` pilotés
 par Playwright. Cible : WCAG 2.2 AA (cahier §12.4, AIR-N-06). Périmètre :
-l'écran d'accueil, la scène (mode pointeur, P2) et le panneau de réglages.
+les huit écrans du §12.1 — accueil, scène (mode pointeur, P2), instruments,
+boucle, calibration, éditeur d'instrument, physique et réglages.
 
 ## Rejouer
 
@@ -11,9 +12,16 @@ l'écran d'accueil, la scène (mode pointeur, P2) et le panneau de réglages.
 npx playwright test --config apps/web/playwright.config.ts
 ```
 
-Les preuves brutes sont écrites dans `apps/web/out/e2e/` (`axe-accueil.json`,
-`axe-scene.json`, `axe-reglages.json`, ignoré par git). Détails des specs :
-`apps/web/e2e/README.md`.
+En CI, le job `preuves` de `.github/workflows/build.yml` (bloquant,
+`continue-on-error: false`) reconstruit le site, relance ces specs et publie
+les preuves brutes en artefacts (`preuves-reseau` : journal réseau et caméra ;
+`preuves-axe` : les huit rapports). Chromium doit déjà être en cache sur le
+runner : s'il est absent, le job échoue nettement avec un message explicite,
+il ne saute jamais en silence.
+
+Les preuves brutes sont écrites dans `apps/web/out/e2e/` (huit `axe-*.json`,
+un par écran, plus `reseau.json` et `camera.json` ; ignoré par git). Détails
+des specs : `apps/web/e2e/README.md`.
 
 ## 1. Ce que l'outil a trouvé
 
@@ -23,20 +31,38 @@ Règles exécutées : jeux de tags `wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa`,
 | Écran | Violations critiques | Violations sérieuses | Autres |
 |---|---|---|---|
 | Accueil | 0 | 0 | 0 |
-| Scène (jeu au pointeur) | 0 | **1 connue** (`listitem`) | 0 |
-| Panneau de réglages | 0 | **1 connue** (`listitem`) | 0 |
+| Scène (jeu au pointeur) | 0 | 0 | 0 |
+| Instruments | 0 | 0 | 0 |
+| Boucle | 0 | 0 | 0 |
+| Calibration | 0 | 0 | 0 |
+| Éditeur d'instrument | 0 | 0 | 0 |
+| Physique | 0 | 0 | 0 |
+| Panneau de réglages | 0 | 0 | 0 |
 
-### La violation connue : `listitem` (sérieuse)
+Aucune exception n'est tolérée dans la spec : la liste blanche
+`GRAVES_CONNUES` a été **supprimée** en même temps que le correctif
+ci-dessous — toute violation critique ou sérieuse, sur n'importe quel écran,
+fait désormais échouer le test.
 
-`ul.notices` porte `role="status"` (`apps/web/src/ui/Notices.tsx`) : le rôle
-`status` efface la sémantique de liste, et les `li` des messages d'état se
-retrouvent orphelins — un lecteur d'écran n'annonce plus « liste de N
-éléments ». Correctif attendu (une ligne, hors du périmètre de ce lot qui
-n'édite pas `apps/web/src/**`) : déplacer `role="status"` et `aria-live` sur
-un `div` enveloppant le `ul`, qui garde son rôle de liste implicite. Transmit
-au lot accessibilité (W5). En attendant, l'exception est déclarée
-explicitement dans la spec (`GRAVES_CONNUES`) : toute **nouvelle** violation
-grave fait échouer les tests.
+### La violation corrigée : `listitem` (sérieuse)
+
+**Cause exacte** : `ul.notices` portait `role="status"`
+(`apps/web/src/ui/Notices.tsx`). Le rôle `status` remplace le rôle implicite
+`list` du `ul` : les `li` des messages d'état se retrouvaient orphelins, sans
+parent liste — un lecteur d'écran n'annonçait plus « liste de N éléments »
+(règle axe `listitem`, WCAG 1.3.1).
+
+**Correctif** : la région live (`role="status"`, `aria-live="polite"`) a été
+déplacée sur un `div.notices-region` qui enveloppe le `ul` ; celui-ci garde sa
+sémantique de liste implicite, ses `li` redeviennent des éléments de liste, et
+l'annonce par le lecteur d'écran reste polie (sans voler le focus). Un test
+dédie vérifie l'attribut : la région enveloppante porte `role="status"` et
+`aria-live="polite"`, et le `ul` ne porte plus de rôle.
+
+**Décompte axe avant/après** : avant — accueil 0, scène **1 sérieuse**
+(`listitem`), réglages **1 sérieuse** (`listitem`), cinq écrans non audités ;
+après — **0 violation sur les huit écrans** (les huit preuves `axe-*.json`
+sont des listes vides : plus aucune violation, quel que soit le niveau).
 
 ### Découvertes adjacentes (hors axe, relevées par les tests de bout en bout)
 
@@ -94,13 +120,29 @@ violation sur les trois écrans.
 
 ## 3. Parcours clavier (automatisé)
 
-Tout est atteignable au clavier, vérifié par la spec `accessibilite.spec.ts` :
+Les huit écrans du §12.1 sont couverts par la spec `accessibilite.spec.ts` :
 
 - **Accueil** : Tab atteint « Start » puis « Play without a camera », chacun
   avec son nom accessible ; Enter ouvre le jeu sans caméra (P2).
 - **Scène** : les cinq boutons de la barre d'outils (« Open the instruments »,
   « Loop », « Calibrate », « Settings », « Show the physics ») sont atteignables
   par Tabulation.
+- **Instruments** : « Play this one », « Duplicate », « Copy the link »,
+  « Close », l'entrée de fichier (`instrument-file`, libellé « Open a file »)
+  et le champ de lien (`share-link`) sont atteignables, chacun avec un libellé
+  non vide ; « Duplicate » ajoute la copie et ouvre son éditeur (AIR-F-44).
+- **Éditeur** : `editor-scale`, `editor-root`, `editor-snap` et
+  `editor-engine` sont atteignables avec leurs libellés ; les flèches changent
+  la fondamentale (`aria-valuetext` mis à jour).
+- **Boucle** : le curseur `loop-tempo` est atteignable avec son libellé, les
+  flèches changent le tempo ; le groupe de radios des mesures (`loop-bars`) se
+  change aux flèches ; « Record a layer » est atteignable.
+- **Calibration** : « Calibrate the play area », « Start again » et « Close »
+  sont atteignables ; « Close » ferme le panneau.
+- **Physique** : le bouton de la barre d'outils est un interrupteur
+  (`aria-pressed`) activable au clavier (Enter) ; la fréquence du panneau est
+  un `dd` en `aria-live="polite"` et la forme d'onde un `svg role="img"`
+  étiqueté.
 - **Panneau de réglages** : les neuf contrôles (`setting-snap`,
   `setting-left-handed`, `setting-one-hand`, `setting-hold`,
   `setting-volume`, `setting-reverb`, `setting-camera-latency`,
@@ -108,6 +150,10 @@ Tout est atteignable au clavier, vérifié par la spec `accessibilite.spec.ts` :
   nom accessible non vide (via `<label for>`) ; les **flèches** changent la
   valeur d'un curseur (`aria-valuetext` mis à jour), l'**espace** coche une
   case, **Shift+Tab** revient en arrière.
+- **Focus visible** : pendant la Tabulation, l'anneau `focus-visible` (3 px
+  spectre) est asserté sur les contrôles atteints (contour ≥ 2 px).
+- **Note en cours** : `p.note` porte `aria-live="polite"` — polie, jamais
+  assertive, pour ne pas hacher le jeu ; l'attribut est vérifié par un test.
 - Raccourcis de jeu (`usePointerHands`) : A–K pincent les cordes, les flèches
   déplacent la main virtuelle, P relance le moteur audio.
 
@@ -125,9 +171,8 @@ assertés par les specs.
 L'automate ne remplace pas :
 
 1. **Lecteur d'écran réel** (NVDA/JAWS sous Windows, VoiceOver sous macOS/iOS) :
-   ordre d'annonce des régions `aria-live` (note en cours, messages d'état),
-   verbosité du `role="meter"` de la jauge, comportement après le correctif
-   `listitem`.
+   ordre d'annonce des régions `aria-live` (note en cours, messages d'état) et
+   verbosité du `role="meter"` de la jauge.
 2. **Focus visible en conditions réelles** : l'anneau `focus-visible` (3 px
    spectre) est présent dans le CSS, mais son contraste sur chaque contrôle et
    sa visibilité sur le panneau fixe méritent un œil.
@@ -144,9 +189,10 @@ L'automate ne remplace pas :
 
 | Exigence | État |
 |---|---|
-| Zéro violation axe critique/sérieuse (hors exception documentée) | ✓ automatisé |
-| Tous les réglages au clavier, avec noms accessibles | ✓ automatisé |
-| Note en cours en texte | ✓ automatisé (harpes/cordes ; limite thérémine documentée) |
+| Zéro violation axe critique/sérieuse, sans exception, sur les huit écrans | ✓ automatisé (job CI `preuves`, bloquant) |
+| Tous les réglages au clavier, avec noms accessibles, sur les huit écrans | ✓ automatisé |
+| Focus visible au parcours clavier (anneau ≥ 2 px) | ✓ automatisé |
+| Note en cours annoncée par région live polie (`aria-live="polite"`) | ✓ automatisé |
 | `prefers-reduced-motion` respecté | ✓ automatisé |
 | Contraste ≥ 4,5:1 des trois couleurs | ✓ mesuré (16,53 / 11,19 / 10,98 sur nuit) |
 | Aucune note coincée à la sortie du pointeur | ✗ défaut produit connu, test marqué, correctif à faire |
