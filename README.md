@@ -110,9 +110,10 @@ page keeps working offline after the first visit.
   touches the machine volume (AIR-N-02). Offline rendering only.
 - No audio file may be committed; every sound is synthesised (AIR-F-25). The
   guard `scripts/hooks/no-audio-asset-guard.mjs` runs in CI.
-- Labels follow the vocabulary table of §5.4: latency is "estimated" or
-  "measured", never "real time". The guard `scripts/hooks/wording-guard.mjs`
-  runs in CI.
+- Labels follow the vocabulary table of §5.4: latency is always labelled
+  "estimated" or "measured", and the two words the table forbids never appear
+  anywhere in the built site. The guard `scripts/hooks/wording-guard.mjs`
+  runs in CI and lists the refused words in its rule table.
 - A take contains hand points and nothing else — no image, ever (AIR-F-47,
   `take-privacy-guard`).
 - Peak level never goes past −1 dB; master volume defaults to −12 dB
