@@ -44,7 +44,21 @@ beforeEach(() => {
   prise = join(dossier, "prise.json");
   instrument = join(dossier, "instrument.json");
   writeFileSync(prise, JSON.stringify({ format: "thin-air-take/1", fps: 30, frames: [] }), "utf8");
-  writeFileSync(instrument, JSON.stringify({ format: "thin-air-instrument/1", name: "Phantom" }), "utf8");
+  // L'instrument de fixture est COMPLET : depuis la livraison du lot A4, le
+  // schéma refuse un fichier tronqué (code 2, erreur d'usage) au lieu de le
+  // laisser passer jusqu'au moteur. Ces tests visent le comportement du banc
+  // quand un lot en aval manque encore (code 1, message qui nomme l'échec) :
+  // ils ont donc besoin d'une entrée que le schéma accepte.
+  writeFileSync(instrument, JSON.stringify({
+    format: "thin-air-instrument/1",
+    name: "Phantom",
+    pointer: "palm",
+    scale: { root: 50, steps: [0, 2, 3, 5, 7, 8, 11] },
+    range: { low: 45, high: 81 },
+    snap: 0.6,
+    voices: 1,
+    sound: { engine: "osc", wave: "sine", second: 0.15, attackMs: 60, releaseMs: 250, glideMs: 30 },
+  }), "utf8");
 });
 
 afterEach(() => {
