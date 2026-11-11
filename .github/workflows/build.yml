@@ -157,3 +157,81 @@ jobs:
         run: |
           echo "::notice::E2E sauté : Playwright n'est pas installé sur ce runner."
           echo "Le job est facultatif (continue-on-error) et n'ajoute aucune dépendance."
+
+  # ---------------------------------------------------------------------------
+  # 3. Preuves d'accessibilité et de réseau — BLOQUANT (AIR-N-06, §12.4).
+  #    Construit le site, lance les specs Playwright (E2E, journal réseau,
+  #    axe-core sur les huit écrans du §12.1), et publie les preuves brutes en
+  #    artefacts. Aucune tolérance : la moindre violation critique ou sérieuse,
+  #    ou le moindre test rouge, colore le job en rouge.
+  #    Le navigateur doit déjà être en cache sur le runner (~/.cache/ms-playwright) :
+  #    le dépôt n'installe rien (PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD), et Chromium
+  #    absent = échec net avec un message clair, jamais un faux vert.
+  # ---------------------------------------------------------------------------
+  preuves:
+    name: preuves
+    runs-on: [self-hosted, linux, x64, thin-air-worker]
+    # Après `e2e` (lui-même après `build`) : un seul runner, un seul port 4173.
+    needs: e2e
+    timeout-minutes: 5
+    continue-on-error: false
+    env:
+      PATH: /home/baptiste/bin:/usr/local/bin:/usr/bin:/bin
+      # Aucun navigateur téléchargé pendant npm ci : le cache du runner suffit.
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
+      # Aucune sortie audio sur le runner, même si les specs tournent muettes.
+      PULSE_AUDIO: 0
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+          clean: false
+
+      - name: Nettoyage du workspace
+        run: git clean -ffdx -e node_modules
+
+      - name: Dépendances (npm ci, sans téléchargement de navigateur)
+        run: npm ci --prefer-offline --no-audit --no-fund
+
+      - name: Chromium est en cache ? (absent = échec net, pas de faux vert)
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          cache="$HOME/.cache/ms-playwright"
+          trouves=( "$cache"/chromium_headless_shell-*/chrome-headless-shell-linux*/chrome-headless_shell \
+                    "$cache"/chromium-*/chrome-linux*/chrome )
+          if [ "${#trouves[@]}" -eq 0 ]; then
+            echo "::error::Chromium absent du cache du runner ($cache)."
+            echo "Ce job n'installe rien (AIR-N-01, PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1) :"
+            echo "préparer le cache (npx playwright install chromium) puis relancer le workflow."
+            exit 1
+          fi
+          printf 'Chromium en cache : %s\n' "${trouves[@]}"
+
+      - name: Build du site (vite)
+        run: npm run build
+
+      # Specs de bout en bout : journal réseau (AIR-N-01), aucun son
+      # (--mute-audio, AIR-N-02), axe-core sur les huit écrans du §12.4.
+      # Le serveur de test reconstruit et sert le site lui-même (webServer).
+      - name: Preuves Playwright — E2E, journal réseau, axe (son coupé)
+        run: npx --no-install playwright test --config apps/web/playwright.config.ts --reporter=line
+
+      - name: Publier le journal réseau (preuve AIR-N-01)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: preuves-reseau
+          path: |
+            apps/web/out/e2e/reseau.json
+            apps/web/out/e2e/camera.json
+          if-no-files-found: error
+
+      - name: Publier le rapport axe (preuve AIR-N-06)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: preuves-axe
+          path: apps/web/out/e2e/axe-*.json
+          if-no-files-found: error

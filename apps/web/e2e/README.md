@@ -53,8 +53,10 @@ au lot vision.
 
 | Test | Preuve |
 |---|---|
-| axe × 3 écrans | axe-core (WCAG 2.0 → 2.2, A + AA) sur l'accueil, la scène et le panneau de réglages : zéro violation critique ou sérieuse **inconnue**. La violation grave connue (`listitem`, `role="status"` sur `ul.notices`) est documentée dans `docs/accessibility-report.md`. Preuves : `out/e2e/axe-*.json` |
-| parcours clavier | Tab/Shift+Tab/Enter/espace/flèches : les deux portes de l'accueil, les cinq boutons de la barre d'outils et les **neuf réglages** sont atteignables, chacun avec un nom accessible ; les flèches changent un curseur, l'espace coche une case |
+| axe × 8 écrans | axe-core (WCAG 2.0 → 2.2, A + AA) sur les huit écrans du §12.1 (accueil, scène, instruments, boucle, calibration, éditeur, physique, réglages) : **zéro violation critique ou sérieuse, sans aucune exception** — la liste blanche `GRAVES_CONNUES` a été supprimée avec le correctif `listitem` (région live déplacée sur le `div` enveloppant la liste, `ui/Notices.tsx`). Preuves : `out/e2e/axe-*.json` |
+| annonce de la note | la note en cours (`p.note`) porte `aria-live="polite"` — polie, jamais assertive ; les messages d'état sont annoncés par la région `div.notices-region[role="status"]` qui enveloppe `ul.notices`, la sémantique de liste restant intacte |
+| focus visible | l'anneau `focus-visible` (contour ≥ 2 px) est asserté sur les contrôles atteints par Tabulation |
+| parcours clavier | Tab/Shift+Tab/Enter/espace/flèches sur les huit écrans : les deux portes de l'accueil, les cinq boutons de la barre d'outils, les **neuf réglages**, le tiroir d'instruments (« Play this one », « Duplicate », « Copy the link », « Close », entrée de fichier, champ de lien), l'éditeur (`editor-scale`, `editor-root`, `editor-snap`, `editor-engine`), la boucle (tempo, groupe de mesures, « Record a layer »), la calibration (« Calibrate the play area », « Start again », « Close ») et la physique (interrupteur `aria-pressed`) sont atteignables, chacun avec un nom accessible ; les flèches changent un curseur ou une mesure, l'espace coche une case |
 | moins de mouvement | Avec `prefers-reduced-motion: reduce`, la scène expose l'état réduit (`p.reduced`, traîne et vibration des cordes coupées dans `scene/paint.ts`) ; sans la préférence, rien n'est annoncé |
 
 ### `hors-ligne.spec.ts` (AIR-F-54)
@@ -69,8 +71,10 @@ connu de chemin du wasm, ci-dessus, est indépendant du cache).
 ## Artefacts
 
 Les preuves écrites vont dans `apps/web/out/e2e/` (`out/` est ignoré par
-git) : `reseau.json`, `camera.json`, `hors-ligne.json`, `axe-accueil.json`, `axe-scene.json`,
-`axe-reglages.json`, `fixtures/fausse-camera.y4m`.
+git) : `reseau.json`, `camera.json`, `hors-ligne.json`, huit `axe-*.json` (un par écran du
+§12.1), `fixtures/fausse-camera.y4m`. Le job CI `preuves`
+(`.github/workflows/build.yml`) les publie en artefacts `preuves-reseau` et
+`preuves-axe`.
 
 Ces specs ne sont pas ramassées par Vitest : `vitest.config.ts` exclut
 `apps/web/e2e/**` et n'inclut que les `*.test.ts(x)` sous `src/`.
