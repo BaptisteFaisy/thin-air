@@ -1,0 +1,14 @@
+{
+  "format": "thin-air-instrument/1",
+  "name": "Glass Harp",
+  "pointer": "index",
+  "scale": { "root": 62, "steps": [0, 2, 4, 6, 8, 10] },
+  "strings": { "count": 12, "axis": "u" },
+  "snap": 1,
+  "voices": 6,
+  "gestures": [
+    { "hand": "any", "gesture": "cross", "do": "pluck", "velocity": "speed" },
+    { "hand": "any", "gesture": "pinch", "do": "damp" }
+  ],
+  "sound": { "engine": "pluck", "decay": 0.9975, "brightness": { "feature": "v", "into": [0.3, 0.95] } }
+}
