@@ -19,3 +19,5 @@ export * from "./recorder.js";
 export * from "./pointer.js";
 export * from "./virtual-hand.js";
 export * from "./replay.js";
+export * from "./worker/protocol.js";
+export * from "./worker/host.js";
