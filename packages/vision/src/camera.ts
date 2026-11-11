@@ -3,34 +3,32 @@
  * caméra frontale, SANS audio. Chaque image nouvelle est analysée une fois et
  * une seule (AIR-F-03), sur `requestVideoFrameCallback` quand il existe.
  * La caméra ne démarre qu'après le clic « Start » (AIR-F-01).
+ *
+ * Ce fichier est la façade du squelette : l'implémentation est découpée en
+ * `capture.ts` (contraintes, erreurs, ouverture) et `camera-source.ts`
+ * (la source et son environnement injectable), pour rester sous les limites de
+ * taille et garder la logique testable hors DOM.
  */
-import type { HandSource } from "./source.js";
-import { todo } from "@thin-air/core/internal";
-
-export interface CameraOptions {
-  readonly width?: number;
-  readonly height?: number;
-  readonly frameRateIdeal?: number;
-  readonly frameRateMin?: number;
-  readonly facingMode?: "user" | "environment";
-  readonly onStats?: (stats: { readonly frameIntervalMs: number; readonly inferenceMs: number }) => void;
-  /** Aucune main pendant trois secondes alors que l'image change (AIR-F-06). */
-  readonly onNoHands?: (seconds: number) => void;
-}
-
-export function createCameraSource(video: HTMLVideoElement, options?: CameraOptions): HandSource {
-  void video; void options;
-  return todo("vision.createCameraSource", "A5");
-}
-
-/** Demande la caméra sans audio ; lève une erreur lisible si refusée. */
-export async function openCamera(video: HTMLVideoElement, options?: CameraOptions): Promise<void> {
-  void video; void options;
-  return todo("vision.openCamera", "A5");
-}
-
-/** `requestVideoFrameCallback` existe-t-il ici ? (À vérifier par navigateur.) */
-export function hasVideoFrameCallback(video: HTMLVideoElement): boolean {
-  void video;
-  return todo("vision.hasVideoFrameCallback", "A5");
-}
+export type {
+  CameraEnvironment,
+  CameraOptions,
+  CameraSource,
+  CameraState,
+  CameraStats,
+  FramePresenter,
+} from "./camera-source.js";
+export {
+  createCameraSource,
+  defaultCameraEnvironment,
+  isNewFrame,
+  presentFramesDefault,
+} from "./camera-source.js";
+export type { CaptureErrorKind, CaptureOptions } from "./capture.js";
+export {
+  CaptureError,
+  cameraConstraints,
+  captureErrorFor,
+  hasVideoFrameCallback,
+  openCamera,
+  stopStream,
+} from "./capture.js";
