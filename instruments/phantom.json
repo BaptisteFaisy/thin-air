@@ -1,0 +1,29 @@
+{
+  "format": "thin-air-instrument/1",
+  "name": "Phantom",
+  "pointer": "palm",
+  "scale": { "root": 50, "steps": [0, 2, 3, 5, 7, 8, 11] },
+  "range": { "low": 45, "high": 81 },
+  "snap": 0.6,
+  "voices": 1,
+  "controls": [
+    { "hand": "pitch", "feature": "u", "to": "pitch" },
+    { "hand": "volume", "feature": "v", "to": "gain", "curve": "db48" },
+    { "hand": "pitch", "feature": "pinch", "to": "vibrato", "from": [0.4, 0.1], "into": [0, 40] }
+  ],
+  "gestures": [
+    { "hand": "volume", "gesture": "fist", "do": "mute" }
+  ],
+  "oneHand": [
+    { "feature": "u", "to": "pitch" },
+    { "feature": "open", "to": "gain", "curve": "db48" }
+  ],
+  "sound": {
+    "engine": "osc",
+    "wave": "sine",
+    "second": 0.15,
+    "attackMs": 60,
+    "releaseMs": 250,
+    "glideMs": 30
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "format": "thin-air-instrument/1",
+  "name": "Drone",
+  "pointer": "palm",
+  "scale": { "root": 33, "steps": [0, 3, 7, 10] },
+  "range": { "low": 33, "high": 44 },
+  "snap": 1,
+  "voices": 2,
+  "controls": [
+    { "feature": "u", "to": "pitch" }
+  ],
+  "sound": {
+    "engine": "osc",
+    "wave": "sawtooth",
+    "detuneCents": 5,
+    "attackMs": 500,
+    "releaseMs": 800
+  }
+}
