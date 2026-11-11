@@ -163,11 +163,6 @@ jobs:
       - name: Dépendances
         run: npm ci --prefer-offline --no-audit --no-fund
 
-      - name: Modèle et build
-        run: |
-          npm run fetch-model
-          npm run build
-
       - name: Playwright est-il là ? (sinon on s'arrête, sans rien installer)
         id: sonde
         run: |
@@ -179,6 +174,13 @@ jobs:
             echo "present=0" >> "$GITHUB_OUTPUT"
             echo "Playwright absent : E2E sauté (le dépôt n'ajoute aucune dépendance pour lui)."
           fi
+
+      # Inutile de construire si aucun navigateur ne pourra ouvrir la page.
+      - name: Modèle et build
+        if: steps.sonde.outputs.present == '1'
+        run: |
+          npm run fetch-model
+          npm run build
 
       # Le navigateur de test est lancé sans écran et avec le son coupé
       # (AIR-N-02, AIR-N-10). Aucune caméra réelle : l'E2E de référence utilise
