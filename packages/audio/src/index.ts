@@ -8,8 +8,14 @@
  *    jeu direct. Les voix y sont les mêmes classes, échantillon par
  *    échantillon, pour qu'un rendu mesuré dise ce que l'on entend.
  */
-export * from "./dsp/voice.js";
+export * from "./dsp/tuning.js";
 export * from "./dsp/engines.js";
+export * from "./dsp/engine.js";
+export * from "./dsp/osc.js";
+export * from "./dsp/pluck.js";
+export * from "./dsp/fm.js";
+export * from "./dsp/drum.js";
+export * from "./dsp/voice.js";
 export * from "./dsp/reverb.js";
 export * from "./dsp/limiter.js";
 export * from "./offline/render.js";
