@@ -42,7 +42,10 @@ const NAVIGATEURS = new Set([
 /** Options qui coupent le son d'un navigateur de test. */
 const SILENCE = ["--mute-audio", "--mute", "muteAudio", "\"mute\": true", "mute: true"];
 /** Options ou variables qui donnent un écran à un navigateur de test. */
-const ECRAN = ["--headed", "headless: false", "headless:false", "HEADLESS=0", "--no-headless", "headful"];
+const ECRAN = [
+  "--headed", "headless: false", "headless:false", '"headless": false', '"headless":false',
+  "HEADLESS=0", "--no-headless", "headful",
+];
 
 function jetons(commande) {
   return commande
