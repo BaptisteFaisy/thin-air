@@ -153,7 +153,10 @@ export function quantize(
   const step = gridStepSeconds(grid, tempo);
   const force = Number.isFinite(strength) ? Math.min(Math.max(strength, 0), 1) : 0;
   if (step <= 0 || force === 0) return events.map((event) => withTime(event, event.t));
-  void beatsPerBar;
+  // `beatsPerBar` ne change pas la grille : croche et double croche sont des
+  // divisions du temps, pas de la mesure. Il reste dans la signature parce que
+  // l'appelant raisonne en mesures, et pour que la grille puisse un jour être
+  // alignée sur la mesure sans changer d'appel.
   const ordonnes = sortByTimeStable(events);
   const shifts = attackShifts(ordonnes, step, force);
   const cales = ordonnes.map((event) =>
