@@ -57,10 +57,19 @@ au lot vision.
 | parcours clavier | Tab/Shift+Tab/Enter/espace/flèches : les deux portes de l'accueil, les cinq boutons de la barre d'outils et les **neuf réglages** sont atteignables, chacun avec un nom accessible ; les flèches changent un curseur, l'espace coche une case |
 | moins de mouvement | Avec `prefers-reduced-motion: reduce`, la scène expose l'état réduit (`p.reduced`, traîne et vibration des cordes coupées dans `scene/paint.ts`) ; sans la préférence, rien n'est annoncé |
 
+### `hors-ligne.spec.ts` (AIR-F-54)
+
+| Test | Preuve |
+|---|---|
+| après une première visite, tout redémarre sans réseau | Site servi sous `/thin-air/` : le worker s'installe (scope vérifié), un rechargement en ligne met la coquille et les assets en cache pendant que le modèle et son wasm sont préchauffés en arrière-plan ; puis `context.setOffline(true)` (coupure au niveau du navigateur), rechargement : la page redémarre, le jeu au pointeur fonctionne, et le modèle (7 819 105 o) comme le wasm (14 603 354 o) sont lus **en entier depuis le cache** — prouvé par l'en-tête `x-thin-air-source: cache` posé par le worker. Journal réseau : aucune requête hors de l'origine (AIR-N-01). Écrit `apps/web/out/e2e/hors-ligne.json`. Détails et invalidation : `docs/hors-ligne.md` |
+
+Ce que la spec ne prouve pas : la détection de mains hors ligne (le défaut
+connu de chemin du wasm, ci-dessus, est indépendant du cache).
+
 ## Artefacts
 
 Les preuves écrites vont dans `apps/web/out/e2e/` (`out/` est ignoré par
-git) : `reseau.json`, `camera.json`, `axe-accueil.json`, `axe-scene.json`,
+git) : `reseau.json`, `camera.json`, `hors-ligne.json`, `axe-accueil.json`, `axe-scene.json`,
 `axe-reglages.json`, `fixtures/fausse-camera.y4m`.
 
 Ces specs ne sont pas ramassées par Vitest : `vitest.config.ts` exclut

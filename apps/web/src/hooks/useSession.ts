@@ -18,6 +18,8 @@ import type { HandInput } from "../scene/geometry.js";
  * en développement. Un chemin absolu casserait la page publiée (§11.9).
  */
 const base = import.meta.env.BASE_URL.endsWith("/") ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
+/** La racine du site, avec sa barre finale : sers aussi au service worker (`lib/offline.ts`). */
+export const RACINE_SITE = base;
 export const MODEL_URL = `${base}models/hand_landmarker.task`;
 export const WASM_ROOT = `${base}models/wasm`;
 
