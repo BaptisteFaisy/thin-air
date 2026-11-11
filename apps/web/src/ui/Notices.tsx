@@ -1,6 +1,9 @@
 /**
  * Les messages d'état (cahier §12.2) : un seul endroit les rend, dans l'ordre
- * donné par `notices()`. Le lecteur d'écran les annonce par `aria-live`.
+ * donné par `notices()`. La région annoncée par le lecteur d'écran
+ * (`role="status"`, `aria-live` poli) porte sur le `div` enveloppant : la
+ * liste garde sa sémantique implicite, et chaque message reste un `li` d'une
+ * vraie liste (WCAG 1.3.1, règle axe `listitem`).
  */
 import type { JSX } from "react";
 import type { Messages } from "../i18n/index.js";
@@ -49,17 +52,19 @@ function texte(m: Messages, id: NoticeId, state: UiState, rejectionReason: strin
 
 export function Notices({ m, state, ids, rejectionReason, onResumeAudio }: NoticesProps): JSX.Element {
   return (
-    <ul className="notices" aria-live="polite" role="status">
-      {ids.map((id) => (
-        <li key={id} className={`notice notice-${id}`}>
-          <span>{texte(m, id, state, rejectionReason)}</span>
-          {id === "audioSuspended" ? (
-            <button type="button" onClick={onResumeAudio}>
-              {m.stage.resume}
-            </button>
-          ) : null}
-        </li>
-      ))}
-    </ul>
+    <div className="notices-region" role="status" aria-live="polite">
+      <ul className="notices">
+        {ids.map((id) => (
+          <li key={id} className={`notice notice-${id}`}>
+            <span>{texte(m, id, state, rejectionReason)}</span>
+            {id === "audioSuspended" ? (
+              <button type="button" onClick={onResumeAudio}>
+                {m.stage.resume}
+              </button>
+            ) : null}
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
