@@ -1,0 +1,53 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "No sound: the agent never plays audio or touches the volume",
+      "trigger": "PreToolUse",
+      "matcher": "shell",
+      "action": { "type": "command", "command": "node scripts/hooks/no-sound-guard.mjs" }
+    },
+    {
+      "name": "Core properties: AIR-P-01 to 12",
+      "trigger": "PostFileWrite",
+      "matcher": ["packages/core/**"],
+      "action": { "type": "command", "command": "node scripts/hooks/core-properties.mjs" }
+    },
+    {
+      "name": "Render check: reference takes through the bench",
+      "trigger": "PostFileWrite",
+      "matcher": ["packages/audio/**", "instruments/**"],
+      "action": { "type": "command", "command": "node scripts/hooks/render-check.mjs" }
+    },
+    {
+      "name": "Instrument schema: every instrument file is valid",
+      "trigger": "PostFileWrite",
+      "matcher": ["instruments/**"],
+      "action": { "type": "command", "command": "node scripts/hooks/instrument-schema-guard.mjs" }
+    },
+    {
+      "name": "Take privacy: a take contains points and nothing else",
+      "trigger": "PostFileWrite",
+      "matcher": ["takes/**"],
+      "action": { "type": "command", "command": "node scripts/hooks/take-privacy-guard.mjs" }
+    },
+    {
+      "name": "No audio asset: everything is synthesised",
+      "trigger": "PostFileWrite",
+      "matcher": ["**/*"],
+      "action": { "type": "command", "command": "node scripts/hooks/no-audio-asset-guard.mjs" }
+    },
+    {
+      "name": "Wording: the vocabulary of §5.4",
+      "trigger": "PostFileWrite",
+      "matcher": ["apps/web/**"],
+      "action": { "type": "command", "command": "node scripts/hooks/wording-guard.mjs" }
+    },
+    {
+      "name": "Journal reminder: after a spec task, log it",
+      "trigger": "PostSpecTask",
+      "matcher": [],
+      "action": { "type": "command", "command": "node scripts/hooks/journal-reminder.mjs" }
+    }
+  ]
+}
