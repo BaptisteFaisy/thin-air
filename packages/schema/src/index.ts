@@ -5,6 +5,7 @@
  */
 export * from "./instrument.js";
 export * from "./take.js";
+export * from "./take-fragment.js";
 export * from "./session.js";
 export * from "./vocab.js";
 export { parseWith, type ParseErr, type ParseOk, type ParseResult } from "./common.js";
