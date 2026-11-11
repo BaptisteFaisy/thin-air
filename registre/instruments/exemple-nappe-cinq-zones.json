@@ -1,0 +1,30 @@
+{
+  "format": "thin-air-instrument/1",
+  "name": "Vigil",
+  "pointer": "palm",
+  "scale": { "root": 50, "steps": [0, 2, 3, 5, 7, 8, 11] },
+  "zones": {
+    "zones": [
+      { "id": "a", "u0": 0.00, "u1": 0.34, "v0": 0.5, "v1": 1.0, "degree": 0 },
+      { "id": "b", "u0": 0.33, "u1": 0.67, "v0": 0.5, "v1": 1.0, "degree": 2 },
+      { "id": "c", "u0": 0.66, "u1": 1.00, "v0": 0.5, "v1": 1.0, "degree": 4 },
+      { "id": "d", "u0": 0.00, "u1": 0.50, "v0": 0.0, "v1": 0.5, "degree": 7 },
+      { "id": "e", "u0": 0.50, "u1": 1.00, "v0": 0.0, "v1": 0.5, "degree": 9 }
+    ]
+  },
+  "snap": 1,
+  "voices": 4,
+  "controls": [
+    { "hand": "pitch", "feature": "open", "to": "cutoff", "from": [0, 1], "into": [0.15, 0.9] }
+  ],
+  "gestures": [
+    { "hand": "any", "gesture": "enter", "do": "hold" },
+    { "hand": "any", "gesture": "leave", "do": "hold" },
+    { "hand": "any", "gesture": "dwell", "do": "hold" },
+    { "hand": "volume", "gesture": "fist", "do": "mute" }
+  ],
+  "oneHand": [
+    { "feature": "open", "to": "gain", "curve": "db48" }
+  ],
+  "sound": { "engine": "osc", "wave": "sawtooth", "detuneCents": 9, "attackMs": 400, "releaseMs": 900, "glideMs": 60 }
+}
