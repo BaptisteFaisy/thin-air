@@ -12,7 +12,14 @@ import { reduceUi, initialUiState, type UiEvent, type UiState } from "../state/m
 import { createEngine, type Engine } from "../lib/engine.js";
 import type { HandInput } from "../scene/geometry.js";
 
-export const MODEL_URL = "/models/hand_landmarker.task";
+/**
+ * Chemin du modèle et de ses fichiers d'exécution, RELATIFS à la racine du
+ * site : `import.meta.env.BASE_URL` vaut `/thin-air/` sur GitHub Pages et `/`
+ * en développement. Un chemin absolu casserait la page publiée (§11.9).
+ */
+const base = import.meta.env.BASE_URL.endsWith("/") ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
+export const MODEL_URL = `${base}models/hand_landmarker.task`;
+export const WASM_ROOT = `${base}models/wasm`;
 
 export interface SessionApi {
   readonly rectRef: { current: PlayRect };

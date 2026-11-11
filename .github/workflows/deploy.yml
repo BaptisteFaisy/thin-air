@@ -1,0 +1,80 @@
+name: deploy
+
+# Publication du site (AIR-N-13 : HTTPS, gratuit, en ligne jusqu'au
+# 29 janvier 2027 au moins). GitHub Pages est retenu parce qu'il ne demande ni
+# compte tiers ni carte : le dépôt est public, la page suit le dépôt.
+#
+# Hors PR, comme `build.yml` : la règle du projet est un verdict en 5 min sur
+# les PR, et une publication ne prouve rien sur une PR.
+#
+# Deux contrôles avant de publier, les mêmes que `build.yml` :
+#   AIR-N-01  aucune requête vers une origine tierce dans le bundle construit ;
+#   AIR-F-25  aucun fichier sonore publié.
+# Le modèle de vision et ses fichiers d'exécution sont téléchargés puis copiés
+# par `npm run fetch-model` : ils sont servis par le site lui-même, jamais par
+# un tiers, et ne sont pas versionnés (7,8 Mo).
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    name: build
+    runs-on: [self-hosted, linux, x64, thin-air-worker]
+    timeout-minutes: 5
+    env:
+      PATH: /home/baptiste/bin:/usr/local/bin:/usr/bin:/bin
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+          clean: false
+
+      - name: Nettoyage du workspace (node_modules et public/models conservés)
+        run: git clean -ffdx -e node_modules -e public/models
+
+      - name: Dépendances
+        run: npm ci --prefer-offline --no-audit --no-fund
+
+      - name: Modèle de vision et fichiers d'exécution (servis par le site)
+        run: npm run fetch-model
+
+      - name: Build du site
+        run: npm run build
+
+      - name: AIR-N-01 et AIR-F-25 — bundle contrôlé avant publication
+        run: node scripts/check-dist.mjs
+
+      - name: Fichiers publiés
+        run: find apps/web/dist -type f
+
+      - name: Préparer l'artefact Pages
+        uses: actions/configure-pages@v5
+
+      - name: Téléverser le site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/web/dist
+
+  deploy:
+    name: deploy
+    needs: build
+    runs-on: [self-hosted, linux, x64, thin-air-worker]
+    timeout-minutes: 5
+    environment:
+      name: github-pages
+      url: ${{ steps.publication.outputs.page_url }}
+    steps:
+      - id: publication
+        uses: actions/deploy-pages@v4

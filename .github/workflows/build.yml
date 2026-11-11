@@ -69,58 +69,12 @@ jobs:
       - name: Build du site (vite)
         run: npm run build
 
-      # Contrôle (a) : aucune requête vers une origine tierce dans le bundle.
-      # On cherche les URL absolues, moins une liste courte et justifiée de
-      # chaînes qui ne sont jamais requêtées : espaces de noms du DOM/SVG, et
-      # l'adresse de documentation que React met dans ses messages d'erreur.
-      - name: Contrôle A — aucune origine tierce dans apps/web/dist
-        run: |
-          set -euo pipefail
-          if [ ! -d apps/web/dist ]; then
-            echo "::error::apps/web/dist absent : le build n'a rien produit"
-            exit 1
-          fi
-          # Fichiers texte du bundle uniquement (le modèle est binaire).
-          mapfile -t FICHIERS < <(find apps/web/dist -type f \
-            \( -name '*.html' -o -name '*.js' -o -name '*.mjs' -o -name '*.css' -o -name '*.map' \))
-          if [ "${#FICHIERS[@]}" -eq 0 ]; then
-            echo "::error::aucun fichier texte dans apps/web/dist"
-            exit 1
-          fi
-          # URL absolues, une par ligne, dédoublonnées.
-          URLS=$(grep -hoE 'https?://[A-Za-z0-9._~:/?#@!$&*+,;=%-]+' "${FICHIERS[@]}" \
-                 | sed 's/[.,;)]*$//' | sort -u || true)
-          echo "URL absolues trouvées : $(printf '%s\n' "$URLS" | grep -c . || true)"
-          # Liste d'exceptions, chacune justifiée : jamais une requête émise.
-          #   http://www.w3.org/**        espaces de noms XML/SVG/MathML
-          #   https://react.dev/errors/  aide en ligne citée dans un message
-          #   https://reactjs.org/       idem, anciennes versions
-          #   https://opensource.org/**  identifiants de licence en commentaire
-          #   https://choosealicense.com identifiant de licence en commentaire
-          TIERCES=$(printf '%s\n' "$URLS" | grep -vE '^(https?://www\.w3\.org/|https://react\.dev/errors/|https://reactjs\.org/|https://opensource\.org/|https://choosealicense\.com/)' || true)
-          if [ -n "${TIERCES//[[:space:]]/}" ]; then
-            echo "::error::origine tierce détectée dans le bundle (AIR-N-01) :"
-            printf '%s\n' "$TIERCES" | sed 's/^/  - /'
-            echo "Le modèle et ses fichiers d'exécution doivent être servis par le site (§11.9)."
-            exit 1
-          fi
-          echo "aucune origine tierce : le site se suffit à lui-même"
+      # Contrôles (a) et (b) : aucune origine tierce (AIR-N-01) et aucun
+      # fichier sonore (AIR-F-25). Une seule implémentation, partagée avec
+      # `deploy.yml` : `scripts/check-dist.mjs`.
+      - name: Contrôle du site construit
+        run: node scripts/check-dist.mjs
 
-      # Contrôle (b) : aucun fichier sonore dans le site publié.
-      - name: Contrôle B — aucun fichier sonore dans apps/web/dist
-        run: |
-          set -euo pipefail
-          SONORES=$(find apps/web/dist -type f \
-            \( -iname '*.wav' -o -iname '*.mp3' -o -iname '*.ogg' -o -iname '*.flac' -o -iname '*.m4a' \) || true)
-          if [ -n "$SONORES" ]; then
-            echo "::error::fichier sonore dans le site publié (AIR-F-25) : tout doit être synthétisé"
-            printf '%s\n' "$SONORES" | sed 's/^/  - /'
-            exit 1
-          fi
-          echo "aucun fichier sonore dans apps/web/dist"
-
-      # Constat, non bloquant : le dossier servi du modèle dépend du `publicDir`
-      # de Vite. Un avertissement explicite vaut mieux qu'un site muet publié.
       - name: Constat — le modèle est-il dans le dossier publié ?
         run: |
           set -euo pipefail
