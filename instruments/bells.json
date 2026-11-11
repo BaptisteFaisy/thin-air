@@ -1,0 +1,26 @@
+{
+  "format": "thin-air-instrument/1",
+  "name": "Bells",
+  "pointer": "palm",
+  "scale": { "root": 50, "steps": [0, 2, 3, 5, 7, 8, 11] },
+  "zones": {
+    "zones": [
+      { "id": "b0", "u0": 0, "u1": 1, "v0": 0, "v1": 0.25, "degree": 0 },
+      { "id": "b1", "u0": 0, "u1": 1, "v0": 0.25, "v1": 0.5, "degree": 2 },
+      { "id": "b2", "u0": 0, "u1": 1, "v0": 0.5, "v1": 0.75, "degree": 4 },
+      { "id": "b3", "u0": 0, "u1": 1, "v0": 0.75, "v1": 1, "degree": 6 }
+    ]
+  },
+  "snap": 1,
+  "voices": 4,
+  "gestures": [
+    { "hand": "any", "gesture": "cross", "do": "strike" }
+  ],
+  "sound": {
+    "engine": "fm",
+    "fmRatio": 3.5,
+    "fmIndex": 4,
+    "attackMs": 2,
+    "releaseMs": 3000
+  }
+}
