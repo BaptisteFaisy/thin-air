@@ -193,15 +193,27 @@ describe("instrument — AIR-P-10, 11, 12", () => {
     );
   });
 
-  it("les instants ne décroissent jamais et ne précèdent pas l'image (AIR-P-11)", () => {
+  it("les instants ne décroissent jamais et respectent la causalité (AIR-P-11)", () => {
     fc.assert(
       fc.property(fc.constantFrom(...INSTRUMENTS), genImages(20), (instrument, images) => {
         const joueur = new InstrumentPlayer(instrument, reglages());
         let precedent = -Infinity;
+        const debutVoix = new Map<string, number>();
         for (const image of images) {
           for (const e of joueur.frame(image.t, image.hands, image.gestures)) {
+            // (a) Le flux ne remonte jamais le temps.
             expect(e.t).toBeGreaterThanOrEqual(precedent);
-            expect(e.t).toBeGreaterThanOrEqual(image.t - 1e-9);
+            expect(e.t).toBeGreaterThanOrEqual(0);
+            // (b) Causalité : un événement n'est jamais daté avant le noteOn qui
+            // l'a causé. Il peut en revanche être daté AVANT l'image qui le
+            // rattrape : une extinction programmée à l'avance (§7.9, règle 2)
+            // était due, et la dater à l'instant prévu est précisément ce qui
+            // rend le rythme juste. Exiger `e.t >= image.t` serait faux.
+            if (e.type === "noteOn") debutVoix.set(e.voice, e.t);
+            else {
+              const debut = debutVoix.get(e.voice);
+              if (debut !== undefined) expect(e.t).toBeGreaterThanOrEqual(debut - 1e-9);
+            }
             precedent = e.t;
           }
         }
