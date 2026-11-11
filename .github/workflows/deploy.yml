@@ -34,6 +34,10 @@ jobs:
     timeout-minutes: 5
     env:
       PATH: /home/baptiste/bin:/usr/local/bin:/usr/bin:/bin
+      # Playwright est une dépendance de développement pour les preuves de bout
+      # en bout, qui tournent sur le poste et non dans la CI des PR : sans cet
+      # arrêt, `npm ci` télécharge les navigateurs et le budget de 5 min saute.
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
     steps:
       - uses: actions/checkout@v4
         with:
