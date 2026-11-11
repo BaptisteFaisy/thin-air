@@ -14,6 +14,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import type { Take } from "@thin-air/core";
+import { compactTakeJson } from "@thin-air/schema";
 
 import { REFERENCE_TAKES, REFERENCE_TAKE_NAMES } from "./takes.js";
 import type { ReferenceTakeSpec } from "./takes.js";
@@ -49,7 +50,9 @@ function options(argv: readonly string[]): Options {
 }
 
 function serialise(take: Take): string {
-  return `${JSON.stringify(take, null, 1)}\n`;
+  // Écriture compacte : `JSON.stringify` brut triple le poids d'une prise
+  // (flottants à 17 chiffres) et s'éloigne de l'estimation du cahier §7.11.
+  return compactTakeJson(take);
 }
 
 function cheminDe(dir: string, spec: ReferenceTakeSpec): string {
