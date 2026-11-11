@@ -1,0 +1,19 @@
+{
+  "comment": "Budget = minimum chaud × 1,25, arrondi au supérieur (ligne « mesuresInitialesMs » conservée). Révise avec `node scripts/perf-budget.mjs --etalonner` sur la machine cible au repos.",
+  "version": 1,
+  "reference": {
+    "dureeS": 3,
+    "fps": 30,
+    "sampleRate": 48000,
+    "instrument": "phantom"
+  },
+  "marge": 0.25,
+  "budgetMs": {
+    "processTake": 2,
+    "renderEvents": 48
+  },
+  "mesuresInitialesMs": {
+    "processTake": 0.697,
+    "renderEvents": 37.632
+  }
+}
