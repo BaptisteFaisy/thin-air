@@ -1,0 +1,25 @@
+{
+  "format": "thin-air-instrument/1",
+  "name": "Grid drums",
+  "pointer": "palm",
+  "scale": { "root": 36, "steps": [0, 2, 3, 5, 7, 8, 10] },
+  "zones": {
+    "zones": [
+      { "id": "d0", "u0": 0, "u1": 0.5, "v0": 0, "v1": 0.5, "degree": 0 },
+      { "id": "d1", "u0": 0.5, "u1": 1, "v0": 0, "v1": 0.5, "degree": 2 },
+      { "id": "d2", "u0": 0, "u1": 0.5, "v0": 0.5, "v1": 1, "degree": 4 },
+      { "id": "d3", "u0": 0.5, "u1": 1, "v0": 0.5, "v1": 1, "degree": 6 }
+    ]
+  },
+  "snap": 1,
+  "voices": 4,
+  "gestures": [
+    { "hand": "any", "gesture": "cross", "do": "strike", "velocity": "speed" }
+  ],
+  "defaults": { "quantize": "sixteenth", "quantizeStrength": 100 },
+  "sound": {
+    "engine": "drum",
+    "noiseMs": 120,
+    "toneHz": 180
+  }
+}

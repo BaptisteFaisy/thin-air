@@ -1,0 +1,18 @@
+{
+  "format": "thin-air-instrument/1",
+  "name": "Harp",
+  "pointer": "index",
+  "scale": { "root": 50, "steps": [0, 3, 5, 7, 10] },
+  "strings": { "count": 16, "axis": "u" },
+  "snap": 1,
+  "voices": 8,
+  "gestures": [
+    { "hand": "any", "gesture": "cross", "do": "pluck", "velocity": "speed" },
+    { "hand": "any", "gesture": "pinch", "do": "damp" }
+  ],
+  "sound": {
+    "engine": "pluck",
+    "decay": 0.996,
+    "brightness": { "feature": "v", "into": [0.2, 0.9] }
+  }
+}
