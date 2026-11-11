@@ -2,7 +2,10 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./App.js";
+import { enregistrerServiceWorker } from "./lib/offline.js";
 import "./styles.css";
+
+enregistrerServiceWorker();
 
 const cible = document.getElementById("root");
 if (cible !== null) {
