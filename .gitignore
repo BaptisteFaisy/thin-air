@@ -13,3 +13,8 @@ public/models/
 *.ogg
 *.flac
 *.m4a
+
+# Les prises RÉELLES sont des données corporelles (§7.11, lot N7) :
+# elles restent sur l'appareil, jamais versionnées. Seul le harnais
+# (scripts, docs, tests) l'est ; voir docs/prises-reelles.md.
+takes/real/
