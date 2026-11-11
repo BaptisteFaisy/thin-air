@@ -7,8 +7,16 @@ import type { JSX } from "react";
 import { useSeance } from "./hooks/useSeance.js";
 import { Home } from "./ui/Home.js";
 import { SeanceView } from "./ui/Seance.js";
+import { RealTakePage } from "./ui/RealTake.js";
+
+/** Route `?record=1` : le mode « prise réelle » du lot N7 (annexe D). */
+function recordMode(): boolean {
+  if (typeof window === "undefined") return false;
+  return new URLSearchParams(window.location.search).get("record") === "1";
+}
 
 export function App(): JSX.Element {
+  if (recordMode()) return <RealTakePage />;
   const seance = useSeance();
   const { session, m } = seance;
   if (session.state.phase === "idle") {
