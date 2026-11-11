@@ -1,0 +1,100 @@
+name: Nocturne — fuzz long et budget de performance
+
+# Gardes de nuit du moteur (lot t6) : une preuve longue qui cherche des
+# contre-exemples, et un budget de performance qui rougit si le moteur ralentit.
+# Déclenché UNIQUEMENT la nuit (cron) ou à la main (workflow_dispatch) : jamais
+# sur pull_request, pour ne pas mordre sur le budget CI de 5 min des PR
+# (règle user 2026-10-24, garde `ci-budget/check_timeouts.py`).
+#
+# AIR-N-02 : aucun test n'émet de son — tout tourne hors ligne, dans des
+# tableaux d'échantillons, sans périphérique audio (le même chemin que `ci.yml`).
+on:
+  schedule:
+    # 02:17 UTC = 03:17 Europe/Paris (heure d'hiver), au creux de la nuit.
+    - cron: "17 2 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: nocturne-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  fuzz:
+    name: fuzz
+    runs-on: [self-hosted, linux, x64, thin-air-worker]
+    timeout-minutes: 5
+    env:
+      PATH: /home/baptiste/bin:/usr/local/bin:/usr/bin:/bin
+      # Jamais de téléchargement de navigateurs sur ce runner : le fuzz est pur
+      # Node, aucune dépendance Playwright n'est nécessaire.
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
+      PULSE_AUDIO: 0
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      # Runner persistant : nettoyer un éventuel reste d'un run précédent
+      # (comme `ci.yml`), en conservant `node_modules` qui sera régénéré.
+      - name: Nettoyage du workspace
+        run: git clean -ffdx -e node_modules
+
+      - name: Dépendances (npm ci, hors ligne au maximum)
+        run: npm ci --prefer-offline --no-audit --no-fund
+
+      # 6000 prises : mesuré à ~106 s sur le worker de référence (5000 prises en
+      # ~97 s, 6000 en ~106 s). Même à ×2 de ralentissement on reste sous le
+      # timeout de 5 min (212 s << 300 s). La graine suit le numéro de run pour
+      # que chaque nuit soit différente ; le contre-exemple, lui, porte la graine
+      # exacte de la prise fautive (reproductible avec `--seed <graine>`).
+      - name: Fuzz — 6000 prises aléatoires, aucune oreille
+        run: node scripts/fuzz.mjs --runs 6000 --seed ${{ github.run_number }}
+
+      - name: Publier les contre-exemples éventuels
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: contrexemples-fuzz
+          path: out/fuzz/
+          if-no-files-found: ignore
+          retention-days: 14
+
+  perf:
+    name: perf
+    runs-on: [self-hosted, linux, x64, thin-air-worker]
+    timeout-minutes: 5
+    env:
+      PATH: /home/baptiste/bin:/usr/local/bin:/usr/bin:/bin
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
+      PULSE_AUDIO: 0
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Nettoyage du workspace
+        run: git clean -ffdx -e node_modules
+
+      - name: Dépendances (npm ci, hors ligne au maximum)
+        run: npm ci --prefer-offline --no-audit --no-fund
+
+      # Rendu hors ligne de la prise de référence comparé au budget versionné
+      # (`perf-budget.json`), marge de 25 %. Sort non nul si le budget est
+      # dépassé : la garde « rougit » et les mesures brutes sont publiées.
+      - name: Budget de performance (processTake + renderEvents)
+        run: node scripts/perf-budget.mjs
+
+      - name: Publier les mesures brutes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mesures-perf
+          path: out/perf/
+          if-no-files-found: ignore
+          retention-days: 14
