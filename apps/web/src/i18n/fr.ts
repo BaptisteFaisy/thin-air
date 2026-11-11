@@ -88,6 +88,7 @@ export const fr: Messages = {
     editing: "En cours de modification",
     importFile: "Ouvrir un fichier",
     importHint: "Un fichier d'instrument, validé avant de remplacer celui en cours.",
+    emptyMine: "Aucun instrument à toi pour l'heure. Duplique-en un pour commencer.",
     rejected: (reason: string) => `Ce fichier a été refusé : ${reason}`,
     accepted: (name: string) => `${name} est maintenant l'instrument.`,
     reasons: {
