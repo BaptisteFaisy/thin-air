@@ -21,18 +21,21 @@ describe("ponts vers les moteurs des autres lots", () => {
     engine.close();
   });
 
-  it("la chaîne de suivi rend une liste vide tant que les corps manquent", () => {
+  it("la chaîne de suivi est en place et ne produit rien sans main", () => {
+    // Le lot B2 est livré : la chaîne répond. Sans main, aucun événement — et
+    // surtout aucune voix laissée en cours (AIR-P-09).
     const suivi = createTracking(PHANTOM, DEFAULT_SETTINGS, defaultPlayRect());
-    expect(suivi.ready).toBe(false);
+    expect(suivi.ready).toBe(true);
     expect(suivi.push(0, [])).toEqual([]);
     expect(suivi.stall(0)).toEqual([]);
     expect(suivi.end(0)).toEqual([]);
     expect(suivi.currentMidi()).toBeNull();
   });
 
-  it.todo("AIR-P-13 — la sortie reste sous le plafond de −1 dB — dépend du lot A5 (audio)");
-  it.todo("AIR-P-14 — le volume général suit −12 dB par défaut — dépend du lot A5 (audio)");
-  it.todo("AIR-F-03 — une image n'est analysée qu'une fois — dépend du lot B5 (vision)");
-  it.todo("AIR-F-50 — le fantôme rejoue une prise enregistrée — dépend du lot B5 (takes)");
-  it.todo("AIR-P-17 — la boucle rejoue ses couches sur le temps — dépend du lot A3 (loop)");
+  // Les propriétés ci-dessous sont prouvées là où vit leur logique, et non ici :
+  //   AIR-P-13 (plafond −1 dB) et AIR-P-14 (−12 dB) → packages/audio/src/offline
+  //   AIR-P-17 (boucle et compensation)              → packages/core/src/loop.test.ts
+  //   AIR-F-03 (une image, une analyse) et AIR-F-50  → packages/vision/src
+  it.todo("AIR-F-03 — une image analysée une seule fois : demande un navigateur (E2E)");
+  it.todo("AIR-F-50 — le fantôme rejoue une prise : demande un navigateur (E2E)");
 });
