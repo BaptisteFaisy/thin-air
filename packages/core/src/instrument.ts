@@ -87,6 +87,8 @@ export class InstrumentPlayer {
   /** La note de zone tenue, éventuellement verrouillée par un maintien. */
   private zoneVoice: { id: string; index: number; locked: boolean; owner: HandRole } | null = null;
   private lastFrameT: number | null = null;
+  /** Dernier instant émis : le temps ne remonte jamais (AIR-P-11). */
+  private dernierT = 0;
   private lastLead: number | null = null;
   private lastGain = 1;
   private peak = 0;
@@ -118,7 +120,7 @@ export class InstrumentPlayer {
     this.updateLead(t, hands, out);
     this.lastFrameT = t;
     this.peak = Math.max(this.peak, this.pool.activeCount);
-    return sortEvents(out);
+    return this.ordonner(out);
   }
 
   /**
@@ -131,7 +133,7 @@ export class InstrumentPlayer {
     this.silence(t, out);
     this.lastFrameT = t;
     this.magnet.reset();
-    return sortEvents(out);
+    return this.ordonner(out);
   }
 
   /**
@@ -144,7 +146,7 @@ export class InstrumentPlayer {
     const out: MusicEvent[] = [];
     this.silence(at, out);
     this.magnet.reset();
-    return sortEvents(out);
+    return this.ordonner(out);
   }
 
   /** Note visée par la main de hauteur, pour l'écran et le mode physique. */
@@ -163,6 +165,25 @@ export class InstrumentPlayer {
   }
 
   // ─── état ────────────────────────────────────────────────────────────────
+
+  /**
+   * Tri ET monotonie : `sortEvents` classe les événements d'une image, mais un
+   * calcul de rampe peut retomber à un ulp près sous l'instant précédent. Or
+   * AIR-P-11 exige que les instants ne décroissent jamais — un événement daté
+   * avant le précédent serait rejeté par l'horloge du son (§7.9, règle 2). Les
+   * instants sont donc ramenés au dernier émis.
+   */
+  private ordonner(out: MusicEvent[]): readonly MusicEvent[] {
+    const sortis: MusicEvent[] = [];
+    for (const e of sortEvents(out)) {
+      if (e.t < this.dernierT) sortis.push({ ...e, t: this.dernierT } as MusicEvent);
+      else {
+        this.dernierT = e.t;
+        sortis.push(e);
+      }
+    }
+    return sortis;
+  }
 
   private instant(tSeconds: number): number {
     if (Number.isFinite(tSeconds)) return tSeconds;
@@ -228,7 +249,11 @@ export class InstrumentPlayer {
         }
         return;
       case "hold":
-        if (start) this.holdZone(t, gesture, out);
+        // `enter` et `dwell` arrivent en phase « start », mais `leave` arrive en
+        // phase « end » (c'est la fin d'un état, §7.6) : sans cette seconde
+        // condition, quitter une zone n'éteignait jamais la note — une note
+        // coincée, le défaut classique du genre (AIR-P-09).
+        if (start || gesture.gesture === "leave") this.holdZone(t, gesture, out);
         return;
       case "damp":
         if (start) this.damp(t, out);
