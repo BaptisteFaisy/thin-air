@@ -85,11 +85,14 @@ The build itself, measured while writing this text (commands in the annex):
 
 | Figure | Value | Source |
 |---|---|---|
-| Merged pull requests on the build | 24 | `gh pr list --state merged --limit 40 | wc -l` |
-| Tests | 946 pass, 23 `todo` (969 total), 62 files | `npx vitest run` |
-| Lines of TypeScript (`.ts`/`.tsx`/`.mjs`, no `node_modules`) | 29 542 | `find … | wc -l` per package (annex) |
+| Commits on the build | 60 (on `origin/main`, still climbing) | `git rev-list --count origin/main` |
+| Merged pull requests, live | 28 (still climbing) | `gh pr list --state merged --limit 300 --json number --jq 'length'` |
+| Elapsed time | 7 h 40 min, all on 2026-11-11 | first commit 15:45:25, last 23:02:36 +0100 |
+| Lots run in parallel | 13 (A1–A8, B1–B5), merged in batches ≤ 3 | `docs/CONTRACT.md`, `.mergify.yml` |
+| Tests | 968 pass, 21 `todo` (989 total), 65 files | `npx vitest run` |
+| Lines of TypeScript (`.ts`/`.tsx`/`.mjs`, no `node_modules`) | 30 604 | `find … | wc -l` (annex) |
 | — `packages/core` | 8 435 | same |
-| — `apps/web` | 6 980 | same |
+| — `apps/web` | 7 460 | same |
 | — `packages/audio` | 4 078 | same |
 | — `packages/vision` | 3 876 | same |
 | — `apps/bench` | 3 354 | same |
@@ -105,7 +108,7 @@ The build itself, measured while writing this text (commands in the annex):
 | Credit budget, indicative | 700 to 900 of 4 000 | §14.6 |
 | Credits actually spent | `TODO(mesure)` | read from the Kiro account |
 | `no-sound-guard` blocks during the build | `TODO(mesure)` | count from the Kiro hook logs |
-| Property counter-examples found | `TODO(mesure)` | count from the logbook |
+| Defects caught by the tests | 8 — six in the table below, two from day one | `docs/journal.md` |
 
 The instrument, measured and recorded on 2026-11-11 (sources cited, not
 re-measured here):
@@ -252,7 +255,7 @@ to hear it (§6.2).
 
    ```bash
    npm ci && npm run fetch-model
-   npx vitest run       # 946 tests pass (23 todo); 22 of them are the music properties, no sound
+   npx vitest run       # 968 tests pass (21 todo), 65 files; 22 are the music properties, no sound
    npm run bench -- events --take takes/reference/slow-rise.json --instrument instruments/phantom.json
    npm run bench -- render --take takes/reference/slow-rise.json --instrument instruments/phantom.json --out bench-out
    cat bench-out/report.json            # notes, cents off, peak dB, silence after release
@@ -327,10 +330,12 @@ Run in the worktree `n8-soumission`, on the branch `lot/n8-soumission`, on
 2026-11-11. Each command is listed with the figure it produced:
 
 ```bash
-gh pr list --state merged --limit 40 | wc -l                     # 24 merged PRs
-npx vitest run                                                    # 946 pass, 23 todo, 62 files
-find packages apps scripts \( -name '*.ts' -o -name '*.tsx' -o -name '*.mjs' \) \
-  -not -path '*/node_modules/*' | xargs cat | wc -l               # 29 542 lines (run per directory for the split)
+git rev-list --count origin/main                                   # 60 commits on the build
+gh pr list --state merged --limit 300 --json number --jq 'length'  # 28 merged PRs (live, still climbing)
+npx vitest run                                                     # 968 pass, 21 todo, 65 files
+find . -path ./node_modules -prune -o -type f \
+  \( -name '*.ts' -o -name '*.tsx' -o -name '*.mjs' \) -print \
+  | xargs wc -l | tail -1                                          # 30 604 lines
 ls .kiro/specs | wc -l                                            # 12 specs
 ls .kiro/steering | wc -l                                         # 11 steering files
 python3 -c "import json;print(len(json.load(open('.kiro/hooks/hooks.json'))['hooks']))"   # 8 hooks
