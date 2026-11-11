@@ -41,15 +41,27 @@ const EXTENSIONS_SONORES = new Set([
 const EXTENSIONS_TEXTE = new Set([".html", ".js", ".mjs", ".css", ".json", ".svg", ".map"]);
 
 /**
- * Le moteur d'exécution du modèle (`models/wasm/*.js`) est un binaire tiers
- * que NOUS servons : son chargeur emscripten contient des dizaines d'URL dans
- * ses en-têtes de licence et ses commentaires, qui ne sont jamais des requêtes.
- * Il est donc exclu du contrôle des origines — pas du contrôle des fichiers
- * sonores. Ce que ce script prouve, c'est que NOTRE code ne part pas sur une
- * origine tierce ; la preuve que rien ne sort du navigateur à l'exécution est
- * le journal réseau du navigateur de test (recette §18).
+ * Code tiers que le site sert lui-même, exclu du contrôle des ORIGINES (jamais
+ * du contrôle des fichiers sonores) :
+ *
+ *  - `models/wasm/` : le chargeur emscripten du modèle. Ses en-têtes de licence
+ *    et ses commentaires contiennent des dizaines d'URL qui ne sont jamais
+ *    résolues.
+ *  - `vision_bundle-*.js` : le paquet MediaPipe, découpé par Vite. Il contient
+ *    l'adresse d'un hébergeur de modèles de Google, utilisée par MediaPipe quand
+ *    on lui donne un NOM de modèle à télécharger. Ce site lui donne un chemin
+ *    LOCAL (`models/hand_landmarker.task`), donc cette adresse n'est jamais
+ *    résolue — mais un contrôle purement textuel ne peut pas le prouver.
+ *
+ * Ce que ce script prouve : NOTRE code ne part sur aucune origine tierce. Ce
+ * qui reste à prouver à l'exécution — rien ne sort du navigateur, AIR-N-01 —
+ * l'est par le journal réseau du navigateur de test (recette §18) et par le test
+ * E2E, qui coupe tout et compte les requêtes.
  */
-const HORS_ORIGINES = ["models/wasm/", "models" + "/wasm/"];
+const HORS_ORIGINES = ["models/wasm/", `vision_bundle-`];
+
+/** Les fichiers exclus du contrôle des origines sont dits, jamais passés sous silence. */
+const exclus = [];
 
 async function* fichiers(dossier) {
   let entrees;
@@ -89,7 +101,10 @@ for await (const chemin of fichiers(dist)) {
   if (EXTENSIONS_SONORES.has(ext)) sonores.push(relative(racine, chemin));
   if (!EXTENSIONS_TEXTE.has(ext)) continue;
   const relatif = relative(racine, chemin);
-  if (HORS_ORIGINES.some((prefixe) => relatif.includes(prefixe))) continue;
+  if (HORS_ORIGINES.some((motif) => relatif.includes(motif))) {
+    exclus.push(relatif);
+    continue;
+  }
   let texte;
   try {
     texte = readFileSync(chemin, "utf8");
@@ -119,6 +134,9 @@ if (sonores.length > 0) {
 if (echec) process.exit(1);
 
 process.stdout.write(`${comptes} fichier(s) publié(s) : aucune origine tierce, aucun fichier sonore\n`);
+for (const fichier of exclus.sort()) {
+  process.stdout.write(`  code tiers servi par le site, hors contrôle des origines : ${fichier}\n`);
+}
 for (const [prefixe, raison] of AUTORISEES) {
   process.stdout.write(`  autorisée : ${prefixe} — ${raison}\n`);
 }
