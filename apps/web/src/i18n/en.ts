@@ -91,6 +91,7 @@ export const en = {
     editing: "Editing",
     importFile: "Open a file",
     importHint: "An instrument file, validated before it replaces the current one.",
+    emptyMine: "No instrument of your own yet. Duplicate one to start.",
     rejected: (reason: string) => `This file was refused: ${reason}`,
     accepted: (name: string) => `${name} is now the instrument.`,
     reasons: {

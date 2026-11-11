@@ -53,7 +53,7 @@ export function SeanceView({ s }: { readonly s: Seance }): JSX.Element {
         link={shareLink(data.instrument, origine())}
         handlers={s.handlers}
       />
-      {data.editing === null ? null : <Editeur s={s} />}
+      {data.editing === null ? null : <Editeur key={data.editing.name} s={s} />}
     </>
   );
 }
@@ -68,10 +68,10 @@ function Editeur({ s }: { readonly s: Seance }): JSX.Element {
       m={m}
       instrument={edition}
       readOnly={isBuiltIn(edition)}
-      onChange={(suivant) => {
-        data.setEditing(suivant);
-        data.setLibrary((biblio) => remplacer(biblio, suivant));
-        if (suivant.name === data.instrument.name) data.setInstrument(suivant);
+      onSave={(suivant) => {
+        data.setLibrary((biblio) => remplacer(biblio.filter((autre) => autre.name !== edition.name), suivant));
+        if (edition.name === data.instrument.name) data.setInstrument(suivant);
+        data.setEditing(null);
       }}
       onClose={() => data.setEditing(null)}
     />

@@ -1,13 +1,25 @@
 /**
- * Le tiroir d'instruments (AIR-F-43, 44, 45) : dupliquer, modifier, valider
- * un fichier importé, et produire le lien qui contient l'instrument dans le
- * fragment de l'adresse. Aucune requête réseau : le lien est local.
+ * Le tiroir d'instruments (AIR-F-43, 44, 45) : dupliquer, modifier, partager
+ * par lien, et garder les instruments de l'utilisateur sur l'appareil.
  *
- * La validation par schéma Zod appartient au lot A4 (`@thin-air/schema`) :
- * elle est appelée ici derrière une fonction, jamais au chargement du module.
+ * La validation appartient au lot A4 (`@thin-air/schema`) : ce module appelle
+ * `parseInstrument`, `instrumentToFragment` et `instrumentFromFragment`, et ne
+ * réécrit aucune règle. Un fichier refusé l'est EN ENTIER, avec ses raisons —
+ * jamais de valeur par défaut silencieuse (AIR-F-43, §11.4).
+ *
+ * Aucune requête réseau : le lien de partage porte l'instrument dans le
+ * fragment d'adresse, qui ne quitte jamais le navigateur (AIR-F-45, AIR-N-01).
  */
-import { SCALES, type Instrument, type InstrumentSound, type ScaleName, type SoundEngine } from "@thin-air/core";
-import { BUILT_IN } from "./presets.js";
+import { SCALES, type Instrument, type ScaleName, type SoundEngine } from "@thin-air/core";
+import {
+  instrumentFromFragment,
+  instrumentToFragment,
+  parseInstrument,
+  type ParseResult,
+} from "@thin-air/schema";
+import { isBuiltInName } from "./library.js";
+
+export { instrumentFromFragment, instrumentToFragment };
 
 export const SCALE_NAMES: readonly ScaleName[] = [
   "majorPentatonic",
@@ -22,17 +34,8 @@ export const SCALE_NAMES: readonly ScaleName[] = [
 
 export const ENGINES: readonly SoundEngine[] = ["osc", "pluck", "fm", "drum"];
 
-/** Raisons d'un refus, en codes : le texte vient de `i18n` (AIR-N-14). */
-export type RejectCode = "json" | "format" | "name" | "scale" | "geometry" | "snap" | "voices" | "sound";
-
-export type AcceptResult =
-  | { readonly ok: true; readonly instrument: Instrument }
-  | { readonly ok: false; readonly reasons: readonly RejectCode[] };
-
-function borne(valeur: number, min: number, max: number, defaut: number): number {
-  if (!Number.isFinite(valeur)) return defaut;
-  return valeur < min ? min : valeur > max ? max : valeur;
-}
+/** Le résultat du schéma A4 : accepté avec sa valeur, ou refusé avec ses raisons. */
+export type AcceptResult = ParseResult<Instrument>;
 
 /** Le nom d'une copie, pour le tiroir « les tiens ». */
 export function copyName(name: string, suffix: (name: string) => string): string {
@@ -54,6 +57,11 @@ export interface EditPatch {
   readonly count?: number;
   readonly snap?: number;
   readonly engine?: SoundEngine;
+}
+
+function borne(valeur: number, min: number, max: number, defaut: number): number {
+  if (!Number.isFinite(valeur)) return defaut;
+  return valeur < min ? min : valeur > max ? max : valeur;
 }
 
 function withScale(instrument: Instrument, scaleName: ScaleName, root: number): Instrument {
@@ -102,11 +110,7 @@ export function edit(instrument: Instrument, patch: EditPatch): Instrument {
   let suivant = instrument;
   if (patch.name !== undefined) suivant = { ...suivant, name: patch.name };
   if (patch.scaleName !== undefined || patch.root !== undefined) {
-    suivant = withScale(
-      suivant,
-      patch.scaleName ?? scaleNameOf(suivant),
-      patch.root ?? suivant.scale.root,
-    );
+    suivant = withScale(suivant, patch.scaleName ?? scaleNameOf(suivant), patch.root ?? suivant.scale.root);
   }
   if (patch.low !== undefined || patch.high !== undefined) {
     const actuel = suivant.range ?? { low: suivant.scale.root, high: suivant.scale.root + 24 };
@@ -137,45 +141,17 @@ export function shapeOf(instrument: Instrument): InstrumentShape {
 }
 
 export function isBuiltIn(instrument: Instrument): boolean {
-  return BUILT_IN.some((livre) => livre.name === instrument.name);
+  return isBuiltInName(instrument.name);
 }
 
 /**
- * Le lien de partage : l'instrument entier dans le fragment (AIR-F-45).
+ * Le lien de partage (AIR-F-45, P8) : l'instrument entier dans le fragment.
  * Le fragment n'est jamais envoyé au serveur : c'est ce qui rend le partage
  * compatible avec « rien ne quitte ton navigateur ».
+ * `origine` vient de la page, jamais d'une constante.
  */
-export function instrumentToFragment(instrument: Instrument): string {
-  const json = JSON.stringify(instrument);
-  const bytes = new TextEncoder().encode(json);
-  let binaire = "";
-  for (const octet of bytes) binaire += String.fromCharCode(octet);
-  return base64Url(btoa(binaire));
-}
-
-export function instrumentFromFragment(fragment: string): AcceptResult {
-  const propre = fragment.replace(/^#/, "");
-  if (propre === "") return { ok: false, reasons: ["json"] };
-  try {
-    const binaire = atob(debase64Url(propre));
-    const bytes = Uint8Array.from(binaire, (caractere) => caractere.charCodeAt(0));
-    return validate(new TextDecoder().decode(bytes));
-  } catch {
-    return { ok: false, reasons: ["json"] };
-  }
-}
-
-function base64Url(texte: string): string {
-  return texte.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-}
-
-function debase64Url(texte: string): string {
-  return texte.replace(/-/g, "+").replace(/_/g, "/");
-}
-
-/** Lien complet, à copier (P8). `origin` vient de la page, jamais d'une constante. */
-export function shareLink(instrument: Instrument, origin: string, chemin = "/"): string {
-  const base = origin.endsWith("/") ? origin.slice(0, -1) : origin;
+export function shareLink(instrument: Instrument, origine: string, chemin = "/"): string {
+  const base = origine.endsWith("/") ? origine.slice(0, -1) : origine;
   return `${base}${chemin}#i=${instrumentToFragment(instrument)}`;
 }
 
@@ -186,95 +162,88 @@ export function instrumentInLocation(hash: string): AcceptResult | null {
   return instrumentFromFragment(hash.slice(marqueur + "#i=".length));
 }
 
+/** Ce que le chargement de la page retient de l'adresse (P8). */
+export interface FragmentLecture {
+  readonly instrument: Instrument;
+  /** Les raisons du refus, quand le fragment porte un instrument illisible. */
+  readonly refus: readonly string[] | null;
+}
+
 /**
- * Validation d'un fichier importé : refusé EN ENTIER avec ses raisons, jamais
- * de valeur par défaut silencieuse (AIR-F-43).
+ * Fragment absent : l'instrument par défaut, rien à signaler. Fragment valide :
+ * il est sélectionné. Fragment invalide : le défaut s'applique, mais les
+ * RAISONS sont rendues pour l'affichage — jamais de silence (AIR-F-43).
+ */
+export function lireFragment(hash: string, defaut: Instrument): FragmentLecture {
+  const lu = instrumentInLocation(hash);
+  if (lu === null) return { instrument: defaut, refus: null };
+  if (lu.ok) return { instrument: lu.value, refus: null };
+  return { instrument: defaut, refus: lu.reasons };
+}
+
+/**
+ * Validation d'un fichier importé (AIR-F-43) : le schéma A4, seul juge.
+ * Les raisons sont les phrases lisibles du schéma, en anglais (AIR-N-14).
  */
 export function validate(raw: string): AcceptResult {
   let valeur: unknown;
   try {
     valeur = JSON.parse(raw);
   } catch {
-    return { ok: false, reasons: ["json"] };
+    return { ok: false, reasons: ["the file is not readable JSON"] };
   }
-  return validateValue(valeur);
+  return parseInstrument(valeur);
 }
 
-function objet(valeur: unknown): Record<string, unknown> | null {
-  return typeof valeur === "object" && valeur !== null ? (valeur as Record<string, unknown>) : null;
-}
-
-export function validateValue(valeur: unknown): AcceptResult {
-  const objet_ = objet(valeur);
-  if (objet_ === null) return { ok: false, reasons: ["json"] };
-  const raisons: RejectCode[] = [];
-  if (objet_.format !== "thin-air-instrument/1") raisons.push("format");
-  if (typeof objet_.name !== "string" || objet_.name.trim() === "") raisons.push("name");
-  if (!scaleValide(objet(objet_.scale))) raisons.push("scale");
-  if (!geometryValide(objet_)) raisons.push("geometry");
-  if (!nombreDans(objet_.snap, 0, 1)) raisons.push("snap");
-  if (!nombreDans(objet_.voices, 1, 32)) raisons.push("voices");
-  if (!soundValide(objet(objet_.sound))) raisons.push("sound");
-  if (raisons.length > 0) return { ok: false, reasons: raisons };
-  return { ok: true, instrument: objet_ as unknown as Instrument };
-}
-
-function scaleValide(scale: Record<string, unknown> | null): boolean {
-  if (scale === null) return false;
-  if (!nombreDans(scale.root, 0, 127)) return false;
-  const steps = scale.steps;
-  return Array.isArray(steps) && steps.length > 0 && steps.every((pas) => nombreDans(pas, 0, 11));
-}
-
-function geometryValide(instrument: Record<string, unknown>): boolean {
-  const range = objet(instrument.range);
-  const strings = objet(instrument.strings);
-  const zones = objet(instrument.zones);
-  if (range !== null) return nombreDans(range.low, 0, 127) && nombreDans(range.high, 0, 127);
-  if (strings !== null) return nombreDans(strings.count, 1, 32);
-  if (zones !== null) return Array.isArray(zones.zones) && zones.zones.length > 0;
-  return false;
-}
-
-function soundValide(sound: Record<string, unknown> | null): boolean {
-  if (sound === null) return false;
-  return typeof sound.engine === "string" && (ENGINES as readonly string[]).includes(sound.engine);
-}
-
-function nombreDans(valeur: unknown, min: number, max: number): boolean {
-  return typeof valeur === "number" && Number.isFinite(valeur) && valeur >= min && valeur <= max;
+/** Les instruments de l'utilisateur, gardés sur l'appareil (AIR-F-54). */
+export function encodeMine(instruments: readonly Instrument[]): string {
+  return JSON.stringify(instruments);
 }
 
 /**
- * Le schéma Zod du lot A4, quand il existe. Le module `@thin-air/schema` pose
- * ses constantes au chargement : il n'est donc jamais importé ici, seulement
- * demandé au moment où l'utilisateur importe un fichier.
+ * Relecture du stockage : chaque entrée repasse par le schéma. Une entrée
+ * abîmée est écartée, les autres restent — le tiroir ne casse jamais.
  */
-export async function validateWithSchema(raw: string): Promise<AcceptResult> {
+export function decodeMine(raw: string | null): Instrument[] {
+  if (raw === null) return [];
   let valeur: unknown;
   try {
     valeur = JSON.parse(raw);
   } catch {
-    return { ok: false, reasons: ["json"] };
+    return [];
   }
-  try {
-    const schema = await import("@thin-air/schema");
-    const resultat = schema.parseInstrument(valeur);
-    return resultat.ok
-      ? { ok: true, instrument: resultat.value }
-      : { ok: false, reasons: resultat.reasons.map((raison) => codeFrom(raison)) };
-  } catch {
-    return validateValue(valeur);
+  if (!Array.isArray(valeur)) return [];
+  const gardes: Instrument[] = [];
+  for (const entree of valeur) {
+    const resultat = parseInstrument(entree);
+    if (resultat.ok && !isBuiltInName(resultat.value.name)) gardes.push(resultat.value);
   }
+  return gardes;
 }
 
-/** Une raison Zod n'est pas un code de refus : on la ramène au plus proche. */
-function codeFrom(reason: string): RejectCode {
-  const minuscule = reason.toLowerCase();
-  for (const code of ["format", "name", "scale", "snap", "voices", "sound"] as const) {
-    if (minuscule.includes(code)) return code;
-  }
-  return minuscule.includes("range") || minuscule.includes("strings") || minuscule.includes("zones")
-    ? "geometry"
-    : "json";
+/** Un champ de l'éditeur, pour afficher chaque raison près de son champ. */
+export type EditorField = "name" | "scale" | "root" | "range" | "count" | "snap" | "sound" | "form";
+
+/** Une raison du schéma s'ouvre par son chemin : `scale.root: …`. */
+export function reasonField(reason: string): EditorField {
+  const chemin = reason.split(":")[0]?.trim() ?? "";
+  if (chemin === "name") return "name";
+  if (chemin === "scale.root" || chemin === "scale.steps.root") return "root";
+  if (chemin.startsWith("scale")) return "scale";
+  if (chemin.startsWith("range")) return "range";
+  if (chemin.startsWith("strings") || chemin.startsWith("zones")) return "count";
+  if (chemin === "snap") return "snap";
+  if (chemin.startsWith("sound")) return "sound";
+  return "form";
+}
+
+export type ReasonsByField = Readonly<Record<EditorField, readonly string[]>>;
+
+const CHAMPS: readonly EditorField[] = ["name", "scale", "root", "range", "count", "snap", "sound", "form"];
+
+/** Les raisons groupées par champ : l'éditeur valide en direct (AIR-F-44). */
+export function reasonFields(reasons: readonly string[]): ReasonsByField {
+  const groupes = Object.fromEntries(CHAMPS.map((champ) => [champ, [] as string[]])) as Record<EditorField, string[]>;
+  for (const raison of reasons) groupes[reasonField(raison)].push(raison);
+  return groupes;
 }

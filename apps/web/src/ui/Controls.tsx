@@ -35,10 +35,11 @@ export interface SliderProps {
   readonly step: number;
   readonly unit?: string;
   readonly help?: string;
+  readonly invalid?: boolean;
   readonly onChange: (value: number) => void;
 }
 
-export function Slider({ id, label, value, min, max, step, unit, help, onChange }: SliderProps): JSX.Element {
+export function Slider({ id, label, value, min, max, step, unit, help, invalid, onChange }: SliderProps): JSX.Element {
   const texte = unit === undefined ? String(value) : `${value} ${unit}`;
   return (
     <Field id={id} label={label} help={help}>
@@ -49,12 +50,35 @@ export function Slider({ id, label, value, min, max, step, unit, help, onChange 
         max={max}
         step={step}
         value={value}
+        aria-invalid={invalid === true}
         aria-valuetext={texte}
         onChange={(event) => onChange(Number(event.target.value))}
       />
       <output htmlFor={id} className="value">
         {texte}
       </output>
+    </Field>
+  );
+}
+
+export interface TextFieldProps {
+  readonly id: string;
+  readonly label: string;
+  readonly value: string;
+  readonly invalid?: boolean;
+  readonly onChange: (value: string) => void;
+}
+
+export function TextField({ id, label, value, invalid, onChange }: TextFieldProps): JSX.Element {
+  return (
+    <Field id={id} label={label}>
+      <input
+        id={id}
+        type="text"
+        value={value}
+        aria-invalid={invalid === true}
+        onChange={(event) => onChange(event.target.value)}
+      />
     </Field>
   );
 }
@@ -86,6 +110,7 @@ export interface ChoiceProps<T extends string | number> {
   readonly value: T;
   readonly options: readonly { readonly value: T; readonly label: string }[];
   readonly help?: string;
+  readonly invalid?: boolean;
   readonly onChange: (value: T) => void;
 }
 
@@ -95,6 +120,7 @@ export function Choice<T extends string | number>({
   value,
   options,
   help,
+  invalid,
   onChange,
 }: ChoiceProps<T>): JSX.Element {
   return (
@@ -102,6 +128,7 @@ export function Choice<T extends string | number>({
       <select
         id={id}
         value={String(value)}
+        aria-invalid={invalid === true}
         onChange={(event) => {
           const trouve = options.find((option) => String(option.value) === event.target.value);
           if (trouve !== undefined) onChange(trouve.value);
