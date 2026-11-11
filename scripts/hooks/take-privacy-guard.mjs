@@ -20,6 +20,8 @@ import { accepter, extensionDe, fichiersSous, journaliser, lireChargeUtile, raci
 
 const NOM = "take-privacy-guard";
 const FORMAT = "thin-air-take/1";
+/** Une session de boucle (cahier §7.10) vit sous `takes/pieces/`, pas une prise. */
+const SESSION_FORMAT = "thin-air-session/1";
 const CLES_PRISE = new Set(["format", "fps", "frames"]);
 const CLES_IMAGE = new Set(["t", "hands"]);
 const CLES_MAIN = new Set(["side", "score", "points"]);
@@ -98,13 +100,13 @@ function poidsParSeconde(octets, prise) {
 const chargeUtile = await lireChargeUtile();
 const base = racine(chargeUtile);
 let verifiees = 0;
+let sessions = 0;
 const refus = [];
 
 for await (const chemin of fichiersSous(`${base}/takes`, { ignores: IGNORES })) {
   if (extensionDe(chemin) !== ".json") continue;
   const brut = await readFile(chemin, "utf8");
   const etiquette = relative(base, chemin);
-  verifiees += 1;
   let prise;
   try {
     prise = JSON.parse(brut);
@@ -112,6 +114,14 @@ for await (const chemin of fichiersSous(`${base}/takes`, { ignores: IGNORES })) 
     refus.push(`${etiquette} : JSON illisible (${String(erreur)})`);
     continue;
   }
+  // Une session (`takes/pieces/seance-1min.json`) n'est pas une prise : elle
+  // ne contient que des `MusicEvent` datés, jamais de points de main. Elle est
+  // validée par `parseSession` (banc d'essai + tests), pas par cette garde.
+  if (prise && typeof prise === "object" && prise.format === SESSION_FORMAT) {
+    sessions += 1;
+    continue;
+  }
+  verifiees += 1;
   const erreurs = validerPrise(prise);
   const info = await stat(chemin);
   const poids = poidsParSeconde(info.size, prise);
@@ -129,5 +139,5 @@ if (refus.length > 0) {
   for (const raison of refus) process.stderr.write(`${raison}\n`);
   refuser(`${NOM} : ${refus.length} refus sur ${verifiees} prise(s) — aucune image, aucun poids hors plafond`);
 }
-await journaliser(base, { garde: NOM, evenement: "acceptation", prises: verifiees });
-accepter(`${verifiees} prise(s) conforme(s) : des points, et rien d'autre`);
+await journaliser(base, { garde: NOM, evenement: "acceptation", prises: verifiees, sessions });
+accepter(`${verifiees} prise(s) conforme(s), ${sessions} session(s) écartée(s) : des points, et rien d'autre`);
