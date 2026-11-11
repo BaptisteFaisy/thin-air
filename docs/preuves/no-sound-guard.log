@@ -1,0 +1,129 @@
+# Journal du garde no-sound-guard (cahier §14.3, AIR-N-02) — preuve, lot W8.
+#
+# Chaque cas est une charge utile JSON déposée sur l'entrée standard du hook,
+# comme Kiro le fait : { hook_event_name, cwd, session_id, tool_name,
+# tool_input.command }. AUCUNE commande n'est exécutée : le hook les lit et
+# les refuse ou les accepte — aucun son n'est jamais émis.
+#
+# Refus : code 1, raison sur la sortie d'erreur (Kiro bloque l'outil).
+# Acceptation : code 0.
+#
+# Régénérer ce journal :
+#   npx tsx apps/bench/src/preuves/make-guard-log.ts > docs/preuves/no-sound-guard.log
+
+── 01 · lecteur audio : aplay ──
+commande : aplay -D hw:0,0 bench-out/slow-rise.wav
+attendu  : refus
+code     : 1
+message  : no-sound-guard : lecteur audio refusé (« aplay ») : la preuve passe par le banc d'essai, jamais par un haut-parleur
+             commande : aplay -D hw:0,0 bench-out/slow-rise.wav
+
+── 02 · lecteur audio : paplay ──
+commande : paplay bench-out/slow-rise.wav
+attendu  : refus
+code     : 1
+message  : no-sound-guard : lecteur audio refusé (« paplay ») : la preuve passe par le banc d'essai, jamais par un haut-parleur
+             commande : paplay bench-out/slow-rise.wav
+
+── 03 · lecteur audio : ffplay ──
+commande : ffplay -nodisp -autoexit bench-out/slow-rise.wav
+attendu  : refus
+code     : 1
+message  : no-sound-guard : lecteur audio refusé (« ffplay ») : la preuve passe par le banc d'essai, jamais par un haut-parleur
+             commande : ffplay -nodisp -autoexit bench-out/slow-rise.wav
+
+── 04 · lecteur audio : mpv ──
+commande : mpv --no-video bench-out/slow-rise.wav
+attendu  : refus
+code     : 1
+message  : no-sound-guard : lecteur audio refusé (« mpv ») : la preuve passe par le banc d'essai, jamais par un haut-parleur
+             commande : mpv --no-video bench-out/slow-rise.wav
+
+── 05 · lecteur audio : vlc ──
+commande : vlc bench-out/harp-sweep.wav
+attendu  : refus
+code     : 1
+message  : no-sound-guard : lecteur audio refusé (« vlc ») : la preuve passe par le banc d'essai, jamais par un haut-parleur
+             commande : vlc bench-out/harp-sweep.wav
+
+── 06 · lecteur audio : speaker-test ──
+commande : speaker-test -c 2 -t sine -f 440
+attendu  : refus
+code     : 1
+message  : no-sound-guard : lecteur audio refusé (« speaker-test ») : la preuve passe par le banc d'essai, jamais par un haut-parleur
+             commande : speaker-test -c 2 -t sine -f 440
+
+── 07 · volume : amixer ──
+commande : amixer sset Master 50%
+attendu  : refus
+code     : 1
+message  : no-sound-guard : réglage du volume refusé (« amixer ») : l'agent ne touche ni au volume ni à la sortie audio
+             commande : amixer sset Master 50%
+
+── 08 · volume : pactl ──
+commande : pactl set-sink-volume @DEFAULT_SINK@ 40%
+attendu  : refus
+code     : 1
+message  : no-sound-guard : réglage du volume refusé (« pactl ») : l'agent ne touche ni au volume ni à la sortie audio
+             commande : pactl set-sink-volume @DEFAULT_SINK@ 40%
+
+── 09 · volume : wpctl ──
+commande : wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.4
+attendu  : refus
+code     : 1
+message  : no-sound-guard : réglage du volume refusé (« wpctl ») : l'agent ne touche ni au volume ni à la sortie audio
+             commande : wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.4
+
+── 10 · volume : osascript … volume ──
+commande : osascript -e 'set volume output volume 50'
+attendu  : refus
+code     : 1
+message  : no-sound-guard : réglage du volume refusé (« osascript … volume »)
+             commande : osascript -e 'set volume output volume 50'
+
+── 11 · navigateur de test avec écran ──
+commande : npx playwright test --headed
+attendu  : refus
+code     : 1
+message  : no-sound-guard : navigateur de test avec écran refusé (« playwright ») : sans écran, son coupé (§13.1)
+             commande : npx playwright test --headed
+
+── 12 · navigateur de test sans son coupé ──
+commande : npx playwright test e2e/scene.spec.ts
+attendu  : refus
+code     : 1
+message  : no-sound-guard : navigateur de test sans son coupé refusé (« playwright ») : ajouter --mute-audio, ou le fixer dans la configuration du lanceur (§13.1)
+             commande : npx playwright test e2e/scene.spec.ts
+
+── 13 · navigateur de test avec écran (écran dans une config JSON, son coupé) ──
+commande : npx playwright test --mute-audio --config='{"headless": false}'
+attendu  : refus
+code     : 1
+message  : no-sound-guard : navigateur de test avec écran refusé (« playwright ») : sans écran, son coupé (§13.1)
+             commande : npx playwright test --mute-audio --config='{"headless": false}'
+
+── 14 · suite de tests ──
+commande : npx vitest run
+attendu  : acceptation
+code     : 0
+message  : commande sans son : npx vitest run
+
+── 15 · banc d'essai ──
+commande : npm run bench
+attendu  : acceptation
+code     : 0
+message  : commande sans son : npm run bench
+
+── 16 · contrôle du bundle ──
+commande : node scripts/check-dist.mjs
+attendu  : acceptation
+code     : 0
+message  : commande sans son : node scripts/check-dist.mjs
+
+── 17 · navigateur de test sans écran, son coupé ──
+commande : npx playwright test --mute-audio
+attendu  : acceptation
+code     : 0
+message  : commande sans son : npx playwright test --mute-audio
+
+# Bilan : 13 refus, 4 acceptations, sur 17 charges utiles.
