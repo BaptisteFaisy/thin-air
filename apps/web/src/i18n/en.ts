@@ -1,0 +1,217 @@
+/**
+ * Tous les textes de la page, en anglais (AIR-N-14). Aucun libellé ne vit
+ * ailleurs : un composant qui écrit du texte en dur casse ce contrat.
+ * Le vocabulaire est celui du cahier §5.4 : « measured » et « estimated »
+ * portent toujours sur une durée, jamais de superlatif de vitesse.
+ */
+
+export const en = {
+  meta: {
+    appName: "Thin Air",
+    tagline: "The air becomes an instrument.",
+    lang: "en",
+  },
+  common: {
+    close: "Close",
+    cancel: "Cancel",
+    done: "Done",
+    back: "Back",
+    restart: "Start again",
+    apply: "Apply",
+    measured: "measured",
+    estimated: "estimated",
+    partial: "partial measurement",
+    none: "—",
+    on: "on",
+    off: "off",
+  },
+  home: {
+    start: "Start",
+    playWithoutCamera: "Play without a camera",
+    privacyLine: "Your camera image never leaves this page.",
+    privacyWhy:
+      "The video is read inside this tab and turned into hand positions. No picture, no take and no note is uploaded, and no audience measurement is loaded.",
+    audioNote: "Sounds are synthesised in your browser — no audio file is downloaded.",
+    latencyNote: "The page shows latency part by part: what is measured, and what is estimated.",
+    keyboardHint: "Everything works from the keyboard. Press Start or Play without a camera to begin.",
+    cameraNote: "The camera is only opened after you press Start, and never with sound.",
+  },
+  stage: {
+    instrument: "Instrument",
+    currentNote: "Current note",
+    noNote: "silence",
+    volume: "Volume",
+    volumeUnit: "dB",
+    hands: { 0: "no hands", 1: "one hand", 2: "two hands" },
+    edge: "A hand is at the edge of the play area.",
+    edgeHint: "Move back a little, or calibrate the area to your reach.",
+    quiet: "No hand seen for three seconds while the picture changes.",
+    quietHint: "Try more light, or step back so both hands fit in the frame.",
+    hidden: "The tab is in the background. All notes are released.",
+    suspended: "The browser paused the audio engine. Press Resume to play again.",
+    resume: "Resume",
+    ghost: "The ghost plays a take at low volume. It stops as soon as a hand appears.",
+    pointer: "Pointer mode: the mouse is a hand, the keys play the notes.",
+    pointerHint: "Move the mouse over the stage for pitch, and press A–K for the strings.",
+    layers: "Loop",
+    open: "Open the instruments",
+    settings: "Settings",
+    loop: "Loop",
+    calibration: "Calibrate",
+    physics: "Show the physics",
+    hidePhysics: "Hide the physics",
+  },
+  hand: {
+    left: "left",
+    right: "right",
+    pitch: "pitch hand",
+    volume: "volume hand",
+  },
+  latency: {
+    heading: "Latency",
+    analysis: "analysis",
+    processing: "processing",
+    audioOut: "audio out",
+    camera: "camera",
+    totals: (measured: number, estimated: number) =>
+      `measured ${measured} ms · estimated ${estimated} ms with the camera`,
+    partial: "Partial measurement: this browser does not declare its audio output latency. The audio-out figure only counts the buffer.",
+    wireless:
+      "The declared audio output is above 100 ms: a wireless headset adds a delay you can hear. A wired output plays closer to your gesture.",
+    frameInterval: (ms: number) => `frame interval ${ms} ms (measured)`,
+  },
+  instruments: {
+    title: "Instruments",
+    builtIn: "Shipped",
+    yours: "Yours",
+    duplicate: "Duplicate",
+    duplicateOf: (name: string) => `${name} (copy)`,
+    use: "Play this one",
+    edit: "Edit",
+    editing: "Editing",
+    importFile: "Open a file",
+    importHint: "An instrument file, validated before it replaces the current one.",
+    rejected: (reason: string) => `This file was refused: ${reason}`,
+    accepted: (name: string) => `${name} is now the instrument.`,
+    reasons: {
+      json: "the file is not readable JSON",
+      format: "the format is not `thin-air-instrument/1`",
+      name: "the instrument has no name",
+      scale: "the scale is missing a root or its steps",
+      geometry: "no range, no strings and no zones are described",
+      snap: "the magnet must be between 0 and 1",
+      voices: "the number of voices must be between 1 and 32",
+      sound: "the sound engine is unknown",
+    },
+    copyLink: "Copy the link",
+    copied: "Link copied — it holds the whole instrument.",
+    linkFailed: "The browser refused to copy the link. Select it and copy it by hand.",
+    shareHint: "The instrument lives in the address fragment: nothing is sent to a server.",
+  },
+  loop: {
+    title: "Loop",
+    bars: "Bars",
+    layers: "Layers",
+    tempo: "Tempo",
+    tempoUnit: "beats per minute",
+    record: "Record a layer",
+    stop: "Stop",
+    removeLast: "Remove the last layer",
+    mute: "Mute",
+    unmute: "Unmute",
+    clear: "Clear everything",
+    exportWav: "Export WAV",
+    exportMidi: "Export MIDI",
+    midiUnavailable: "This browser has no MIDI support: the MIDI export stays hidden.",
+    full: (max: number) => `Six layers at most (${max} here): remove one to record another.`,
+    empty: "No layer yet.",
+    layerLabel: (n: number, instrument: string) => `Layer ${n} — ${instrument}`,
+    beat: (n: number, of: number) => `beat ${n} of ${of}`,
+    compensating: "Recorded layers are moved earlier by the estimated latency, so they fall back on the beat.",
+  },
+  calibration: {
+    title: "Calibrate the play area",
+    instruction: "Stand back, then spread both arms as wide as you would while playing.",
+    countdown: (n: number) => `${n}`,
+    counting: "Hold the pose…",
+    result: "The play area now follows your reach.",
+    tooSmall: "The pose covered too little of the picture. Come closer, or start again.",
+    keep: "Keep the default area",
+    save: "This area is kept on this device.",
+    restart: "Start again",
+    storing: "Saving…",
+  },
+  editor: {
+    title: "Instrument editor",
+    name: "Name",
+    scale: "Scale",
+    root: "Root note",
+    rangeLow: "Lowest note",
+    rangeHigh: "Highest note",
+    strings: "Strings",
+    zones: "Zones",
+    snap: "Magnet",
+    snapHelp: "0 leaves a continuous glide, 1 locks the notes of the scale.",
+    sound: "Sound",
+    engine: "Engine",
+    save: "Save this instrument",
+    duplicateFirst: "Shipped instruments are read-only: duplicate one to change it.",
+  },
+  physics: {
+    title: "The physics",
+    frequency: "Frequency",
+    frequencyUnit: "Hz",
+    note: "Note",
+    wave: "Waveform",
+    octave: "One octave up doubles the frequency.",
+    partials: "Second harmonic",
+  },
+  settings: {
+    title: "Settings",
+    snap: "Magnet",
+    leftHanded: "Left-handed",
+    oneHand: "One hand",
+    hold: "Hold",
+    holdHelp: "Rest 400 ms in a zone to lock its note until the next pass.",
+    volume: "Master volume",
+    reverb: "Reverb",
+    cameraLatency: "Assumed camera delay",
+    cameraLatencyUnit: "ms, 0 to 120",
+    showCamera: "Show the camera image",
+    showCameraHelp: "The picture stays dimmed behind the scene. It is off by default.",
+    filter: "Smoothing strength",
+    filterHelp: "Higher values calm a trembling hand, and add a little delay.",
+    reducedMotion: "Your system asks for less motion: the trail and the string vibration are off, only state changes remain.",
+    stored: "Settings are kept on this device only.",
+  },
+  camera: {
+    requesting: "Waiting for the camera…",
+    granted: "Camera on.",
+    denied: "The camera was refused.",
+    deniedHint: "You can still play: the pointer is a hand and the keys play the notes.",
+    absent: "No camera was found.",
+    absentHint: "The pointer and the keyboard give you the same instrument.",
+    modelLoading: (percent: number) => `Loading the hand model… ${percent} %`,
+    modelFailed: "The hand model could not be loaded.",
+    modelFailedHint: "The instrument still plays with the pointer, with the same engine.",
+  },
+  keys: {
+    region: "Stage keyboard",
+    help: "A to K pluck the strings; the arrow keys move the pointer hand; P pauses the sound.",
+  },
+} as const;
+
+/** Forme élargie : les chaînes restent des `string`, pour que `fr.ts` puisse traduire. */
+export type Messages = {
+  -readonly [K in keyof typeof en]: Deep<typeof en[K]>;
+};
+
+type Deep<T> = T extends (...args: infer A) => infer R
+  ? (...args: A) => R
+  : T extends string
+    ? string
+    : T extends number
+      ? number
+      : T extends boolean
+        ? boolean
+        : { -readonly [K in keyof T]: Deep<T[K]> };

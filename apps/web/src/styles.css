@@ -1,0 +1,147 @@
+/*
+  La séance (cahier §12.3) : fond de nuit, traits d'os, teinte spectrale pour
+  ce qui sonne. Trois couleurs, aucun éclair, aucun clignotement.
+
+  Contrastes mesurés (WCAG 2.2, textes ≥ 4,5:1) :
+    os      #f2ece1 sur nuit   #0b0d12 → 16,53:1
+    os      #f2ece1 sur panneau #151922 → 14,96:1
+    spectre #7fd4c1 sur nuit   #0b0d12 → 11,19:1
+    spectre #7fd4c1 sur panneau #151922 → 10,13:1
+    discret #c9c2b4 sur nuit   #0b0d12 → 10,98:1
+    discret #c9c2b4 sur panneau #151922 →  9,93:1
+  La teinte spectrale n'est jamais posée sur l'os (1,48:1) : c'est une couleur
+  de scène, pas une couleur de texte.
+*/
+:root {
+  --nuit: #0b0d12;
+  --panneau: #151922;
+  --bouton: #1d2430;
+  --os: #f2ece1;
+  --spectre: #7fd4c1;
+  --discret: #c9c2b4;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--nuit);
+  color: var(--os);
+  font-family: system-ui, "Segoe UI", sans-serif;
+  line-height: 1.5;
+}
+
+h1, h2, h3 { font-weight: 500; letter-spacing: 0.02em; }
+
+.screen { padding: 1.5rem; max-width: 60rem; margin: 0 auto; }
+
+.home .tagline { color: var(--spectre); }
+.home .privacy { font-size: 1.1rem; }
+.home .why, .home .notes { color: var(--discret); }
+.home .actions { display: flex; gap: 0.75rem; flex-wrap: wrap; margin: 1.5rem 0; }
+
+button {
+  background: var(--bouton);
+  color: var(--os);
+  border: 1px solid var(--spectre);
+  border-radius: 0.4rem;
+  padding: 0.5rem 1rem;
+  font: inherit;
+  cursor: pointer;
+}
+button.primary { background: var(--spectre); color: var(--nuit); font-weight: 600; }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible {
+  outline: 3px solid var(--spectre);
+  outline-offset: 2px;
+}
+
+.stage { position: relative; max-width: none; padding: 0; }
+.scene { display: block; width: 100%; height: 70vh; background: var(--nuit); }
+.camera-source { display: none; }
+
+.hud {
+  position: absolute;
+  inset-block-start: 0.75rem;
+  inset-inline-start: 0.75rem;
+  background: color-mix(in srgb, var(--panneau) 88%, transparent);
+  border: 1px solid var(--spectre);
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  max-width: 22rem;
+}
+.hud p { margin: 0.15rem 0; }
+.hud .label { color: var(--discret); margin-inline-end: 0.4rem; }
+.hud .note { color: var(--spectre); font-size: 1.2rem; }
+
+.gauge .bar {
+  display: inline-block;
+  inline-size: 8rem;
+  block-size: 0.5rem;
+  background: var(--bouton);
+  border: 1px solid var(--discret);
+  border-radius: 0.25rem;
+  overflow: hidden;
+  vertical-align: middle;
+}
+.gauge .fill { display: block; block-size: 100%; background: var(--spectre); }
+.gauge .db { color: var(--discret); margin-inline-start: 0.5rem; }
+
+.notices { list-style: none; padding: 0.5rem 0.75rem; margin: 0; display: grid; gap: 0.35rem; }
+.notice { border-inline-start: 3px solid var(--spectre); padding-inline-start: 0.5rem; color: var(--os); }
+.notice-wirelessOutput, .notice-audioSuspended, .notice-instrumentRejected { border-color: var(--discret); }
+
+.latency { padding: 0 0.75rem; color: var(--discret); }
+.latency h2 { font-size: 1rem; color: var(--os); margin: 0.25rem 0; }
+.latency .line { font-variant-numeric: tabular-nums; color: var(--os); }
+
+.toolbar { display: flex; gap: 0.5rem; flex-wrap: wrap; padding: 0.75rem; }
+
+.panel {
+  position: fixed;
+  inset-block-end: 0;
+  inset-inline: 0;
+  max-block-size: 70vh;
+  overflow: auto;
+  background: var(--panneau);
+  border-block-start: 1px solid var(--spectre);
+  padding: 1rem;
+}
+.panel-head { display: flex; justify-content: space-between; align-items: center; }
+.panel button.ghost { border-color: var(--discret); }
+
+.field { display: grid; gap: 0.25rem; margin-block-end: 0.75rem; }
+.field label { color: var(--os); }
+.field .help, .help { color: var(--discret); font-size: 0.9rem; margin: 0.15rem 0; }
+.value { color: var(--spectre); font-variant-numeric: tabular-nums; }
+
+.instruments, .layers { list-style: none; padding: 0; display: grid; gap: 0.4rem; }
+.instruments li, .layers li { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+.instruments .name { min-inline-size: 8rem; color: var(--os); }
+.instruments li[aria-current="true"] .name { color: var(--spectre); }
+
+.import, .share { display: grid; gap: 0.35rem; margin-block-start: 1rem; }
+input[type="text"], input[type="file"], select {
+  background: var(--bouton);
+  color: var(--os);
+  border: 1px solid var(--discret);
+  border-radius: 0.3rem;
+  padding: 0.35rem;
+  font: inherit;
+}
+input[type="range"] { accent-color: var(--spectre); }
+
+.physics { display: grid; grid-template-columns: auto 1fr; gap: 0.25rem 1rem; }
+.physics dt { color: var(--discret); }
+.physics dd { margin: 0; color: var(--os); font-variant-numeric: tabular-nums; }
+.wave { inline-size: 100%; block-size: 4.5rem; background: var(--nuit); border: 1px solid var(--discret); }
+.wave polyline { fill: none; stroke: var(--spectre); stroke-width: 2; }
+
+.countdown { font-size: 2rem; color: var(--spectre); }
+.rect code { color: var(--os); }
+
+/* Moins de mouvement : plus de traîne ni de vibration, seulement des états. */
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
