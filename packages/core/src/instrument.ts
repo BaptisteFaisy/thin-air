@@ -182,12 +182,17 @@ export class InstrumentPlayer {
     this.zoneVoice = null;
   }
 
-  /** Relâchements différés (corde pincée, zone frappée) arrivés à échéance. */
+  /**
+   * Relâchements différés (corde pincée, zone frappée) arrivés à échéance.
+   * Le `noteOff` porte son échéance exacte, pas l'instant de l'image : elle est
+   * forcément postérieure à l'image précédente, sinon il serait déjà parti, et
+   * la liste reste donc monotone (AIR-P-11).
+   */
   private flushPending(t: number, out: MusicEvent[]): void {
     for (const [id, at] of [...this.pending]) {
       if (at > t) continue;
       this.pending.delete(id);
-      out.push(...this.pool.noteOff(t, id));
+      out.push(...this.pool.noteOff(at, id));
     }
   }
 

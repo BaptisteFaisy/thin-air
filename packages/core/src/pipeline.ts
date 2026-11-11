@@ -101,7 +101,8 @@ export function defaultStages(instrument: Instrument, settings: Settings, option
 }
 
 export class TakeProcessor {
-  private readonly settings: Settings;
+  /** Réglages en vigueur : ceux de l'instrument par-dessus les défauts. */
+  private readonly reglages: Settings;
   private readonly stages: PipelineStages;
   private readonly player: InstrumentPlayer;
   private readonly events: MusicEvent[] = [];
@@ -110,12 +111,12 @@ export class TakeProcessor {
 
   constructor(
     readonly instrument: Instrument,
-    settings: Settings,
+    readonly settings: Settings,
     readonly options?: PipelineOptions,
   ) {
-    this.settings = withSettings({ ...instrument.defaults, ...settings });
-    this.stages = options?.stages ?? defaultStages(instrument, this.settings, options);
-    this.player = new InstrumentPlayer(instrument, this.settings, options);
+    this.reglages = withSettings({ ...instrument.defaults, ...settings });
+    this.stages = options?.stages ?? defaultStages(instrument, this.reglages, options);
+    this.player = new InstrumentPlayer(instrument, this.reglages, options);
   }
 
   /** Une image de la prise : rend les événements qu'elle produit, dans l'ordre. */
@@ -168,6 +169,11 @@ export class TakeProcessor {
   }
 
   /** Un instant de prise ne recule jamais : une image en double est datée. */
+  /** Les réglages réellement appliqués (défauts de l'instrument compris). */
+  get effectiveSettings(): Settings {
+    return this.reglages;
+  }
+
   private instant(tSeconds: number): number {
     if (!Number.isFinite(tSeconds)) return this.lastT;
     return Math.max(this.lastT, tSeconds);
