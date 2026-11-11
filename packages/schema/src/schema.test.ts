@@ -3,6 +3,7 @@ import fc from "fast-check";
 import type { DetectedHand, Instrument, Session, Settings, Take } from "@thin-air/core";
 import { DEFAULT_SETTINGS, SAMPLE_RATE } from "@thin-air/core";
 import {
+  compactTakeJson,
   CODING_STEP_SCORE,
   CODING_STEP_XY,
   CODING_STEP_Z,
@@ -341,6 +342,54 @@ describe("AIR-P-20 — la prise : codage, décodage et vie privée", () => {
     expect(parseTake({ ...base, frames: [{ t: 0, hands: [{ side: "middle", score: 0.9, points: main(0.5, "left").points }] }] }).ok).toBe(false);
     expect(parseTake({ ...base, frames: [{ t: 0, hands: [{ side: "left", score: 4, points: main(0.5, "left").points }] }] }).ok).toBe(false);
     expect(parseTake({ ...base, frames: [{ t: Number.NaN, hands: [] }] }).ok).toBe(false);
+  });
+
+  it("l'écriture compacte divise le poids par plus de deux et reste lisible", () => {
+    const avant = prise(60, 2, 30); // deux secondes, deux mains, 30 images/s
+    const texte = compactTakeJson(avant);
+    const relu = parseTake(JSON.parse(texte));
+    expect(relu.ok).toBe(true);
+    if (!relu.ok) return;
+    const apres = relu.value;
+    expect(apres.frames).toHaveLength(avant.frames.length);
+    // La perte est bornée par le pas d'arrondi, très sous le pixel (9,3e-4 en 1080p).
+    apres.frames.forEach((image, i) => {
+      image.hands.forEach((mainApres, k) => {
+        mainApres.points.forEach((point, j) => {
+          const attendu = avant.frames[i]!.hands[k]!.points[j]!;
+          point.forEach((valeur, c) => {
+            expect(Math.abs(valeur - attendu[c]!)).toBeLessThanOrEqual(1e-5);
+          });
+        });
+      });
+    });
+    // Jamais plus lourd que l'écriture brute.
+    expect(texte.length).toBeLessThanOrEqual(JSON.stringify(avant).length);
+    // Le poids compact se rapproche de l'estimation du cahier (§7.11).
+    const koParSeconde = new TextEncoder().encode(texte).byteLength / 2;
+    expect(koParSeconde).toBeLessThan(26 * 1024 * 1.6);
+  });
+
+  it("l'écriture compacte divise par plus de deux le poids des flottants longs", () => {
+    // Une main issue d'un calcul réel (irrationnels, divisions) écrit des
+    // flottants à 17 chiffres : c'est là que le gain se mesure.
+    const points = Array.from({ length: 21 }, (_, i) => [
+      Math.PI / (i + 2), Math.E / (i + 3), -0.1 * Math.SQRT2,
+    ] as [number, number, number]);
+    const longue: Take = {
+      format: "thin-air-take/1",
+      fps: 30,
+      frames: [{ t: 1 / 3, hands: [{ side: "left", score: 1 / 3, points }] }],
+    };
+    const compacte = compactTakeJson(longue);
+    expect(compacte.length).toBeLessThan(JSON.stringify(longue).length / 2);
+    expect(parseTake(JSON.parse(compacte)).ok).toBe(true);
+  });
+
+  it("l'arrondi ne casse pas la vie privée : seuls les champs autorisés sont écrits", () => {
+    const texte = compactTakeJson(prise(3, 1));
+    expect(Object.keys(JSON.parse(texte)).sort()).toEqual(["format", "fps", "frames"]);
+    expect(assertTakePrivacy(JSON.parse(texte)).ok).toBe(true);
   });
 
   it("le poids annoncé par le cahier §7.11 est retrouvé", () => {

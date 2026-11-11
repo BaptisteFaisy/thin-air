@@ -109,3 +109,41 @@ export function takeBytesPerSecond(take: Take, encoded: boolean): number {
     : utf8Bytes(JSON.stringify(take)).byteLength;
   return bytes / seconds;
 }
+
+/** Pas d'arrondi par défaut : 1e-5, soit le millième d'un pixel en 4K. */
+export const TAKE_JSON_DECIMALS = 5;
+
+function arrondi(valeur: number, decimals: number): number {
+  if (!Number.isFinite(valeur)) return valeur;
+  const facteur = 10 ** decimals;
+  return Math.round(valeur * facteur) / facteur;
+}
+
+/**
+ * Écriture JSON compacte d'une prise.
+ *
+ * Pourquoi : `JSON.stringify` écrit les flottants avec jusqu'à 17 chiffres
+ * significatifs (`0.5499999999999999`), ce qui double ou triple le poids d'une
+ * prise par rapport à l'estimation du cahier §7.11 (~26 Ko/s pour deux mains à
+ * 30 images/s). Arrondir à 1e-5 ne perd rien d'utile : le pas du codage binaire
+ * (`CODING_STEP_XY`) est déjà de 1,5e-5, et un pixel en 1080p vaut 9,3e-4.
+ *
+ * C'est la seule fonction d'écriture de prise en JSON du dépôt : le banc
+ * d'essai, le générateur de prises de référence et l'enregistreur de la page
+ * passent par elle (règle 4 du contrat, zéro duplication).
+ */
+export function compactTakeJson(take: Take, decimals: number = TAKE_JSON_DECIMALS): string {
+  const compacte: Take = {
+    format: take.format,
+    fps: take.fps,
+    frames: take.frames.map((image) => ({
+      t: arrondi(image.t, decimals),
+      hands: image.hands.map((main) => ({
+        side: main.side,
+        score: arrondi(main.score, decimals),
+        points: main.points.map((point) => point.map((v) => arrondi(v, decimals)) as [number, number, number]),
+      })),
+    })),
+  };
+  return `${JSON.stringify(compacte)}\n`;
+}
