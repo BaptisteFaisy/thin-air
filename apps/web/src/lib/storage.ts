@@ -3,10 +3,13 @@
  * sur l'appareil. Aucune requête réseau, aucun stockage distant (AIR-N-01).
  */
 import { defaultPlayRect, type PlayRect, type Settings } from "@thin-air/core";
+import type { Instrument } from "@thin-air/core";
 import { decodeSettings, encodeSettings } from "../state/settings.js";
+import { decodeMine, encodeMine } from "../state/instruments.js";
 
 export const KEY_SETTINGS = "thin-air.settings";
 export const KEY_RECT = "thin-air.playRect";
+export const KEY_INSTRUMENTS = "thin-air.instruments";
 
 interface Stockage {
   getItem(cle: string): string | null;
@@ -43,6 +46,15 @@ export function lireSettings(): Settings {
 
 export function ecrireSettings(settings: Settings): void {
   ecrire(KEY_SETTINGS, encodeSettings(settings));
+}
+
+/** Les instruments de l'utilisateur (le tiroir « les tiens »), sur l'appareil. */
+export function lireMine(): Instrument[] {
+  return decodeMine(lire(KEY_INSTRUMENTS));
+}
+
+export function ecrireMine(instruments: readonly Instrument[]): void {
+  ecrire(KEY_INSTRUMENTS, encodeMine(instruments));
 }
 
 /** La zone calibrée, relue depuis l'appareil ; par défaut les 80 % centraux. */

@@ -1,7 +1,8 @@
 /** Les effets de la séance : persistance, détection MIDI, sonde de retard, boucles. */
 import { useEffect } from "react";
 import type { PlayRect } from "@thin-air/core";
-import { ecrireRect, ecrireSettings, lireRect } from "../lib/storage.js";
+import { ecrireMine, ecrireRect, ecrireSettings, lireRect } from "../lib/storage.js";
+import { isBuiltIn } from "../state/instruments.js";
 import { mesurerRetard } from "../state/latencyProbe.js";
 import { detecterMidi, type SessionApi } from "./useSession.js";
 import { useBoucleJeu } from "./useBoucleJeu.js";
@@ -36,6 +37,14 @@ function useRectPersistence(session: SessionApi, rect: PlayRect): void {
   }, [session]);
 }
 
+/** AIR-F-54 : les instruments de l'utilisateur restent sur l'appareil. */
+function useLibraryPersistence(data: SeanceData): void {
+  const { library } = data;
+  useEffect(() => {
+    ecrireMine(library.filter((instrument) => !isBuiltIn(instrument)));
+  }, [library]);
+}
+
 /** §7.12 : Web MIDI est détecté, la fonction est masquée quand il manque. */
 function useMidiDetection(session: SessionApi): void {
   useEffect(() => {
@@ -57,6 +66,7 @@ export function useSeanceEffects(deps: EffetsDeps): void {
   const { session, data, rect, miroir } = deps;
   useSettingsPersistence(session, data);
   useRectPersistence(session, rect);
+  useLibraryPersistence(data);
   useMidiDetection(session);
   useLatencyProbe(session, data);
   useBoucleJeu({ session, miroir, etat: session.state, onEvents: data.onEventsRef.current });

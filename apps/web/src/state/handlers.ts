@@ -22,7 +22,7 @@ import {
   withBars,
   withTempo,
 } from "./loopState.js";
-import { duplicate, validateWithSchema } from "./instruments.js";
+import { duplicate, validate } from "./instruments.js";
 import { download, exportMidi, exportWav, toSession } from "../lib/exportLoop.js";
 import type { PanelId } from "../ui/Stage.js";
 import type { PanelHandlers } from "../ui/Panels.js";
@@ -57,7 +57,7 @@ export function gestionnaires(deps: HandlersDeps): PanelHandlers {
       data.setEditing(copie);
     },
     onEdit: (instrument) => data.setEditing(instrument),
-    onImport: (raw) => void importer(raw, deps),
+    onImport: (raw) => importer(raw, deps),
     onTempo: (tempo) => data.setLoop((avant) => withTempo(avant, tempo)),
     onBars: (bars) => data.setLoop((avant) => withBars(avant, bars)),
     onRecord: () => {
@@ -82,20 +82,17 @@ function finEnregistrement(avant: LoopState, deps: HandlersDeps): LoopState {
   return stopRecording(avant, deps.data.instrument.name, deps.data.enregistres.current);
 }
 
-/** AIR-F-43 : un fichier refusé l'est en entier, avec sa raison à l'écran. */
-async function importer(raw: string, deps: HandlersDeps): Promise<void> {
-  const resultat = await validateWithSchema(raw);
+/** AIR-F-43 : un fichier refusé l'est en entier, avec ses raisons à l'écran. */
+function importer(raw: string, deps: HandlersDeps): void {
+  const resultat = validate(raw);
   if (!resultat.ok) {
-    deps.session.dispatch({
-      type: "instrumentRejected",
-      reason: resultat.reasons.map((code) => deps.m.instruments.reasons[code]).join(" ; "),
-    });
+    deps.session.dispatch({ type: "instrumentRejected", reason: resultat.reasons.join(" ; ") });
     return;
   }
   deps.session.dispatch({ type: "instrumentAccepted" });
-  deps.data.setLibrary((biblio) => remplacer(biblio, resultat.instrument));
-  deps.data.setInstrument(resultat.instrument);
-  deps.session.setInstrument(resultat.instrument);
+  deps.data.setLibrary((biblio) => remplacer(biblio, resultat.value));
+  deps.data.setInstrument(resultat.value);
+  deps.session.setInstrument(resultat.value);
 }
 
 /** AIR-F-38, 39 : export rendu hors ligne, téléchargé localement. */
