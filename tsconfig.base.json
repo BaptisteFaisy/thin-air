@@ -1,0 +1,32 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable", "WebWorker"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "types": ["node"],
+    "baseUrl": ".",
+    "paths": {
+      "@thin-air/core": ["packages/core/src/index.ts"],
+      "@thin-air/core/*": ["packages/core/src/*"],
+      "@thin-air/schema": ["packages/schema/src/index.ts"],
+      "@thin-air/schema/*": ["packages/schema/src/*"],
+      "@thin-air/audio": ["packages/audio/src/index.ts"],
+      "@thin-air/audio/*": ["packages/audio/src/*"],
+      "@thin-air/vision": ["packages/vision/src/index.ts"],
+      "@thin-air/vision/*": ["packages/vision/src/*"],
+      "@thin-air/bench": ["apps/bench/src/index.ts"],
+      "@thin-air/bench/*": ["apps/bench/src/*"]
+    }
+  }
+}

@@ -1,0 +1,69 @@
+name: CI
+
+# Thin Air — CI unique des PR : typecheck, tests par propriétés, gardes du
+# projet, gardes de la CI. Verdict en 5 min au plus (règle user 2026-10-24).
+#
+# Deux règles du cahier des charges s'appliquent ici comme ailleurs :
+#   AIR-N-02  aucun test n'émet un son : tout est rendu hors ligne, dans un
+#             tableau, sans périphérique audio ; le runner n'a pas de carte son
+#             ouverte et aucune commande de volume n'existe dans ce dépôt ;
+#   AIR-N-10  aucune caméra réelle : des prises enregistrées et des prises de
+#             synthèse. Le build du site et l'E2E navigateur sont hors PR
+#             (`build.yml`, `workflow_dispatch` et `main` seulement).
+on:
+  pull_request:
+  merge_group:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    name: ci
+    runs-on: [self-hosted, linux, x64, thin-air-worker]
+    timeout-minutes: 5
+    env:
+      # Runner auto-hébergé : node/npm vivent en espace utilisateur.
+      PATH: /home/baptiste/bin:/usr/local/bin:/usr/bin:/bin
+      # Aucune sortie audio sur le runner ; les rendus sont hors ligne.
+      PULSE_AUDIO: 0
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+          clean: false
+
+      # Runners persistants : un reste d'un run précédent fausserait le
+      # contrôle des fichiers sonores. `node_modules` est conservé (il est
+      # régénéré par `npm ci` juste après).
+      - name: Nettoyage du workspace
+        run: git clean -ffdx -e node_modules
+
+      - name: Dépendances (npm ci, hors ligne au maximum)
+        run: npm ci --prefer-offline --no-audit --no-fund
+
+      - name: Typecheck (tsc, aucun fichier émis)
+        run: npx tsc --noEmit -p tsconfig.json
+
+      - name: Tests — propriétés et unités, aucun son
+        run: npx vitest run --reporter=dot
+
+      - name: Gardes du projet (fichiers sonores, vocabulaire, prises)
+        run: node scripts/hooks/run-all-guards.mjs
+
+      - name: Tests des gardes CI (périmètre, conflit, réparation)
+        run: |
+          python3 .github/couche0/test_check_couche0.py
+          python3 .github/fireworks/test_conflict_agent.py
+          python3 .github/fireworks/test_test_agent.py
+          python3 .github/fireworks/test_scope_agent.py
+          python3 .github/fireworks/test_union_journal.py
+          python3 .github/fireworks/test_quota.py

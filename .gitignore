@@ -1,0 +1,16 @@
+node_modules/
+dist/
+*.tsbuildinfo
+out/
+bench-out/
+coverage/
+public/models/*.task
+public/models/*.wasm
+public/models/*.js
+public/models/*.json
+.DS_Store
+*.wav
+*.mp3
+*.ogg
+*.flac
+*.m4a

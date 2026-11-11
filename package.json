@@ -1,0 +1,50 @@
+{
+  "name": "thin-air",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Thin Air — a webcam turns thin air into an instrument. Kiroween 2026, category Frankenstein.",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "workspaces": [
+    "packages/core",
+    "packages/schema",
+    "packages/audio",
+    "packages/vision",
+    "apps/bench",
+    "apps/web"
+  ],
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "bench": "tsx apps/bench/src/cli.ts",
+    "build": "vite build apps/web",
+    "fetch-model": "node scripts/fetch-model.mjs",
+    "guards": "node scripts/hooks/run-all-guards.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^4.7.0",
+    "fast-check": "^4.10.2",
+    "happy-dom": "^21.0.4",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3",
+    "vite": "^6.4.6",
+    "vitest": "^3.2.7"
+  },
+  "dependencies": {
+    "@mediapipe/tasks-vision": "^1.2.2",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "zod": "^4.6.7"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true,
+    "esbuild@0.25.12": true
+  }
+}

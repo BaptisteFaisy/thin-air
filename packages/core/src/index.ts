@@ -1,0 +1,17 @@
+/** Le contrat public de `@thin-air/core`. Rien d'autre n'est importé dehors. */
+export * from "./types.js";
+export * from "./defaults.js";
+export * from "./space.js";
+export * from "./filter.js";
+export * from "./features.js";
+export * from "./roles.js";
+export * from "./gestures.js";
+export * from "./music.js";
+export * from "./takeGen.js";
+export * from "./instrument.js";
+export * from "./voices.js";
+export * from "./schedule.js";
+export * from "./loop.js";
+export * from "./midi.js";
+export * from "./measure.js";
+export * from "./pipeline.js";
