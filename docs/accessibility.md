@@ -174,11 +174,15 @@ tested in this edition, so it is not claimed.
 
 Nothing here counts as proven by a good intention. Four pieces of evidence:
 
-1. **Automated pass, no error.** The audit runs in the browser E2E job
-   (`.github/workflows/build.yml`, job `e2e`, outside PRs) and must report zero
-   violations at level AA for the welcome screen, the stage in pointer mode,
-   and each drawer. The job is non-blocking by design — it is not a required
-   check — so the result is read in the run log and copied into the logbook; a
+1. **Automated pass, no error.** The audit belongs in the browser E2E job
+   (`.github/workflows/build.yml`, job `e2e`, outside PRs, delivered by this
+   lot) and must report zero violations at level AA for the welcome screen, the
+   stage in pointer mode, and each drawer. Today that job only probes for a
+   test browser and stays silent when none is present: this lot adds no
+   dependency to the repository, so the audit itself is **not wired yet** —
+   it is a recipe item (§18) for lot B4, not something this file claims to run.
+   When it is wired, the job stays non-blocking by design (not a required
+   check), so its result is read in the run log and copied into the logbook: a
    violation there is a bug, not a warning to ignore.
 2. **P2 automated** (recipe §18, `§8` P2). One test drives the product with no
    camera at all: pointer as one hand, keyboard as the other, and asserts that
@@ -192,9 +196,12 @@ Nothing here counts as proven by a good intention. Four pieces of evidence:
    as a number, not an opinion.
 
 Status of each, as of this lot: the palette numbers are computed above; the
-reference take plus the pointer path exist only once lots B4 (web) and B3
-(bench) have landed, so items 1 and 2 are `TODO(mesure)` until the E2E job has
-run once on `main` — the workflow that carries them is delivered here.
+reference take and the pointer path exist only once lots B4 (web) and B3 (bench)
+have landed, so items 1 and 2 are `TODO(mesure)` until the E2E job has run once
+on `main` — the workflow that carries them is delivered here. Item 3 is a manual
+walkthrough of the recipe (§18), to be written into the logbook with the date.
+Item 4 is recomputed from the stylesheet constants once those constants exist,
+which is lot B4's perimeter: until then, section 1 of this file is the reference.
 
 Reproduce the palette numbers (Node 22, no dependency, no network):
 
