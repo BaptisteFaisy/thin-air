@@ -1,0 +1,48 @@
+{
+  "format": "thin-air-instrument/1",
+  "name": "Koto",
+  "pointer": "index",
+  "scale": {
+    "root": 55,
+    "steps": [
+      0,
+      2,
+      3,
+      5,
+      7,
+      8,
+      10
+    ]
+  },
+  "strings": {
+    "count": 9,
+    "axis": "u"
+  },
+  "snap": 1,
+  "voices": 4,
+  "gestures": [
+    {
+      "hand": "any",
+      "gesture": "cross",
+      "do": "pluck",
+      "velocity": "speed"
+    },
+    {
+      "hand": "any",
+      "gesture": "pinch",
+      "do": "damp"
+    }
+  ],
+  "sound": {
+    "engine": "pluck",
+    "decay": 0.995,
+    "releaseMs": 1200,
+    "brightness": {
+      "feature": "u",
+      "into": [
+        0.3,
+        0.9
+      ]
+    }
+  }
+}

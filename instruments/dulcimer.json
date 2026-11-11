@@ -1,0 +1,19 @@
+{
+  "format": "thin-air-instrument/1",
+  "name": "Dulcimer",
+  "pointer": "palm",
+  "scale": { "root": 57, "steps": [0, 2, 3, 5, 7, 9, 10] },
+  "strings": { "count": 12, "axis": "u" },
+  "snap": 1,
+  "voices": 4,
+  "gestures": [
+    { "hand": "any", "gesture": "cross", "do": "pluck", "velocity": "fixed", "value": 0.6 },
+    { "hand": "any", "gesture": "fist", "do": "mute" }
+  ],
+  "sound": {
+    "engine": "pluck",
+    "decay": 0.998,
+    "releaseMs": 2500,
+    "brightness": { "feature": "u", "into": [0.4, 0.8] }
+  }
+}

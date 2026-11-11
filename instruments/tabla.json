@@ -1,0 +1,45 @@
+{
+  "format": "thin-air-instrument/1",
+  "name": "Tabla",
+  "pointer": "palm",
+  "scale": {
+    "root": 57,
+    "steps": [
+      0,
+      2,
+      3,
+      5,
+      7,
+      8,
+      10
+    ]
+  },
+  "strings": {
+    "count": 2,
+    "axis": "u"
+  },
+  "snap": 1,
+  "voices": 2,
+  "gestures": [
+    {
+      "hand": "any",
+      "gesture": "cross",
+      "do": "strike",
+      "velocity": "speed"
+    },
+    {
+      "hand": "any",
+      "gesture": "pinch",
+      "do": "damp"
+    }
+  ],
+  "defaults": {
+    "quantize": "sixteenth",
+    "quantizeStrength": 1
+  },
+  "sound": {
+    "engine": "drum",
+    "noiseMs": 90,
+    "toneHz": 220
+  }
+}

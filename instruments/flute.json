@@ -1,0 +1,23 @@
+{
+  "format": "thin-air-instrument/1",
+  "name": "Flute",
+  "pointer": "palm",
+  "scale": { "root": 60, "steps": [0, 2, 3, 5, 7, 8, 10] },
+  "range": { "low": 60, "high": 72 },
+  "snap": 1,
+  "voices": 1,
+  "controls": [
+    { "hand": "pitch", "feature": "u", "to": "pitch" },
+    { "hand": "volume", "feature": "v", "to": "gain", "curve": "db48" }
+  ],
+  "gestures": [
+    { "hand": "volume", "gesture": "fist", "do": "mute" }
+  ],
+  "sound": {
+    "engine": "osc",
+    "wave": "triangle",
+    "attackMs": 120,
+    "releaseMs": 600,
+    "glideMs": 40
+  }
+}
