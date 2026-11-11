@@ -4,10 +4,9 @@ dist/
 out/
 bench-out/
 coverage/
-public/models/*.task
-public/models/*.wasm
-public/models/*.js
-public/models/*.json
+# Le modèle de vision et son moteur d'exécution ne sont jamais versionnés :
+# 7,8 Mo + 2 × 13,9 Mo, téléchargés par `npm run fetch-model` (AIR-N-01, §11.9).
+public/models/
 .DS_Store
 *.wav
 *.mp3

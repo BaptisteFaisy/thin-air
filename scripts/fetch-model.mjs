@@ -10,7 +10,7 @@
  *
  * Usage : npm run fetch-model
  */
-import { mkdir, writeFile, stat } from "node:fs/promises";
+import { mkdir, writeFile, readFile, stat, readdir } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -41,6 +41,32 @@ async function telecharger(url, fichier) {
 
 await mkdir(cible, { recursive: true });
 const poids = await telecharger(MODELE, "hand_landmarker.task");
+
 // Les fichiers d'exécution (wasm) sont copiés depuis le paquet installé :
-// la version sertie dans le dépôt est celle que les tests utilisent.
-process.stdout.write(`poids du modèle : ${(poids / 1e6).toFixed(2)} Mo — à noter dans docs/latency.md\n`);
+// c'est la même version que celle des tests, et le site n'appelle aucun CDN
+// (AIR-N-01). La racine attendue par le chargeur est `models/wasm`.
+const wasmSource = join(racine, "node_modules", "@mediapipe", "tasks-vision", "wasm");
+const wasmCible = join(cible, "wasm");
+await mkdir(wasmCible, { recursive: true });
+let poidsWasm = 0;
+try {
+  for (const nom of await readdir(wasmSource)) {
+    const octets = await readFile(join(wasmSource, nom));
+    await writeFile(join(wasmCible, nom), octets);
+    poidsWasm += octets.byteLength;
+  }
+} catch {
+  process.stderr.write(
+    "impossible de copier les fichiers d'exécution depuis node_modules : " +
+      "lancer `npm ci` d'abord\n",
+  );
+  process.exit(1);
+}
+
+const total = poids + poidsWasm;
+process.stdout.write(
+  `poids du modèle : ${(poids / 1e6).toFixed(2)} Mo · ` +
+    `fichiers d'exécution : ${(poidsWasm / 1e6).toFixed(2)} Mo · ` +
+    `total premier chargement : ${(total / 1e6).toFixed(2)} Mo\n`,
+);
+process.stdout.write("à reporter dans docs/latency.md (ligne « poids du premier chargement »)\n");
