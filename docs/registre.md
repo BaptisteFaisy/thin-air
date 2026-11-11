@@ -8,20 +8,33 @@ fichier avec `@thin-air/schema`, et produit un index : nom, moteur, gamme,
 aimant, géométrie, nombre de voix, **fragment de partage**, chemin d'origine.
 
 ```bash
-npx tsx scripts/registre.mjs registre/instruments               # index → out/registre.json
-npx tsx scripts/registre.mjs registre/instruments --markdown     # + tableau Markdown
-npx tsx scripts/registre.mjs https://github.com/quelquun/ses-instruments.git
+node scripts/registre.mjs registre/instruments               # index → out/registre.json
+node scripts/registre.mjs registre/instruments --publier     # + Markdown à coller
+node scripts/registre.mjs https://github.com/quelquun/ses-instruments.git
 ```
 
+Node pur : aucun outillage de build, le schéma TypeScript est lu directement.
 Un fichier invalide est **listé avec ses raisons**, jamais ignoré en silence.
-Le script sort 1 si rien n'est valide.
+Le script sort 1 si rien n'est valide, 2 si la source est inexploitable.
 
-Sortie réelle sur les deux exemples du dépôt :
+Sortie réelle de `node scripts/registre.mjs registre/instruments` :
 
 ```text
 2 instrument(s) valide(s), 0 refusé(s) → out/registre.json
   ✓ Glass Harp · corde pincée · 12 cordes (u) · aimant 1
   ✓ Vigil · oscillateurs · 5 zones · aimant 1
+```
+
+Régénérer l'index après un ajout :
+
+```bash
+node scripts/registre.mjs registre/instruments --publier
+```
+
+Le banc du registre (fixtures locales, aucun réseau, rien d'écrit hors `out/`) :
+
+```bash
+node --test scripts/registre.test.mjs     # 5 tests
 ```
 
 ## Ce que ce n'est pas

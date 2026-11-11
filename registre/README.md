@@ -33,8 +33,22 @@ triée sans doublon dans [0, 11], étendue ordonnée, au moins un de `range`,
 Pour vérifier un fichier avant de le proposer :
 
 ```bash
-npx tsx scripts/registre.mjs registre/instruments --markdown
+node scripts/registre.mjs registre/instruments --publier
 ```
+
+Node pur, aucun outillage de build : le schéma TypeScript est lu directement.
+
+## Les deux modèles, et leur phrase d'origine
+
+Un instrument naît d'une phrase (§14.4). Les deux fichiers de ce dossier sont
+les modèles à dupliquer ; voici la phrase dont chacun est issu.
+
+- `exemple-harpe-douze.json` — **Glass Harp** : « Douze cordes verticales que
+  l'index traverse, gamme par tons, corde pincée dont la brillance suit la
+  hauteur de la main ; pincer étouffe. »
+- `exemple-nappe-cinq-zones.json` — **Vigil** : « Cinq zones où poser la main
+  pour tenir une note, nappes de dents de scie désaccordées, ouverture de la
+  main sur la brillance, poing fermé pour couper. »
 
 ## Proposer un instrument
 
