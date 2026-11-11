@@ -6,289 +6,169 @@
   "layers": [
     {
       "id": 1,
-      "instrument": "drone",
+      "instrument": "Drone",
       "events": [
         {
           "type": "noteOn",
           "t": 0,
           "voice": "drone",
           "midi": 38,
-          "velocity": 0.9
+          "velocity": 0.7
         },
         {
-          "type": "noteOn",
-          "t": 5.333333,
+          "type": "control",
+          "t": 1.333333,
           "voice": "drone",
-          "midi": 33,
-          "velocity": 0.9
+          "param": "pitch",
+          "value": 34
         },
         {
-          "type": "noteOn",
-          "t": 8,
+          "type": "control",
+          "t": 2,
           "voice": "drone",
-          "midi": 38,
-          "velocity": 0.9
+          "param": "pitch",
+          "value": 33
         }
       ],
       "muted": false
     },
     {
       "id": 2,
-      "instrument": "harp",
+      "instrument": "Choir",
       "events": [
         {
           "type": "noteOn",
           "t": 0,
-          "voice": "harp-50",
-          "midi": 50,
-          "velocity": 0.6
-        },
-        {
-          "type": "noteOff",
-          "t": 0.9,
-          "voice": "harp-50"
-        },
-        {
-          "type": "noteOn",
-          "t": 0.666667,
-          "voice": "harp-53",
-          "midi": 53,
-          "velocity": 0.45
-        },
-        {
-          "type": "noteOff",
-          "t": 1.566667,
-          "voice": "harp-53"
-        },
-        {
-          "type": "noteOn",
-          "t": 1.333333,
-          "voice": "harp-57",
-          "midi": 57,
-          "velocity": 0.45
-        },
-        {
-          "type": "noteOff",
-          "t": 2.233333,
-          "voice": "harp-57"
-        },
-        {
-          "type": "noteOn",
-          "t": 2,
-          "voice": "harp-62",
+          "voice": "choir-1",
           "midi": 62,
           "velocity": 0.45
         },
         {
-          "type": "noteOff",
-          "t": 2.9,
-          "voice": "harp-62"
-        },
-        {
           "type": "noteOn",
-          "t": 2.666667,
-          "voice": "harp-46",
-          "midi": 46,
-          "velocity": 0.6
+          "t": 0,
+          "voice": "choir-2",
+          "midi": 65,
+          "velocity": 0.4
         },
         {
           "type": "noteOff",
-          "t": 3.566667,
-          "voice": "harp-46"
-        },
-        {
-          "type": "noteOn",
-          "t": 3.333333,
-          "voice": "harp-50",
-          "midi": 50,
-          "velocity": 0.45
+          "t": 5.333333,
+          "voice": "choir-1"
         },
         {
           "type": "noteOff",
-          "t": 4.233333,
-          "voice": "harp-50"
-        },
-        {
-          "type": "noteOn",
-          "t": 4,
-          "voice": "harp-53",
-          "midi": 53,
-          "velocity": 0.45
-        },
-        {
-          "type": "noteOff",
-          "t": 4.9,
-          "voice": "harp-53"
-        },
-        {
-          "type": "noteOn",
-          "t": 4.666667,
-          "voice": "harp-58",
-          "midi": 58,
-          "velocity": 0.45
-        },
-        {
-          "type": "noteOff",
-          "t": 5.566667,
-          "voice": "harp-58"
+          "t": 5.333333,
+          "voice": "choir-2"
         },
         {
           "type": "noteOn",
           "t": 5.333333,
-          "voice": "harp-45",
-          "midi": 45,
-          "velocity": 0.6
-        },
-        {
-          "type": "noteOff",
-          "t": 6.233333,
-          "voice": "harp-45"
-        },
-        {
-          "type": "noteOn",
-          "t": 6,
-          "voice": "harp-48",
-          "midi": 48,
+          "voice": "choir-3",
+          "midi": 58,
           "velocity": 0.45
         },
         {
-          "type": "noteOff",
-          "t": 6.9,
-          "voice": "harp-48"
-        },
-        {
           "type": "noteOn",
-          "t": 6.666667,
-          "voice": "harp-52",
-          "midi": 52,
-          "velocity": 0.45
+          "t": 5.333333,
+          "voice": "choir-4",
+          "midi": 62,
+          "velocity": 0.4
         },
         {
           "type": "noteOff",
-          "t": 7.566667,
-          "voice": "harp-52"
-        },
-        {
-          "type": "noteOn",
-          "t": 7.333333,
-          "voice": "harp-57",
-          "midi": 57,
-          "velocity": 0.45
+          "t": 8,
+          "voice": "choir-3"
         },
         {
           "type": "noteOff",
-          "t": 8.233333,
-          "voice": "harp-57"
+          "t": 8,
+          "voice": "choir-4"
         },
         {
           "type": "noteOn",
           "t": 8,
-          "voice": "harp-50",
-          "midi": 50,
-          "velocity": 0.6
-        },
-        {
-          "type": "noteOff",
-          "t": 8.9,
-          "voice": "harp-50"
-        },
-        {
-          "type": "noteOn",
-          "t": 8.666667,
-          "voice": "harp-53",
-          "midi": 53,
+          "voice": "choir-5",
+          "midi": 61,
           "velocity": 0.45
         },
         {
-          "type": "noteOff",
-          "t": 9.566667,
-          "voice": "harp-53"
-        },
-        {
           "type": "noteOn",
-          "t": 9.333333,
-          "voice": "harp-57",
-          "midi": 57,
-          "velocity": 0.45
+          "t": 8,
+          "voice": "choir-6",
+          "midi": 64,
+          "velocity": 0.4
         },
         {
           "type": "noteOff",
-          "t": 10.233333,
-          "voice": "harp-57"
-        },
-        {
-          "type": "noteOn",
-          "t": 10,
-          "voice": "harp-62",
-          "midi": 62,
-          "velocity": 0.45
+          "t": 10.5,
+          "voice": "choir-5"
         },
         {
           "type": "noteOff",
-          "t": 10.9,
-          "voice": "harp-62"
+          "t": 10.5,
+          "voice": "choir-6"
         }
       ],
       "muted": false
     },
     {
       "id": 3,
-      "instrument": "choir",
+      "instrument": "Harp",
       "events": [
         {
           "type": "noteOn",
-          "t": 0,
-          "voice": "choir-1",
-          "midi": 50,
-          "velocity": 0.5
-        },
-        {
-          "type": "noteOn",
-          "t": 0,
-          "voice": "choir-2",
-          "midi": 57,
-          "velocity": 0.45
-        },
-        {
-          "type": "noteOn",
-          "t": 2.666667,
-          "voice": "choir-1",
+          "t": 5.333333,
+          "voice": "harp-1",
           "midi": 46,
           "velocity": 0.5
         },
         {
           "type": "noteOn",
-          "t": 2.666667,
-          "voice": "choir-2",
-          "midi": 53,
-          "velocity": 0.45
-        },
-        {
-          "type": "noteOn",
-          "t": 5.333333,
-          "voice": "choir-1",
-          "midi": 48,
-          "velocity": 0.5
-        },
-        {
-          "type": "noteOn",
-          "t": 5.333333,
-          "voice": "choir-2",
-          "midi": 52,
-          "velocity": 0.45
-        },
-        {
-          "type": "noteOn",
-          "t": 8,
-          "voice": "choir-1",
+          "t": 6,
+          "voice": "harp-2",
           "midi": 50,
+          "velocity": 0.45
+        },
+        {
+          "type": "noteOn",
+          "t": 6.666667,
+          "voice": "harp-3",
+          "midi": 53,
           "velocity": 0.5
         },
         {
           "type": "noteOn",
+          "t": 7.333333,
+          "voice": "harp-4",
+          "midi": 58,
+          "velocity": 0.45
+        },
+        {
+          "type": "noteOn",
           "t": 8,
-          "voice": "choir-2",
-          "midi": 53,
+          "voice": "harp-5",
+          "midi": 45,
+          "velocity": 0.5
+        },
+        {
+          "type": "noteOn",
+          "t": 8.666667,
+          "voice": "harp-6",
+          "midi": 61,
+          "velocity": 0.45
+        },
+        {
+          "type": "noteOn",
+          "t": 9.333333,
+          "voice": "harp-7",
+          "midi": 64,
+          "velocity": 0.5
+        },
+        {
+          "type": "noteOn",
+          "t": 10,
+          "voice": "harp-8",
+          "midi": 69,
           "velocity": 0.45
         }
       ],
@@ -296,117 +176,177 @@
     },
     {
       "id": 4,
-      "instrument": "phantom",
+      "instrument": "Phantom",
       "events": [
         {
           "type": "noteOn",
           "t": 0,
-          "voice": "phantom",
-          "midi": 69,
-          "velocity": 0.7
-        },
-        {
-          "type": "noteOn",
-          "t": 0.666667,
-          "voice": "phantom",
+          "voice": "phantom-1",
           "midi": 74,
-          "velocity": 0.65
-        },
-        {
-          "type": "noteOn",
-          "t": 1,
-          "voice": "phantom",
-          "midi": 73,
-          "velocity": 0.6
-        },
-        {
-          "type": "noteOn",
-          "t": 1.333333,
-          "voice": "phantom",
-          "midi": 69,
-          "velocity": 0.65
-        },
-        {
-          "type": "noteOn",
-          "t": 2,
-          "voice": "phantom",
-          "midi": 65,
-          "velocity": 0.6
-        },
-        {
-          "type": "noteOn",
-          "t": 2.666667,
-          "voice": "phantom",
-          "midi": 67,
-          "velocity": 0.65
-        },
-        {
-          "type": "noteOn",
-          "t": 3.333333,
-          "voice": "phantom",
-          "midi": 70,
-          "velocity": 0.65
-        },
-        {
-          "type": "noteOn",
-          "t": 4,
-          "voice": "phantom",
-          "midi": 69,
-          "velocity": 0.7
-        },
-        {
-          "type": "noteOn",
-          "t": 5.333333,
-          "voice": "phantom",
-          "midi": 64,
-          "velocity": 0.6
-        },
-        {
-          "type": "noteOn",
-          "t": 6,
-          "voice": "phantom",
-          "midi": 67,
-          "velocity": 0.6
-        },
-        {
-          "type": "noteOn",
-          "t": 6.666667,
-          "voice": "phantom",
-          "midi": 73,
-          "velocity": 0.65
-        },
-        {
-          "type": "noteOn",
-          "t": 7.333333,
-          "voice": "phantom",
-          "midi": 76,
-          "velocity": 0.7
-        },
-        {
-          "type": "noteOn",
-          "t": 8,
-          "voice": "phantom",
-          "midi": 74,
-          "velocity": 0.75
-        },
-        {
-          "type": "noteOn",
-          "t": 9.333333,
-          "voice": "phantom",
-          "midi": 69,
-          "velocity": 0.6
-        },
-        {
-          "type": "noteOn",
-          "t": 10,
-          "voice": "phantom",
-          "midi": 65,
           "velocity": 0.55
         },
         {
           "type": "noteOff",
-          "t": 10.333333,
-          "voice": "phantom"
+          "t": 0.666667,
+          "voice": "phantom-1"
+        },
+        {
+          "type": "noteOn",
+          "t": 0.666667,
+          "voice": "phantom-2",
+          "midi": 73,
+          "velocity": 0.5
+        },
+        {
+          "type": "noteOff",
+          "t": 1.333333,
+          "voice": "phantom-2"
+        },
+        {
+          "type": "noteOn",
+          "t": 1.333333,
+          "voice": "phantom-3",
+          "midi": 70,
+          "velocity": 0.55
+        },
+        {
+          "type": "noteOff",
+          "t": 2.666667,
+          "voice": "phantom-3"
+        },
+        {
+          "type": "noteOn",
+          "t": 2.666667,
+          "voice": "phantom-4",
+          "midi": 69,
+          "velocity": 0.55
+        },
+        {
+          "type": "control",
+          "t": 3,
+          "voice": "phantom-4",
+          "param": "vibrato",
+          "value": 20
+        },
+        {
+          "type": "noteOff",
+          "t": 4,
+          "voice": "phantom-4"
+        },
+        {
+          "type": "noteOn",
+          "t": 4,
+          "voice": "phantom-5",
+          "midi": 67,
+          "velocity": 0.5
+        },
+        {
+          "type": "noteOff",
+          "t": 4.666667,
+          "voice": "phantom-5"
+        },
+        {
+          "type": "noteOn",
+          "t": 4.666667,
+          "voice": "phantom-6",
+          "midi": 65,
+          "velocity": 0.5
+        },
+        {
+          "type": "noteOff",
+          "t": 5.333333,
+          "voice": "phantom-6"
+        },
+        {
+          "type": "noteOn",
+          "t": 5.333333,
+          "voice": "phantom-7",
+          "midi": 70,
+          "velocity": 0.55
+        },
+        {
+          "type": "noteOff",
+          "t": 6,
+          "voice": "phantom-7"
+        },
+        {
+          "type": "noteOn",
+          "t": 6,
+          "voice": "phantom-8",
+          "midi": 69,
+          "velocity": 0.5
+        },
+        {
+          "type": "noteOff",
+          "t": 6.666667,
+          "voice": "phantom-8"
+        },
+        {
+          "type": "noteOn",
+          "t": 6.666667,
+          "voice": "phantom-9",
+          "midi": 67,
+          "velocity": 0.55
+        },
+        {
+          "type": "noteOff",
+          "t": 8,
+          "voice": "phantom-9"
+        },
+        {
+          "type": "noteOn",
+          "t": 8,
+          "voice": "phantom-10",
+          "midi": 65,
+          "velocity": 0.5
+        },
+        {
+          "type": "noteOff",
+          "t": 8.666667,
+          "voice": "phantom-10"
+        },
+        {
+          "type": "noteOn",
+          "t": 8.666667,
+          "voice": "phantom-11",
+          "midi": 64,
+          "velocity": 0.55
+        },
+        {
+          "type": "noteOff",
+          "t": 9.333333,
+          "voice": "phantom-11"
+        },
+        {
+          "type": "noteOn",
+          "t": 9.333333,
+          "voice": "phantom-12",
+          "midi": 61,
+          "velocity": 0.6
+        },
+        {
+          "type": "noteOff",
+          "t": 9.666667,
+          "voice": "phantom-12"
+        },
+        {
+          "type": "noteOn",
+          "t": 10,
+          "voice": "phantom-13",
+          "midi": 74,
+          "velocity": 0.6
+        },
+        {
+          "type": "control",
+          "t": 10.166667,
+          "voice": "phantom-13",
+          "param": "vibrato",
+          "value": 30
+        },
+        {
+          "type": "noteOff",
+          "t": 10.583333,
+          "voice": "phantom-13"
         }
       ],
       "muted": false

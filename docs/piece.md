@@ -1,89 +1,56 @@
-# La pièce de démonstration — `takes/pieces/seance-1min.json`
+# La pièce — `seance-1min`
 
-La musique de la vidéo du cahier (§17.1, 0:40 – 1:25) : une boucle de quatre
-mesures à 90 battements par minute, jouée environ une minute, en **ré mineur
-harmonique** (la gamme de saison du §7.7 : ré, mi, fa, sol, la, si bémol,
-do dièse). Musique originale, composée pour l'occasion ; aucun air existant.
+La pièce de démonstration vit dans un fichier : `takes/pieces/seance-1min.json`,
+une `Session` du format `thin-air-session/1`, validée par `parseSession`
+(`@thin-air/schema`). Elle n'est jamais écoutée pendant sa construction — elle
+est rendue hors ligne, mesurée, et les nombres sont recopiés ici (AIR-N-02).
 
-Rien ici n'a été écouté : les preuves sont des nombres, mesurés par le moteur
-hors ligne de `@thin-air/audio` (le même que celui des tests, cahier §7.10).
-Aucun son n'est émis pendant le rendu (AIR-N-02).
+## Ce que c'est
+
+- **Boucle** : 90 battements par minute, 4 mesures de 4 temps → 10,667 s. La
+  pièce rejoue cette boucle **6 fois** : 64,000 s, « environ une minute ».
+- **Tonalité** : ré mineur harmonique (cahier §7.7) — ré, mi, fa, sol, la,
+  si bémol, do dièse. Une seule note échappe à la gamme : aucune ; toutes les
+  hauteurs (classes 2, 4, 5, 7, 9, 10, 1 mod 12) y appartiennent, et chaque
+  attaque tombe sur la double croche (k/6 s ; 166,7 ms à 90 bpm).
+- **Quatre couches**, nommées d'après les instruments du dépôt (`instruments/`).
+  Chaque couche est un fichier d'instrument rendu par le moteur de
+  `@thin-air/audio`, et la boucle qui déroule les événements vient de
+  `@thin-air/core` (`loopEventsAt`) : rien n'est recopié.
+
+| Couche | Instrument | Rôle dans la pièce | Notes / tour |
+|---|---|---|---|
+| 1 | `Drone` | Basse tenue ; glisse ré 2 → si♭ 1 → la 1, rattrapée en ré 2 au tour | 1 |
+| 2 | `Choir` | Accords tenus, deux voix : i (ré m) – i (ré m) – VI (si♭) – V (la) | 6 |
+| 3 | `Harp` | Arpèges des mesures 3 et 4, une corde par temps (si♭ puis la) | 8 |
+| 4 | `Phantom` | Mélodie thérémine, une voix par note, queues de release qui se chevauchent | 13 |
+
+Harmonie, en ré mineur harmonique : **i – i – VI – V**. La cadence do♯ → ré en
+fin de boucle referme la pièce « fantôme » : la dernière note de la boucle est
+la première de la suivante.
 
 ## Les nombres mesurés
 
-Sortie réelle de `npx tsx apps/bench/src/piece.ts` :
+Rendus par `npx tsx apps/bench/src/piece.ts`, recopiés tels quels :
 
-```
-pièce                : takes/pieces/seance-1min.json — 6 tours de boucle
-échantillons         : 3072000 à 48000 Hz
-durée                : 64.000 s
-crête                : -5.94 dB (plafond -1 dB)
-voix simultanées max : 6
-notes par couche     : choir 8, drone 3, harp 16, phantom 15
-WAV                  : out/piece.wav
-```
+| Mesure | Valeur |
+|---|---|
+| Boucle | 10,667 s × 6 tours |
+| Durée totale | 3 072 000 échantillons à 48 000 Hz (64,000 s) |
+| Crête | **−7,94 dB** (plafond −1,00 dB) — conforme |
+| Voix maximales (borne supérieure) | **15** — Drone 1, Choir 4, Harp 8, Phantom 2 |
+| Notes | Drone 6, Choir 36, Harp 48, Phantom 78 — **168** au total |
+| Fichier produit | `out/piece.wav` — 6 144 044 octets |
 
-- **3 072 000 échantillons** = 6 tours × 512 000 (la boucle de quatre mesures à
-  90 vaut exactement 512 000 échantillons à 48 000 Hz, recette §18), soit
-  64,000 s — « environ une minute » en boucle (§7.10).
-- **Crête −5,94 dB** : sous le plafond de −1 dB (AIR-P-13), avec de la marge.
-- **6 voix simultanées au plus**, sous la borne de 8 (§7.9) : le parcours du
-  flux d'événements déroulé (noteOn ouvre une voix, noteOff la ferme), toutes
-  couches confondues.
-- **42 notes par tour** (3 + 16 + 8 + 15), soit 252 attaques sur le rendu.
-- Le WAV écrit fait 6 144 044 octets (en-tête RIFF de 44 octets + 16 bits mono) ;
-  il vit dans `out/`, dossier ignoré — aucun fichier sonore n'est versionné.
+## La commande pour reproduire
 
-## Reproduire
-
-```sh
-npx tsx apps/bench/src/piece.ts        # rend out/piece.wav et imprime les nombres
-npx vitest run apps/bench/src/piece.test.ts   # 11 tests : schéma, boucle, crête, déterminisme
+```bash
+npx tsx apps/bench/src/piece.ts           # rend out/piece.wav et imprime les nombres
+npx tsx apps/bench/src/piece.ts --help    # toutes les options
+npx tsx apps/bench/src/piece.ts --tours 1 --no-wav   # un seul tour, sans WAV
 ```
 
-Déterminisme (AIR-N-09) : aucune horloge, aucune graine aléatoire — deux
-rendus donnent les mêmes échantillons, bit à bit (vérifié par le test).
-
-## Structure de la pièce
-
-Boucle : 4 mesures × 4 temps à 90 (une mesure = 2,667 s, la boucle = 10,667 s).
-Progression harmonique : **ré m — si ♭ — la — ré m** (i — VI — V — i de la
-mineure harmonique ; l'accord de la porte le do dièse de la gamme).
-
-| Couche | Instrument (`instruments/`) | Rôle | Contenu par boucle |
-|---|---|---|---|
-| 1 | `drone` (bourdon) | Pédale | ré 2 tenu ; la 1 mesure 3 ; retour ré 2 mesure 4 — 3 notes, legato sans extinction |
-| 2 | `harp` (harpe) | Arpèges | 4 notes par mesure (ré-fa-la-ré, si♭-ré-fa-si♭, la-do♯-mi-la, ré-fa-la-ré) sur les temps — 16 notes, étouffées à 0,9 s |
-| 3 | `choir` (chœur) | Nappe | Deux voix en accords tenus, un accord par mesure, legato — 8 notes |
-| 4 | `phantom` (thérémine) | Mélodie | Une phrase par mesure (la-ré-do♯-la-fa ; sol-si♭-la ; mi-sol-do♯-mi ; ré-la-fa), glissé de 30 ms entre les notes, respiration en fin de boucle — 15 notes |
-
-Le rendu (`apps/bench/src/piece.ts`) déroule la boucle avec `loopEventsAt`
-(`@thin-air/core`), rend chaque couche sèche avec `renderEvents`
-(`@thin-air/audio`), mélange, puis applique la chaîne du §7.9 dans l'ordre du
-moteur : réverbération (0,25) → gain général (−12 dB) → plafond (−1 dB). Un
-relâchement final est ajouté à 1 s de la fin pour que la dernière mesure ne
-soit pas tronquée net. Aucune logique de rendu n'est réécrite ici.
-
-Les événements de la session sont des `MusicEvent` datés en secondes sur
-l'horloge du son (§11.3) : la session ne contient **aucun échantillon**.
-
-## Ce qui reste à un humain
-
-1. **Écouter** `out/piece.wav` (le seul point de la recette §18 qui ne se
-   prouve pas par un fichier) et noter la séance d'écoute dans
-   `docs/journal.md`, avec ce qui est réglé ensuite.
-2. **Filmer** la séquence 0:40 – 1:25 de la vidéo (§17.1) : la boucle sans
-   coupe, un bourdon, la harpe, le chœur, puis le thérémine par-dessus,
-   compteur de retard visible.
-3. Rejouer éventuellement la pièce à la main dans l'app (fantôme ou caméra) et
-   comparer au rendu mesuré ici.
-
-## Collision de contrat signalée (règle 1 de `docs/CONTRACT.md`)
-
-`take-privacy-guard.mjs` (lot A7) valide **tout** fichier `.json` sous `takes/`
-comme une prise `thin-air-take/1` ; il refuse donc `takes/pieces/seance-1min.json`,
-qui est une **session** (événements musicaux, aucune donnée corporelle — le
-format que le §7.10 exporte justement sous `takes/`). Correction suggérée au
-lot A7 : ignorer les fichiers dont le `format` est `thin-air-session/1` (validés
-par `parseSession`, lot A4). Toutes les autres gardes passent, dont
-`no-audio-asset-guard` nommément exigée par le lot.
+Le rendu est **déterministe** : aucun aléa, aucune horloge lue ; deux passages
+produisent des échantillons identiques au bit près (testé). Aucun son n'est émis
+(AIR-N-02) : tout est calculé dans des tableaux, écrit dans `out/` (ignoré par
+git), jamais joué.

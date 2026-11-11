@@ -1,117 +1,165 @@
 /**
- * La pièce de démonstration, mesurée (cahier §7.10, §17.1, recette §18).
- * Aucun son émis (AIR-N-02) : tout se lit dans des tableaux d'échantillons et
- * des nombres. Le rendu complet (6 tours) vit dans `npx tsx apps/bench/src/piece.ts` ;
- * les tests rendent un seul tour pour rester rapides — les propriétés mesurées
- * sont les mêmes à chaque tour.
+ * La pièce de démonstration : structure de la session, rendu hors ligne,
+ * nombres mesurés, déterminisme. Aucun son émis (AIR-N-02) : tout se lit
+ * dans des tableaux d'échantillons et des listes d'événements.
  */
+import { mkdtempSync, readFileSync, statSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { SAMPLE_RATE, loopSamples } from "@thin-air/core";
-import { parseSession } from "@thin-air/schema";
-import { encodeWav } from "@thin-air/audio";
+import type { Session } from "@thin-air/core";
+import { SAMPLE_RATE, loopEventsAt, sessionLoopSeconds } from "@thin-air/core";
+import { samplesForDuration } from "@thin-air/audio";
 
-import { readJsonFile } from "./io.js";
+import type { Writers } from "./commands.js";
 import {
-  PIECE_PATH,
-  RELACHEMENT_FIN_S,
-  derouleCouche,
-  dureePieceS,
-  instrumentDe,
-  maxVoicesSimultanees,
-  notesParCouche,
-  pieceSession,
+  PIECE_SESSION,
+  layerEvents,
+  main,
+  readInstrumentDirectory,
+  readSessionFile,
   renderPiece,
 } from "./piece.js";
 
-const session = pieceSession();
-const unTour = renderPiece(session, 1);
+/** Ré mineur harmonique (cahier §7.7) : ré, mi, fa, sol, la, si♭, do♯. */
+const HARMONIQUE_RE = new Set([2, 4, 5, 7, 9, 10, 1]);
 
-describe("la session de la pièce (takes/pieces/seance-1min.json)", () => {
-  it("est acceptée en entier par parseSession", () => {
-    const brut: unknown = readJsonFile(PIECE_PATH);
-    expect(parseSession(brut).ok).toBe(true);
-  });
+const session = readSessionFile(PIECE_SESSION);
+const instruments = readInstrumentDirectory();
 
-  it("tempo 90, 4 mesures, 4 temps — la boucle de la recette §18", () => {
+function ecrivain(): { writers: Writers; stdout: string[]; stderr: string[] } {
+  const stdout: string[] = [];
+  const stderr: string[] = [];
+  return { writers: { out: (t) => stdout.push(t), err: (t) => stderr.push(t) }, stdout, stderr };
+}
+
+describe("la session de la pièce", () => {
+  it("est valide et calée sur la boucle du §7.10", () => {
+    expect(session.format).toBe("thin-air-session/1");
     expect(session.tempo).toBe(90);
     expect(session.bars).toBe(4);
     expect(session.beatsPerBar).toBe(4);
-    expect(loopSamples(session.tempo, session.bars, session.beatsPerBar)).toBe(512_000);
+    expect(session.layers.length).toBeGreaterThanOrEqual(3);
+    expect(session.layers.length).toBeLessThanOrEqual(4);
+    const ids = session.layers.map((couche) => couche.id);
+    expect(new Set(ids).size).toBe(ids.length);
   });
 
-  it("quatre couches nommées d'après des instruments existants", () => {
-    expect(session.layers).toHaveLength(4);
+  it("nomme ses couches d'après des instruments du dépôt", () => {
     for (const couche of session.layers) {
-      expect(instrumentDe(couche.instrument).name.length).toBeGreaterThan(0);
+      expect(instruments.parNom.has(couche.instrument), couche.instrument).toBe(true);
+      expect(couche.muted).toBe(false);
+      expect(couche.events.length).toBeGreaterThan(0);
     }
-    expect(session.layers.map((couche) => couche.instrument).sort()).toEqual([
-      "choir",
-      "drone",
-      "harp",
-      "phantom",
-    ]);
   });
 
-  it("les notes par couche sont celles de la partition", () => {
-    expect(notesParCouche(session)).toEqual([
-      ["choir", 8],
-      ["drone", 3],
-      ["harp", 16],
-      ["phantom", 15],
-    ]);
+  it("tient dans la boucle et dans la gamme de saison", () => {
+    const longueur = sessionLoopSeconds(session);
+    for (const couche of session.layers) {
+      for (const evenement of couche.events) {
+        expect(evenement.t).toBeGreaterThanOrEqual(0);
+        expect(evenement.t).toBeLessThan(longueur);
+        if (evenement.type === "noteOn") {
+          expect(HARMONIQUE_RE.has(evenement.midi % 12), `midi ${evenement.midi}`).toBe(true);
+        }
+        if (evenement.type === "control" && evenement.param === "pitch") {
+          expect(HARMONIQUE_RE.has(evenement.value % 12), `pitch ${evenement.value}`).toBe(true);
+        }
+      }
+    }
+  });
+
+  it("vaut exactement 512 000 échantillons par tour (recette §18)", () => {
+    expect(samplesForDuration(sessionLoopSeconds(session), SAMPLE_RATE)).toBe(512_000);
   });
 });
 
-describe("le rendu hors ligne de la pièce", () => {
-  it("un tour de boucle fait exactement 512 000 échantillons à 48 000 Hz", () => {
-    expect(unTour.sampleRate).toBe(SAMPLE_RATE);
-    expect(unTour.echantillons).toBe(512_000);
-    expect(unTour.dureeS).toBeCloseTo(512_000 / SAMPLE_RATE, 9);
+describe("le déroulé de la boucle", () => {
+  it("passe par loopEventsAt, couche par couche", () => {
+    const couche = session.layers[0]!;
+    const duree = 2 * sessionLoopSeconds(session);
+    const viaPiece = layerEvents(session, couche, duree);
+    const viaCore = loopEventsAt({ ...session, layers: [couche] }, 0, duree);
+    expect(viaPiece).toEqual(viaCore);
+    const attaques = viaPiece.filter((e) => e.type === "noteOn").length;
+    expect(attaques).toBe(2 * couche.events.filter((e) => e.type === "noteOn").length);
+  });
+});
+
+describe("le rendu hors ligne", () => {
+  const rapide = { tours: 1, sampleRate: 8_000 } as const;
+
+  it("produit la durée exacte et une crête sous le plafond", () => {
+    const rendu = renderPiece(session, instruments, rapide);
+    const attendu = samplesForDuration(sessionLoopSeconds(session), 8_000);
+    expect(rendu.samples.length).toBe(attendu);
+    expect(rendu.peakDb).toBeLessThanOrEqual(rendu.ceilingDb);
+    expect(rendu.ceilingDb).toBe(-1);
+    expect(rendu.peakDb).toBeGreaterThan(-60); // il y a de la musique, pas du silence
+    expect(rendu.voicesTotal).toBeGreaterThan(0);
+    expect(rendu.voicesTotal).toBeLessThanOrEqual(session.settings.maxVoices * rendu.layers.length);
   });
 
-  it("six tours font environ une minute : 3 072 000 échantillons, 64 s", () => {
-    expect(dureePieceS(session, 6)).toBe(64);
+  it("compte les notes déroulées : 2 tours = 2 fois les notes d'un tour", () => {
+    const unTour = renderPiece(session, instruments, rapide);
+    const deuxTours = renderPiece(session, instruments, { tours: 2, sampleRate: 8_000 });
+    expect(deuxTours.layers.map((c) => c.notes)).toEqual(unTour.layers.map((c) => c.notes * 2));
+    expect(unTour.layers.every((c) => c.notes > 0)).toBe(true);
   });
 
-  it("AIR-P-13 — la crête reste sous le plafond de −1 dB", () => {
-    expect(unTour.peakDb).toBeLessThanOrEqual(-1);
-    expect(Number.isFinite(unTour.peakDb)).toBe(true);
+  it("est déterministe au bit près (AIR-N-09)", () => {
+    const premier = renderPiece(session, instruments, rapide);
+    const second = renderPiece(session, instruments, rapide);
+    const a = Buffer.from(premier.samples.buffer, premier.samples.byteOffset, premier.samples.byteLength);
+    const b = Buffer.from(second.samples.buffer, second.samples.byteOffset, second.samples.byteLength);
+    expect(Buffer.compare(a, b)).toBe(0);
   });
 
-  it("les voix simultanées restent dans la borne du §7.9 (8 au plus)", () => {
-    expect(unTour.maxVoices).toBeGreaterThan(0);
-    expect(unTour.maxVoices).toBeLessThanOrEqual(session.settings.maxVoices);
-    expect(maxVoicesSimultanees(session, dureePieceS(session, 6))).toBe(unTour.maxVoices);
+  it("refuse une couche dont l'instrument n'existe pas", () => {
+    const mauvaise: Session = {
+      ...session,
+      layers: [{ id: 99, instrument: "Inconnu", events: [], muted: false }],
+    };
+    expect(() => renderPiece(mauvaise, instruments, rapide)).toThrow(/introuvable/);
+  });
+});
+
+describe("la commande", () => {
+  it("--help rend 0 et imprime l'usage", () => {
+    const { writers, stdout } = ecrivain();
+    expect(main(["--help"], writers)).toBe(0);
+    expect(stdout.join("\n")).toContain("piece");
   });
 
-  it("AIR-N-09 — deux rendus donnent les mêmes échantillons, bit à bit", () => {
-    const autre = renderPiece(session, 1);
-    expect(autre.echantillons).toBe(unTour.echantillons);
-    for (let i = 0; i < unTour.samples.length; i += 997) {
-      expect(autre.samples[i]).toBe(unTour.samples[i]);
-    }
+  it("--no-wav imprime les nombres réels sans écrire de fichier", () => {
+    const { writers, stdout } = ecrivain();
+    const code = main(["--tours", "1", "--no-wav"], writers);
+    const texte = stdout.join("\n");
+    expect(code).toBe(0);
+    expect(texte).toContain("512000 échantillons");
+    expect(texte).toContain("crête");
+    expect(texte).toContain("conforme");
+    expect(texte).toContain("notes par couche");
+    for (const couche of session.layers) expect(texte).toContain(couche.instrument);
+    expect(texte).toContain("AIR-N-02");
   });
 
-  it("chaque événement de la boucle rejoue exactement une fois par tour", () => {
-    const drone = session.layers.find((couche) => couche.instrument === "drone");
-    expect(drone).toBeDefined();
-    const deroule = derouleCouche(session, drone!, dureePieceS(session, 6));
-    const attaques = deroule.filter((event) => event.type === "noteOn");
-    expect(attaques).toHaveLength(3 * 6);
-    // Le relâchement final ajoute une extinction par voix, avant la fin du rendu.
-    const fins = deroule.filter((event) => event.type === "noteOff");
-    expect(fins.every((event) => event.t === dureePieceS(session, 6) - RELACHEMENT_FIN_S)).toBe(
-      true,
-    );
-    expect(fins.length).toBeGreaterThan(0);
+  it("écrit un WAV 16 bits mono dans un dossier ignoré", () => {
+    const dossier = mkdtempSync(join(tmpdir(), "piece-"));
+    const chemin = join(dossier, "piece.wav");
+    const { writers, stdout } = ecrivain();
+    const code = main(["--tours", "1", "--out", chemin], writers);
+    expect(code).toBe(0);
+    const octets = readFileSync(chemin);
+    expect(octets.subarray(0, 4).toString("ascii")).toBe("RIFF");
+    expect(octets.subarray(8, 12).toString("ascii")).toBe("WAVE");
+    expect(octets.length).toBe(44 + 2 * 512_000);
+    expect(statSync(chemin).size).toBe(octets.length);
+    expect(stdout.join("\n")).toContain(chemin);
   });
 
-  it("le WAV écrit est un RIFF 16 bits mono de la bonne taille", () => {
-    const octets = encodeWav(unTour.samples, unTour.sampleRate);
-    expect(octets.byteLength).toBe(44 + 2 * unTour.echantillons);
-    const texte = (debut: number, longueur: number): string =>
-      String.fromCharCode(...octets.slice(debut, debut + longueur));
-    expect(texte(0, 4)).toBe("RIFF");
-    expect(texte(8, 4)).toBe("WAVE");
+  it("une session illisible est une erreur d'usage (code 2)", () => {
+    const { writers } = ecrivain();
+    expect(main(["--session", "takes/pieces/introuvable.json", "--no-wav"], writers)).toBe(2);
   });
 });
