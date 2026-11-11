@@ -57,7 +57,8 @@ at the end of this section).
 | night `#0B0D14` on spectral tint `#7CE8CB` (active control) | **13.18:1** | 4.5:1 | pass |
 | night `#0B0D14` on bone `#F2EBDC` (primary button) | **16.35:1** | 4.5:1 | pass |
 | tint `#7CE8CB` on deep tint `#123F38` | **7.95:1** | 4.5:1 | pass |
-| dimmed bone `#8A8272` on deep tint `#123F38` | **3.08:1** | 4.5:1 | **fail** — dimmed text is therefore never placed on a sounding zone; labels there use bone (9.86:1) |
+| dimmed bone `#8A8272` on deep tint `#123F38` | **3.08:1** | 4.5:1 | **fail** — dimmed text is therefore never placed on a sounding zone |
+| bone `#F2EBDC` on deep tint `#123F38` | **9.86:1** | 4.5:1 | pass — the only text colour allowed on a sounding zone |
 | amber `#F2C46A` on night `#0B0D14` | **11.90:1** | 4.5:1 | pass |
 | pale brick `#FFB3A0` on night `#0B0D14` | **11.28:1** | 4.5:1 | pass |
 | focus `#B8F5E4` on night `#0B0D14` | **15.92:1** | 3:1 (1.4.11) | pass |
