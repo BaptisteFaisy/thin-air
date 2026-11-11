@@ -1,0 +1,36 @@
+{
+  "format": "thin-air-instrument/1",
+  "name": "Gong",
+  "pointer": "palm",
+  "scale": {
+    "root": 45,
+    "steps": [
+      0,
+      3,
+      5,
+      7,
+      10
+    ]
+  },
+  "strings": {
+    "count": 4,
+    "axis": "u"
+  },
+  "snap": 1,
+  "voices": 4,
+  "gestures": [
+    {
+      "hand": "any",
+      "gesture": "cross",
+      "do": "strike",
+      "velocity": "speed"
+    }
+  ],
+  "sound": {
+    "engine": "fm",
+    "fmRatio": 1.41,
+    "fmIndex": 8,
+    "attackMs": 3,
+    "releaseMs": 6000
+  }
+}

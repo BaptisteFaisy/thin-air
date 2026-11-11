@@ -45,12 +45,14 @@ describe("les six instruments existent et portent le format", () => {
     expect(instrument.name.length).toBeGreaterThan(0);
   });
 
-  it("AIR-F-21/22/23 — les six fichiers du §7.8 sont là, pas un de plus", () => {
+  it("AIR-F-21/22/23 — les six fichiers du §7.8 sont là", () => {
     const presents = readdirSync(DOSSIER)
       .filter((nom) => nom.endsWith(".json"))
-      .map((nom) => nom.replace(/\.json$/, ""))
-      .sort();
-    expect(presents).toEqual([...SIX].sort());
+      .map((nom) => nom.replace(/\.json$/, ""));
+    for (const nom of SIX) expect(presents).toContain(nom);
+    // Le dossier peut contenir d'autres instruments-fichiers (les dix du
+    // luthier, `docs/luthier.md`) : la liste exacte des seize est épinglée
+    // par `luthier.test.ts`, pas ici.
   });
 
   it.each(SIX)("AIR-F-27 — %s ne dépasse pas maxVoices (8, §7.13)", (nom) => {
@@ -264,7 +266,9 @@ describe("Bells, Drone, Grid drums (§7.8)", () => {
   });
 
   it("Grid drums — les frappes sont replacées sur la grille (§7.10, §7.13)", () => {
-    expect(drums.defaults).toEqual({ quantize: "sixteenth", quantizeStrength: 100 });
+    // Force de calage : un rapport de 0 à 1 (`loop.quantize`, schéma des
+    // réglages) — force 1 pose l'attaque sur le temps.
+    expect(drums.defaults).toEqual({ quantize: "sixteenth", quantizeStrength: 1 });
   });
 });
 
@@ -274,3 +278,8 @@ describe("ce qui dépend d'un autre lot", () => {
   it.todo("AIR-P-05 — avec l'aimant à 1, toute note émise est dans la gamme de l'instrument — dépend du lot A3");
   it.todo("AIR-P-03 — la hauteur est monotone en u pour Phantom et Drone — dépend du lot A3");
 });
+
+// Le banc du luthier vit à côté des fichiers qu'il contrôle ; la configuration
+// de Vitest ne regarde que `packages/*/src` et `apps/*/src`, donc ce banc-ci
+// importe le sien — même motif que `packages/instruments/src/instruments.test.ts`.
+await import("./luthier.test");
