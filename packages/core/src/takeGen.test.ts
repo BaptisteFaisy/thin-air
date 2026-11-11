@@ -12,6 +12,7 @@ import fc from "fast-check";
 import type { DetectedHand, HandPoint, Take } from "./types.js";
 import {
   alea,
+  indexTipOffsetU,
   crossingHandsTake,
   fastJabTake,
   handLeavesTake,
@@ -194,17 +195,27 @@ describe("les générateurs de prises", () => {
     expect(ecart).toBeLessThan(0.05); // amplitude 0,02 + marge du modèle de tremblement
   });
 
-  it("sweepTake : l'index balaie bien de fromU à toU dans la zone de jeu", () => {
+  it("sweepTake : le BOUT DE L'INDEX balaie de fromU à toU (§7.14)", () => {
     const prise = sweepTake(0.2, 0.45, { fps: 30 });
     const rect = { u0: 0.1, u1: 0.9, v0: 0.1, v1: 0.9, calibratedAt: null };
-    // On suit le CENTRE DE LA PAUME : le bout de l'index est décalé de la
-    // longueur du doigt, ce n'est pas lui que `sweepTake(fromU, toU)` place.
+    // Le cahier dit « un index passe de u = 0,20 à u = 0,45 » : c'est donc le
+    // bout de l'index (point 8) qui suit la trajectoire, pas le centre de la
+    // paume. La paume est décalée de `indexTipOffsetU`, mesuré et non deviné.
     const us = prise.frames.map((f) => {
+      const bout = f.hands[0]!.points[8]!;
+      return toPlayPosition(bout[0], bout[1], rect, 1).u;
+    });
+    expect(us[0]!).toBeCloseTo(0.2, 3);
+    expect(us[us.length - 1]!).toBeCloseTo(0.45, 3);
+    // La paume suit, décalée de l'écart mesuré entre l'index et la paume.
+    const ecart = indexTipOffsetU();
+    const paumes = prise.frames.map((f) => {
       const [cx, cy] = palmCenter(f.hands[0]!);
       return toPlayPosition(cx, cy, rect, 1).u;
     });
-    expect(us[0]!).toBeCloseTo(0.2, 6);
-    expect(us[us.length - 1]!).toBeCloseTo(0.45, 6);
+    expect(paumes[0]!).toBeCloseTo(0.2 - ecart, 3);
+    expect(ecart).toBeGreaterThan(0);
+    expect(ecart).toBeLessThan(0.3);
     // §7.14 : une demi-seconde par défaut.
     expect(prise.frames).toHaveLength(16);
   });

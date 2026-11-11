@@ -26,11 +26,24 @@ export async function readInstrumentFile(path: string): Promise<Instrument> {
   return accept(schema.parseInstrument(json), path, "instrument");
 }
 
+/**
+ * Réglages dont la valeur par défaut est `null` mais qui acceptent un nombre :
+ * `typeof null` vaut `"object"`, donc comparer au type du défaut refuserait
+ * toute valeur utile. `magnet` est de ceux-là (§7.13 : `null` = « prendre
+ * l'aimant de l'instrument »).
+ */
+const NOMBRE_OU_NUL = new Set(["magnet"]);
+
 function defaultType(key: string): string {
+  if (NOMBRE_OU_NUL.has(key)) return "nombre ou null";
   return typeof (DEFAULT_SETTINGS as unknown as Record<string, unknown>)[key];
 }
 
 function typeMismatch(key: string, value: unknown): boolean {
+  if (NOMBRE_OU_NUL.has(key)) {
+    if (value === null) return false;
+    return typeof value !== "number" || !Number.isFinite(value) || value < 0 || value > 1;
+  }
   const attendu = defaultType(key);
   if (attendu === "number") return typeof value !== "number" || !Number.isFinite(value);
   return typeof value !== attendu;

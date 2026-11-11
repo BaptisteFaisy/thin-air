@@ -83,3 +83,46 @@ le rendu hors ligne tourne dans Node et non dans un navigateur sans écran — l
 preuve est plus stricte, aucun périphérique audio ne peut être ouvert ; la
 réverbération est un réseau de retards à réinjection et non une convolution — le
 même calcul doit servir hors ligne et en direct.
+
+## 2026-11-11 (soir) — intégration : la chaîne de bout en bout, et la recette
+
+Le dernier lot (B2 : instrument, voix, datation, chaîne complète) est mergé. La
+recette du §18 est maintenant vérifiée ligne par ligne dans `docs/recette.md`.
+
+**Quatre défauts d'intégration trouvés en rejouant les exemples chiffrés du
+cahier — aucun n'était visible lot par lot :**
+
+1. **Les prises de synthèse étaient lues à l'envers.** `apps/bench/src/synth.ts`
+   avait sa propre conversion `u → x`, sans le miroir du §7.4 : la prise
+   `slow-rise` faisait descendre la hauteur au lieu de la monter, et le thérémine
+   ne donnait qu'une note (midi 70) au lieu des huit attendues. La conversion est
+   désormais déléguée à `takeGen.uToImageX` / `vToImageY` : une seule
+   implémentation dans le dépôt, et un test d'aller-retour (poser une main à
+   `u`, la relire à `u`) verrouille la convention.
+2. **Le balayage de cordes suivait la paume, pas l'index.** Le §7.14 dit « un
+   index passe de u = 0,20 à u = 0,45 » ; `sweepTake` plaçait le centre de la
+   paume, d'où un décalage d'une corde (4, 5, 6, 7 au lieu de 3, 4, 5, 6).
+   `sweepTake` compense maintenant par `indexTipOffsetU`, mesuré et non deviné.
+   Résultat : cordes 3, 4, 5, 6, notes 57, 60, 62, 65 = la, do, ré, fa, aux
+   fréquences exactes du cahier.
+3. **`--settings '{"magnet":1}'` était refusé.** Le validateur comparait au type
+   de la valeur par défaut, or `magnet` vaut `null` par défaut et `typeof null`
+   est `"object"` : aucun nombre ne pouvait passer. Les réglages « nombre ou
+   null » sont traités comme tels.
+4. **Le rapport de rendu mesurait une fréquence moyenne.** Sur une voix continue,
+   `noteOn → noteOff` ne fait qu'un palier de 4,2 s : la fréquence mesurée
+   (390 Hz pour un sol attendu à 196 Hz) ne voulait rien dire. Le rapport découpe
+   maintenant la voix à chaque contrôle de hauteur (`noteSteps`) et mesure chaque
+   palier après une garde de 80 ms. Écart maximal obtenu : **3,05 centièmes**
+   pour une tolérance de 5.
+
+**Ce que le cahier avait prédit, et que la mesure confirme** : la traîne du
+filtre sur les instants du thérémine est de **87 ms en moyenne** (0 à 110 ms
+selon les notes), là où le §7.14 annonce « environ 80 ms ». C'est le genre de
+coïncidence qui dit que la couture est câblée comme le cahier le décrit.
+
+**Un défaut de conception corrigé au passage** : quitter une zone du chœur ne
+libérait pas la note, parce que le geste `leave` arrive en phase « end » et que
+le mapping `hold` n'agissait qu'en phase « start ». Une note coincée — le défaut
+classique du genre — que AIR-P-09 ne voyait pas en test unitaire, parce que
+`end()` rattrapait tout en fin de prise.

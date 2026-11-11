@@ -24,7 +24,7 @@
 import type { DetectedHand, HandPoint, HandSide, Take, TakeFrame } from "./types.js";
 import { defaultPlayRect } from "./defaults.js";
 import type { PlayRect } from "./types.js";
-import { clamp01 } from "./space.js";
+import { clamp01, toPlayPosition } from "./space.js";
 
 export interface HandPose {
   /** Position du centre de la paume, en coordonnées d'image brute 0..1. */
@@ -46,6 +46,8 @@ export interface SynthOptions {
   readonly seed?: number;
   /** Hauteur dans la zone de jeu, pour les balayages (0,5 par défaut). */
   readonly v?: number;
+  /** Échelle de la main, pour les balayages (`SCALE_DEFAUT` sinon). */
+  readonly scale?: number;
 }
 
 export const FPS_DEFAUT = 30;
@@ -256,14 +258,33 @@ export function tremorTake(center: HandPose, amplitude: number, options?: SynthO
 }
 
 /**
+ * Écart en `u` entre le bout de l'index et le centre de la paume, pour une
+ * échelle de main donnée. Le balayage de cordes se pilote par l'index (§7.14 :
+ * « un index passe de u = 0,20 à u = 0,45 »), alors que `poseFromPlay` place la
+ * PAUME : cet écart, constant à échelle et ouverture données, est ce qu'il faut
+ * retrancher pour que l'index suive la trajectoire demandée.
+ */
+export function indexTipOffsetU(scale: number = SCALE_DEFAUT, rect: PlayRect = defaultPlayRect()): number {
+  const m = makeHand({ x: 0.5, y: 0.5, scale, open: 1, pinch: 1, side: "right" });
+  const bout = m.points[8] ?? [0.5, 0.5, 0];
+  const uBout = toPlayPosition(bout[0], bout[1], rect, 1).u;
+  const uPaume = toPlayPosition(0.5, 0.5, rect, 1).u;
+  return uBout - uPaume;
+}
+
+/**
  * Index qui traverse des cordes : balayage de `fromU` à `toU` (positions de la
- * ZONE DE JEU, converties en image), main ouverte, à hauteur constante.
+ * ZONE DE JEU suivies par le BOUT DE L'INDEX, pas par la paume), main ouverte,
+ * à hauteur constante. Durée par défaut : une demi-seconde (§7.14).
  */
 export function sweepTake(fromU: number, toU: number, options?: SynthOptions): Take {
   const v = options?.v ?? 0.5;
+  const scale = options?.scale ?? SCALE_DEFAUT;
+  const ecart = indexTipOffsetU(scale);
+  const pose = { open: 1, pinch: 1, side: "right" as HandSide, scale };
   return linearTake(
-    poseFromPlay(fromU, v, { open: 1, pinch: 1, side: "right" }),
-    poseFromPlay(toU, v, { open: 1, pinch: 1, side: "right" }),
+    poseFromPlay(fromU - ecart, v, pose),
+    poseFromPlay(toU - ecart, v, pose),
     options?.durationS === undefined ? { ...options, durationS: 0.5 } : options,
   );
 }
