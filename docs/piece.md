@@ -54,3 +54,22 @@ Le rendu est **déterministe** : aucun aléa, aucune horloge lue ; deux passages
 produisent des échantillons identiques au bit près (testé). Aucun son n'est émis
 (AIR-N-02) : tout est calculé dans des tableaux, écrit dans `out/` (ignoré par
 git), jamais joué.
+
+## Ce qui reste humain
+
+Ni l'agent ni la CI n'écoutent ni ne regardent la pièce (AIR-N-02) : la machine
+calcule des échantillons et des nombres, jamais une expérience. Trois gestes
+restent donc à une personne humaine (Baptiste, ou une oreille / un œil de
+confiance), et eux seuls :
+
+- **Écouter** la pièce rendue (`out/piece.wav`, ou l'export WAV depuis la page)
+  et remplir la grille des dix questions — le kit est `docs/seance-ecoute.md`,
+  dont le tableau reste vide jusqu'à la séance.
+- **Filmer** la vidéo de démonstration (moins de trois minutes) : préparation,
+  preuves à l'écran par plan et mots à ne jamais dire dans `docs/video-kit.md`.
+- **Publier** le billet et le post social : brouillons à relire par Baptiste
+  dans `docs/blog-brouillon.md` et `docs/social-brouillon.md` — aucune
+  publication automatique.
+
+Les nombres ci-dessus sont la preuve machine ; l'écoute et l'image sont la
+preuve humaine, et l'une ne se déduit jamais de l'autre.
