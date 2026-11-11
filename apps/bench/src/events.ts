@@ -76,3 +76,63 @@ export function formatEvents(events: readonly MusicEvent[], options?: FormatEven
   ordered.sort((a, b) => a.event.t - b.event.t || a.index - b.index);
   return ordered.map(({ event }) => formatEvent(event, name)).join("\n");
 }
+
+/**
+ * Un palier de note : la hauteur tenue entre deux changements.
+ *
+ * Un thérémine est une voix CONTINUE dont la hauteur glisse (§7.8) : la liste
+ * des notes ne se lit donc pas dans les seuls `noteOn`, mais dans les contrôles
+ * de hauteur qui les suivent. C'est ce que la recette §18 demande
+ * (« sol, la, si bémol, … dans cet ordre, aux instants de référence ») et ce que
+ * l'outil `list_notes` du serveur MCP doit rendre (§11.7).
+ */
+export interface NoteStep {
+  readonly t: number;
+  readonly midi: number;
+  readonly untilT: number;
+  readonly voice: string;
+}
+
+/**
+ * Découpe une liste d'événements en paliers de note. Les hauteurs non entières
+ * (aimant partiel) sont conservées telles quelles : c'est au test de dire s'il
+ * attend des notes franches.
+ */
+export function noteSteps(events: readonly MusicEvent[], durationS?: number): readonly NoteStep[] {
+  const ouverts = new Map<string, { t: number; midi: number }>();
+  const paliers: NoteStep[] = [];
+  const fermer = (voice: string, t: number): void => {
+    const ouvert = ouverts.get(voice);
+    if (ouvert === undefined) return;
+    paliers.push({ t: ouvert.t, midi: ouvert.midi, untilT: t, voice });
+    ouverts.delete(voice);
+  };
+  for (const e of events) {
+    if (e.type === "noteOn") {
+      fermer(e.voice, e.t);
+      ouverts.set(e.voice, { t: e.t, midi: e.midi });
+    } else if (e.type === "noteOff") {
+      fermer(e.voice, e.t);
+    } else if (e.param === "pitch") {
+      const ouvert = ouverts.get(e.voice);
+      if (ouvert !== undefined && Math.abs(ouvert.midi - e.value) > 1e-9) {
+        fermer(e.voice, e.t);
+        ouverts.set(e.voice, { t: e.t, midi: e.value });
+      }
+    }
+  }
+  const fin = durationS ?? (events.length > 0 ? events[events.length - 1]!.t : 0);
+  for (const voice of [...ouverts.keys()].sort()) fermer(voice, fin);
+  return paliers.sort((a, b) => a.t - b.t || a.voice.localeCompare(b.voice));
+}
+
+/** La liste des notes d'un palier à l'autre, sans répétition consécutive. */
+export function noteList(events: readonly MusicEvent[], durationS?: number): readonly number[] {
+  const notes: number[] = [];
+  for (const palier of noteSteps(events, durationS)) {
+    if (notes.length === 0 || Math.abs(notes[notes.length - 1]! - palier.midi) > 1e-9) {
+      notes.push(palier.midi);
+    }
+  }
+  return notes;
+}

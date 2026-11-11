@@ -16,6 +16,8 @@ import {
   sweepTake,
   tremorTake,
   withHand,
+  uToImageX,
+  vToImageY,
 } from "@thin-air/core";
 
 import { BenchError, isUnavailableContract } from "./errors.js";
@@ -60,16 +62,22 @@ function numberArg(args: SynthArgs, key: string, fallback: number): number {
   return parsed;
 }
 
-/** Position d'image correspondant à `u` dans la zone de jeu par défaut. */
+/**
+ * Position d'image correspondant à `u` dans la zone de jeu par défaut.
+ *
+ * Le miroir est compris (§7.4, AIR-F-05) : `u` croît vers la droite de l'ÉCRAN,
+ * donc l'abscisse d'image brute décroît. Ces deux fonctions délèguent à
+ * `takeGen.uToImageX` / `vToImageY` pour qu'il n'existe qu'une seule conversion
+ * dans le dépôt — la version locale précédente oubliait le miroir, et toutes les
+ * prises de synthèse étaient donc lues à l'envers par la chaîne.
+ */
 export function xFromU(u: number): number {
-  const rect = defaultPlayRect();
-  return rect.u0 + u * (rect.u1 - rect.u0);
+  return uToImageX(u, defaultPlayRect());
 }
 
 /** Position d'image correspondant à `v` dans la zone de jeu par défaut. */
 export function yFromV(v: number): number {
-  const rect = defaultPlayRect();
-  return rect.v0 + v * (rect.v1 - rect.v0);
+  return vToImageY(v, defaultPlayRect());
 }
 
 function pose(u: number, v: number, side: "left" | "right"): HandPose {

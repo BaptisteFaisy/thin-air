@@ -11,6 +11,7 @@ import { join } from "node:path";
 import type { RenderCallResult } from "./contracts.js";
 import { loadAudio } from "./contracts.js";
 import { BenchError, isUnavailableContract } from "./errors.js";
+import { noteSteps } from "./events.js";
 import { effectiveSettings, eventsOf } from "./events.js";
 import type { EventsOptions } from "./events.js";
 import { ensureDir, writeBytesFile, writeJsonFile } from "./io.js";
@@ -93,7 +94,11 @@ async function buildFrom(
   takeName: string,
 ): Promise<RenderReport> {
   const notes = callOrExplain("la mesure des notes", "A5", () =>
-    measureNotes(rendered.samples, noteSpans(events, rendered.durationS), {
+    // Les paliers, pas les seules notes : un thérémine est une voix continue
+    // dont la hauteur glisse (§7.8), donc mesurer un seul `noteOn → noteOff`
+    // donnerait une fréquence moyenne sans rapport avec les notes jouées.
+    // `noteSteps` découpe la voix à chaque contrôle de hauteur (§7.14, §18).
+    measureNotes(rendered.samples, paliersMesurables(noteSteps(events, rendered.durationS)), {
       sampleRate: rendered.sampleRate,
       ceilingDb: settings.ceilingDb,
     }),
@@ -155,4 +160,36 @@ export function writeRenderOut(
 export async function wavOf(rendered: RenderedTake): Promise<Uint8Array> {
   const audio = await loadAudio();
   return callOrExplain("l'encodage WAV", "A5", () => audio.encodeWav(rendered.samples, rendered.sampleRate));
+}
+
+/**
+ * Un palier se mesure une fois installé, pas pendant son attaque.
+ *
+ * Le thérémine glisse d'une note à l'autre en `glideMs` (30 ms, §7.8) et le
+ * filtre ajoute sa propre traîne : mesurer la fréquence dès le début du palier
+ * donnerait une valeur intermédiaire, et la recette §18 (« chaque palier à
+ * 5 centièmes de demi-ton près ») serait refusée pour une raison qui n'a rien à
+ * voir avec la justesse de l'instrument. On mesure donc après une garde de
+ * 80 ms, ou au tiers du palier s'il est plus court — et jamais au-delà.
+ */
+export const GARDE_PALIER_S = 0.08;
+
+/**
+ * Durée minimale d'un palier pour qu'il soit mesurable. AIR-P-14 exige une note
+ * « tenue une demi-seconde » ; en dessous, le glissement (§7.8, 30 ms) et la
+ * traîne du filtre n'ont pas fini de s'établir et la fréquence mesurée décrit la
+ * transition, pas la note. Le dernier palier de la prise `slow-rise` dure 150 ms
+ * (le délai de grâce qui suit la dernière image) : il est exclu de la mesure, et
+ * c'est dit ici plutôt que masqué par une tolérance élargie.
+ */
+export const PALIER_MIN_MESURABLE_S = 0.2;
+
+export function paliersMesurables(paliers: readonly NoteSpan[]): readonly NoteSpan[] {
+  const sortis: NoteSpan[] = [];
+  for (const palier of paliers) {
+    const duree = palier.untilT - palier.t;
+    if (duree < PALIER_MIN_MESURABLE_S) continue;
+    sortis.push({ ...palier, t: palier.t + Math.min(GARDE_PALIER_S, duree / 3) });
+  }
+  return sortis;
 }
