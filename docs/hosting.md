@@ -96,6 +96,16 @@ ls -la apps/web/dist apps/web/dist/assets apps/web/dist/models
 
 `fetch-model` prints the model weight; copy it into `docs/latency.md` (§11.9).
 
+**One inconsistency to resolve before publishing** (found while writing this, not
+fixed here because the files belong to other lots): `scripts/fetch-model.mjs`
+writes into `<repository root>/public/models`, while Vite builds with
+`root: apps/web`, so its `publicDir` is `apps/web/public`. As the repository
+stands, `apps/web/dist/models` will be **empty** and the page would have to fetch
+the model from somewhere else — exactly the third-party request AIR-N-01
+forbids. Either `publicDir` points at the root `public/`, or the script writes
+into `apps/web/public/models`. `build.yml` prints a warning for this case
+instead of failing, because deciding it belongs to lots B4/B5.
+
 ### 2. Declare the cache, in the published folder
 
 Create `apps/web/public/_headers` (Vite copies `public/` verbatim into `dist`).
