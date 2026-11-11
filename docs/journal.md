@@ -126,3 +126,69 @@ libérait pas la note, parce que le geste `leave` arrive en phase « end » et q
 le mapping `hold` n'agissait qu'en phase « start ». Une note coincée — le défaut
 classique du genre — que AIR-P-09 ne voyait pas en test unitaire, parce que
 `end()` rattrapait tout en fin de prise.
+
+## 2026-11-11 — lot N1 : la licence du modèle de vision, vérifiée et écrite
+
+L'annexe D du cahier laissait un point ouvert : « licence du fichier de modèle
+— à vérifier sur sa fiche » (AIR-N-11). C'était le seul risque juridique de la
+soumission : le site redistribue `hand_landmarker.task` (7 819 105 octets,
+téléchargé depuis `storage.googleapis.com` par `scripts/fetch-model.mjs`) et
+les fichiers wasm du paquet `@mediapipe/tasks-vision`. Vérification faite ce
+jour, sans rien deviner.
+
+**Ce qui a été lu, où et quand (toutes les consultations datent du
+2026-11-11) :**
+
+- La fiche officielle du modèle Hand Landmarker :
+  <https://ai.google.dev/edge/mediapipe/solutions/vision/hand_landmarker>
+  (page mise à jour le 2025-01-13), lue via une copie archivée sur
+  web.archive.org — la page en ligne fait une redirection inter-domaines que
+  l'outil de consultation refuse. On y lit : modèle « HandLandmarker (full) »,
+  float16, 192×192 et 224×224 ; le lien de téléchargement est exactement
+  l'URL de `scripts/fetch-model.mjs` ; la « fiche » désignée est un PDF,
+  « Model Card Hand Tracking (Lite_Full) with Fairness Oct 2021 »
+  (<https://storage.googleapis.com/mediapipe-assets/Model%20Card%20Hand%20Tracking%20(Lite_Full)%20with%20Fairness%20Oct%202021.pdf>).
+  **Aucune licence du fichier n'y est écrite.**
+- Le guide MediaPipe Solutions :
+  <https://ai.google.dev/edge/mediapipe/solutions/guide> (lu via copie
+  archivée) — décrit « MediaPipe Models: Pre-trained, ready-to-run models »,
+  sans citer de licence pour les fichiers.
+- La page « About the Preview » :
+  <https://ai.google.dev/edge/mediapipe/solutions/about> (mise à jour
+  2024-05-14, lue via copie archivée) — l'usage est soumis aux Google APIs
+  Terms of Service, à la Google API Services User Data Policy et aux
+  MediaPipe API Terms of Service.
+- Les MediaPipe APIs Terms of Service :
+  <https://ai.google.dev/edge/mediapipe/legal/tos.md> (modifiées le
+  2021-11-12, lues via copie archivée) — portent sur la confidentialité des
+  données d'entrée et les métriques ; aucune concession de licence.
+- La licence du **code** : le LICENSE du dépôt MediaPipe
+  (<https://github.com/google-ai-edge/mediapipe/blob/master/LICENSE>) est
+  Apache 2.0 (avec une exception Lucent limitée à des fichiers utf internes) ;
+  le paquet installé `node_modules/@mediapipe/tasks-vision/package.json`
+  (version 1.2.2) déclare `"license": "Apache-2.0"` — le paquet ne contient
+  aucun fichier LICENSE — et le registre npm confirme la même valeur
+  (<https://registry.npmjs.org/@mediapipe/tasks-vision/latest>). Les fichiers
+  wasm que le site redistribue viennent de ce paquet : ils sont sous
+  Apache 2.0, attribution requise.
+- Le PDF de la carte du modèle n'a pas pu être lu : l'outil de consultation
+  de documentation refuse le type `application/pdf`
+  (« Unsupported content type »). C'est la fiche que l'annexe D désigne ; son
+  contenu reste donc non lu.
+
+**Conclusion, honnête :** la licence du code est **établie** (Apache 2.0,
+paquet et dépôt). La licence du **fichier** `hand_landmarker.task` est
+**non établie à ce jour** : aucune page officielle consultée ne l'énonce, et
+la carte du modèle — seule source désignée — n'a pas pu être lue avec les
+outils autorisés. En l'état : l'usage du modèle via les API MediaPipe est
+couvert par les conditions de Google, et la redistribution du code et des
+wasm est couverte par Apache 2.0 (attribution écrite dans `NOTICE.md`) ; la
+redistribution du fichier `.task` depuis l'origine du site n'est pas
+clairement autorisée par un texte lu. Ce qu'il faudrait : une main humaine
+ouvre le PDF (éventuelle section licence) et, à défaut, demande à Google une
+confirmation écrite (issue sur `google-ai-edge/mediapipe` ou Stack Overflow,
+tag `mediapipe`).
+
+Fichiers touchés : `NOTICE.md` (section modèle réécrite, MIT et tiers séparés)
+et `docs/recette.md` (ligne « main humaine » mise à jour). La ligne reste au
+tableau de la recette puisque la licence du fichier reste non établie.

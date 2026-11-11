@@ -74,7 +74,7 @@ npx tsx apps/bench/src/cli.ts render --take takes/reference/slow-rise.json \
 | Contrôle automatique d'accessibilité sans erreur | La checklist WCAG 2.2 AA est écrite (`docs/accessibility.md`) avec les contrastes calculés ; le passage de l'outil automatique reste à faire sur la page publiée. |
 | Séance d'écoute humaine | Par construction, ni l'agent ni la CI n'écoutent (AIR-N-02). Cette ligne est la seule qui soit rendue à l'oreille : à noter ici avec la date et ce qui a été réglé. |
 | Vidéo de moins de trois minutes | Le script est écrit (`docs/submission.md`) ; la pièce reste à jouer et à filmer. |
-| Poids du modèle et licence du fichier | Poids mesuré (7,82 Mo + 13,93 Mo d'exécution, `docs/latency.md`). La licence du fichier `.task` reste à lire sur sa fiche. |
+| Poids du modèle et licence du fichier | Poids mesuré (7,82 Mo + 13,93 Mo d'exécution, `docs/latency.md`). Licence du code établie (Apache 2.0) ; licence du fichier `hand_landmarker.task` **non établie à ce jour** : vérification faite le 2026-11-11 sur les pages officielles (sources et dates dans `docs/journal.md`), aucune n'énonce de licence pour le fichier. Main humaine : ouvrir la carte du modèle (PDF illisible par nos outils, URL dans `NOTICE.md`) et, sans section licence, demander à Google une confirmation écrite. |
 
 ## Écarts au cahier, assumés et écrits
 
