@@ -41,7 +41,7 @@ Le cahier des charges est `docs/cahier-des-charges.md` ; les références
 | A2 `filter` | `packages/core/src/filter.ts` + `filter.test.ts` | AIR-P-02 |
 | A3 `music` | `packages/core/src/music.ts` + `music.test.ts` | AIR-P-03, 04, 05 |
 | A4 `schema` | `packages/schema/src/**` | AIR-P-19, 20 |
-| A5 `audio` | `packages/audio/src/**` (dsp, offline, graph, worklets) | AIR-P-13, 14, 15, 16 |
+| A5 `audio` | `packages/audio/src/**` (dsp, offline, graph, worklets) **et** `packages/core/src/measure.ts` + son test | AIR-P-13, 14, 15, 16 |
 | A6 `loop+midi` | `packages/core/src/loop.ts`, `midi.ts` + leurs tests | AIR-P-17, 18 |
 | A7 `kiro+instruments` | `.kiro/**`, `instruments/**`, `scripts/hooks/**` (sauf les deux gardes déjà écrites), `takes/README.md` | recette §18 |
 | A8 `docs+ci` | `README.md`, `NOTICE.md`, `docs/journal.md`, `docs/latency.md`, `.github/workflows/build.yml` | AIR-N-05, 11, 13 |
