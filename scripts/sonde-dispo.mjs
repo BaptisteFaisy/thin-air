@@ -22,6 +22,7 @@
  */
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
+import { instantFichier } from "./horodatage.mjs";
 
 /** Adresse publiée par `deploy.yml` (GitHub Pages, base `/thin-air/`). */
 export const URL_DEFAUT = "https://baptistefaisy.github.io/thin-air/";
@@ -280,7 +281,7 @@ export function imprime(resultat_, cheminFichier) {
 /** Écrit le JSON horodaté et rend son chemin. */
 export async function ecris(resultat_, dossier) {
   await mkdir(dossier, { recursive: true });
-  const chemin = join(dossier, `${resultat_.horodatage.slice(0, 10)}.json`);
+  const chemin = join(dossier, `${instantFichier(new Date(resultat_.horodatage))}.json`);
   await writeFile(chemin, `${JSON.stringify(resultat_, null, 2)}\n`, "utf8");
   return chemin;
 }
