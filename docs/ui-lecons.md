@@ -25,6 +25,27 @@ existe aussi en texte (un dessin seul ne serait pas lu par un lecteur d'écran,
 AIR-N-06). Aucune animation continue : le réglage « moins de mouvement » n'a rien
 à désactiver.
 
+## Raccords faits
+
+- Lien vers `?lecons=1` depuis `Home.tsx` (raccord 1) et depuis `PhysicsPanel.tsx`
+  (raccord 2). Les deux libellés sont encore en anglais et en dur : la clé à
+  ajouter dans `i18n/en.ts` et `i18n/fr.ts` est `lessons.link`, et les deux
+  composants reçoivent déjà `m` — c'est un remplacement d'une ligne chacun.
+- Données réelles (le point important) : la leçon des deux horloges lit
+  `lireAnalyse()` / `suivreAnalyse()` de `hooks/analysisStore.ts` et affiche le
+  temps d'analyse moyen et maximal, l'intervalle réel entre deux images, le
+  nombre d'images par seconde réellement tenu, le fil d'exécution (worker ou
+  repli) et le nombre d'images analysées — chaque ligne étiquetée **measured**.
+  La caméra reste étiquetée **estimated** : elle n'est pas mesurable dans le
+  navigateur (§5.1). Quand aucune image n'a été analysée, le panneau n'affiche
+  AUCUN nombre à la place : il dit « pas de données en direct ». Rien n'est
+  inventé.
+- Les leçons filtre et centièmes portent un bandeau « example — synthetic take » :
+  elles tournent sur une prise de synthèse à graine fixe, ce qui les rend
+  reproductibles, mais ce n'est pas le jeu de la personne. Passer ces deux leçons
+  sur les positions réelles de la séance demande un tampon glissant des positions
+  brutes et filtrées exposé par la chaîne de suivi — décrit ci-dessous.
+
 ## Reste à raccorder
 
 Les libellés sont en anglais dans le composant. Les fichiers

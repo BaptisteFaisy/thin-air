@@ -35,6 +35,17 @@ describe("LessonsPanel — les trois leçons sont visibles", () => {
     expect((html.match(/role="img"/g) ?? []).length).toBeGreaterThanOrEqual(2);
   });
 
+  it("sans séance en cours, aucun nombre de retard n'est inventé", () => {
+    // Aucune image analysée dans l'environnement de test : le panneau doit le
+    // dire, et ne pas afficher de temps d'analyse « mesuré » sorti de nulle part.
+    expect(texte).toMatch(/No live data yet/);
+    expect(texte).not.toMatch(/Analysis, mean/);
+  });
+
+  it("les leçons sur prise de synthèse sont étiquetées comme exemples", () => {
+    expect((texte.match(/example — synthetic take/g) ?? []).length).toBe(2);
+  });
+
   it("l'aimant à 1 annule l'écart à la gamme", () => {
     const aimante = renderToStaticMarkup(<LessonsPanel magnet={1} />).replace(/<[^>]+>/g, " ");
     expect(aimante).toMatch(/0\.0 cents/);
