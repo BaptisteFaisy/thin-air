@@ -6,8 +6,9 @@
  *
  * Vérifications, par paquet :
  *  1. `package.json` lisible ; `name`, `version`, `type` présents et cohérents
- *     (bloquant). `license` absent d'un paquet `private` → conseil, pas échec :
- *     le travail à faire avant publication est décrit dans docs/bibliotheque.md.
+ *     (bloquant), plus les champs requis pour publier (bloquants eux aussi) :
+ *     `license`, `files` (tableau non vide) et `exports` dont l'entrée "."
+ *     pointe vers un fichier qui existe sur le disque (docs/publication.md).
  *  2. Tout fichier `.ts` de `src/` (hors `*.test.ts`) est joignable depuis
  *     `src/index.ts`, depuis une entrée secondaire déclarée ci-dessous, ou
  *     depuis un test du paquet (fixtures vivantes, pas code mort).
@@ -82,14 +83,36 @@ function verifierManifeste(paquet, dossier) {
     }
   }
   if (m.type !== "module") bloquant(`${paquet} : type « ${String(m.type)} » ≠ « module » (ESM requis)`);
+  verifierPublication(paquet, dossier, m);
+  return m;
+}
+
+/**
+ * 1 bis. Champs exigés pour qu'un paquet soit publiable (docs/publication.md) :
+ * `license`, `files` (tableau non vide de chemins existants) et `exports`
+ * (objet dont chaque cible relative — motif `*` résolu par son index — pointe
+ * vers un fichier présent sur le disque). Bloquant, paquet `private` ou non.
+ */
+function verifierPublication(paquet, dossier, m) {
   if (typeof m.license !== "string" || m.license === "") {
-    if (m.private === true) {
-      conseils.add(`${paquet} : license absent (paquet private) — à ajouter avant publication (docs/bibliotheque.md)`);
-    } else {
-      bloquant(`${paquet} : champ « license » absent et paquet non private`);
+    bloquant(`${paquet} : champ « license » absent de package.json (requis pour publier)`);
+  }
+  if (!Array.isArray(m.files) || m.files.length === 0 || m.files.some((f) => typeof f !== "string" || f === "")) {
+    bloquant(`${paquet} : champ « files » absent ou invalide — attendu un tableau non vide de chemins`);
+  }
+  for (const entree of m.files) {
+    if (!existsSync(join(dossier, entree))) bloquant(`${paquet} : « files » liste un chemin absent : ${entree}`);
+  }
+  if (typeof m.exports !== "object" || m.exports === null || Array.isArray(m.exports)) {
+    bloquant(`${paquet} : champ « exports » absent — attendu un objet de sous-chemins`);
+  }
+  for (const [cle, cible] of Object.entries(m.exports)) {
+    if (typeof cible !== "string" || cible === "") bloquant(`${paquet} : exports["${cle}"] n'est pas une chaîne`);
+    const fichier = cible.includes("*") ? cible.replace("*", "index.ts") : cible;
+    if (!existsSync(join(dossier, fichier))) {
+      bloquant(`${paquet} : exports["${cle}"] → « ${cible} » ne pointe vers aucun fichier existant`);
     }
   }
-  return m;
 }
 
 /** Les fichiers `.ts` de `src/`, triés (déterminisme, AIR-N-09). */
