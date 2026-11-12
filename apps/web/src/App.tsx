@@ -11,6 +11,7 @@ import { useSeance } from "./hooks/useSeance.js";
 import { Home } from "./ui/Home.js";
 import { SeanceView } from "./ui/Seance.js";
 import { RealTakePage } from "./ui/RealTake.js";
+import { LessonsPanel } from "./ui/LessonsPanel.js";
 
 /** Route `?record=1` : le mode « prise réelle » du lot N7 (annexe D). */
 function recordMode(): boolean {
@@ -18,8 +19,22 @@ function recordMode(): boolean {
   return new URLSearchParams(window.location.search).get("record") === "1";
 }
 
+/** Route `?lecons=1` : les trois leçons chiffrées (parcours P5, §12.1). */
+function lessonsMode(): boolean {
+  if (typeof window === "undefined") return false;
+  return new URLSearchParams(window.location.search).get("lecons") === "1";
+}
+
 export function App(): JSX.Element {
   if (recordMode()) return <RealTakePage />;
+  if (lessonsMode()) {
+    return (
+      <main>
+        <p><a href="?">Back to the stage</a></p>
+        <LessonsPanel />
+      </main>
+    );
+  }
   const seance = useSeance();
   const { session, m } = seance;
   const refus = seance.data.fragmentRefus;
