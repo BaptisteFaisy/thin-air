@@ -16,7 +16,7 @@
   "gestures": [
     { "hand": "any", "gesture": "cross", "do": "strike", "velocity": "speed" }
   ],
-  "defaults": { "quantize": "sixteenth", "quantizeStrength": 100 },
+  "defaults": { "quantize": "sixteenth", "quantizeStrength": 1 },
   "sound": {
     "engine": "drum",
     "noiseMs": 120,

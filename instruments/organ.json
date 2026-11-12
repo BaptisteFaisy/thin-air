@@ -1,0 +1,22 @@
+{
+  "format": "thin-air-instrument/1",
+  "name": "Organ",
+  "pointer": "palm",
+  "scale": { "root": 48, "steps": [0, 2, 4, 5, 7, 9, 11] },
+  "range": { "low": 48, "high": 60 },
+  "snap": 0.7,
+  "voices": 2,
+  "controls": [
+    { "hand": "pitch", "feature": "u", "to": "pitch" },
+    { "hand": "volume", "feature": "v", "to": "gain", "curve": "db48" }
+  ],
+  "gestures": [
+    { "hand": "volume", "gesture": "fist", "do": "mute" }
+  ],
+  "sound": {
+    "engine": "osc",
+    "wave": "square",
+    "attackMs": 40,
+    "releaseMs": 300
+  }
+}

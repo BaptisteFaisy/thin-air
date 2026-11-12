@@ -1,0 +1,28 @@
+{
+  "format": "thin-air-instrument/1",
+  "name": "Pad",
+  "pointer": "palm",
+  "scale": { "root": 48, "steps": [0, 2, 3, 5, 7, 8, 10] },
+  "zones": {
+    "zones": [
+      { "id": "p0", "u0": 0, "u1": 0.4, "v0": 0.25, "v1": 0.9, "degree": 0 },
+      { "id": "p1", "u0": 0.4, "u1": 0.7, "v0": 0.25, "v1": 0.9, "degree": 2 },
+      { "id": "p2", "u0": 0.7, "u1": 1, "v0": 0.25, "v1": 0.9, "degree": 4 }
+    ]
+  },
+  "snap": 1,
+  "voices": 3,
+  "gestures": [
+    { "hand": "any", "gesture": "enter", "do": "hold" },
+    { "hand": "any", "gesture": "leave", "do": "hold" },
+    { "hand": "any", "gesture": "dwell", "do": "hold", "value": 400 }
+  ],
+  "defaults": { "hold": true, "dwellMs": 400 },
+  "sound": {
+    "engine": "osc",
+    "wave": "sawtooth",
+    "detuneCents": 12,
+    "attackMs": 600,
+    "releaseMs": 1500
+  }
+}
