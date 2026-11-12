@@ -83,3 +83,24 @@ construit au bundle servi en ligne.
   commande d'une œuvre, la soumission.
 - Le contrat de release lui-même : `docs/release.md`, `CHANGELOG.md`,
   `scripts/release-check.mjs` et son banc.
+
+### Les formats de fichiers
+
+- La politique de versionnement des formats : `docs/versions-formats.md`. Chaque
+  format porte un numéro, un changement incompatible crée un nouveau numéro,
+  l'ancien reste lu six mois, et la dépréciation est datée et écrite au
+  registre, au journal et au schéma.
+- Le registre des formats, dans `docs/versions-formats.md` : les trois formats
+  du dépôt y sont inscrits avec leur statut et la constante qui les déclare.
+  `thin-air-instrument/1` (constante `INSTRUMENT_FORMAT`),
+  `thin-air-take/1` (constante `TAKE_FORMAT`), `thin-air-session/1`
+  (constante `SESSION_FORMAT`).
+- Le contrôleur `scripts/check-format-versions.mjs` : il refuse un format
+  vivant sans ligne de registre, une ligne de registre sans format vivant, un
+  format absent du journal, et une dépréciation sans date ou plus courte que
+  la fenêtre annoncée. Il sort 1 avec la liste des manques.
+- La garde `scripts/hooks/format-versions-guard.mjs` : le contrôleur tourne
+  dans la file des gardes du dépôt, donc dans la CI.
+- Aucun changement de format : les numéros `thin-air-instrument/1`,
+  `thin-air-take/1` et `thin-air-session/1` restent ce qu'ils sont. Ce qui
+  change, c'est qu'ils sont désormais datés et surveillés.
