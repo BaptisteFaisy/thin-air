@@ -1,0 +1,82 @@
+{
+  "format": "thin-air-instrument/1",
+  "name": "Chimes",
+  "pointer": "palm",
+  "scale": {
+    "root": 60,
+    "steps": [
+      0,
+      2,
+      4,
+      5,
+      7,
+      9,
+      11
+    ]
+  },
+  "zones": {
+    "zones": [
+      {
+        "id": "c0",
+        "u0": 0,
+        "u1": 1,
+        "v0": 0,
+        "v1": 0.2,
+        "midi": 84
+      },
+      {
+        "id": "c1",
+        "u0": 0,
+        "u1": 1,
+        "v0": 0.2,
+        "v1": 0.4,
+        "midi": 79
+      },
+      {
+        "id": "c2",
+        "u0": 0,
+        "u1": 1,
+        "v0": 0.4,
+        "v1": 0.6,
+        "midi": 76
+      },
+      {
+        "id": "c3",
+        "u0": 0,
+        "u1": 1,
+        "v0": 0.6,
+        "v1": 0.8,
+        "midi": 72
+      },
+      {
+        "id": "c4",
+        "u0": 0,
+        "u1": 1,
+        "v0": 0.8,
+        "v1": 1,
+        "midi": 67
+      }
+    ]
+  },
+  "snap": 1,
+  "voices": 2,
+  "gestures": [
+    {
+      "hand": "any",
+      "gesture": "enter",
+      "do": "hold"
+    },
+    {
+      "hand": "any",
+      "gesture": "leave",
+      "do": "hold"
+    }
+  ],
+  "sound": {
+    "engine": "fm",
+    "fmRatio": 3.0,
+    "fmIndex": 2,
+    "attackMs": 2,
+    "releaseMs": 2500
+  }
+}
