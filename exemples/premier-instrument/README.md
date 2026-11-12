@@ -89,3 +89,14 @@ npx tsx exemples/premier-instrument/index.ts
 
 C'est la seule différence avec un projet tiers : là-bas, on installe les
 paquets publiés ; ici, le workspace fait déjà le lien.
+
+Son banc est dans le même dossier. `vitest.config.ts` est gelé et ne ramasse
+que `packages` et `apps`, donc le banc a son propre fichier de lancement :
+
+```bash
+npx vitest run --config exemples/vitest.exemples.config.ts
+```
+
+Il **exécute l'exemple pour de vrai** — dans un dossier vierge — et vérifie
+les trois nombres, le WAV écrit dans `out/` et nulle part ailleurs, et
+l'absence de toute API d'émission dans la source.
