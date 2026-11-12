@@ -49,7 +49,8 @@ jobs:
       # contrôle des fichiers sonores. `node_modules` est conservé (il est
       # régénéré par `npm ci` juste après).
       - name: Nettoyage du workspace
-        run: git clean -ffdx -e node_modules
+        # Les dossiers de runner sont exclus explicitement (docs/runners.md).
+        run: git clean -ffdx -e node_modules -e 'actions-runner-*' -e '_work*'
 
       - name: Dépendances (npm ci, hors ligne au maximum)
         run: npm ci --prefer-offline --no-audit --no-fund
@@ -59,6 +60,9 @@ jobs:
 
       - name: Tests — propriétés et unités, aucun son
         run: npx vitest run --reporter=dot
+
+      - name: Tests du contrôle de budget CI
+        run: npx vitest run --config scripts/vitest.scripts.config.ts scripts/check-budget.test.ts
 
       - name: Gardes du projet (fichiers sonores, vocabulaire, prises)
         run: node scripts/hooks/run-all-guards.mjs
