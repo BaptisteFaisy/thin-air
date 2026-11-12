@@ -1,0 +1,17 @@
+# Formatage du dépôt — une configuration, une règle par ligne.
+#
+# Ces règles sont vérifiées en CI par `scripts/check-format.mjs` (job `format`
+# de `.github/workflows/ci.yml`) : le script lit ce fichier, il ne réinvente
+# pas les règles. Aucune dépendance, aucun réseau.
+#
+# `root = true` : c'est ce fichier qui fait foi, pas celui d'un parent.
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 2
+insert_final_newline = true
+trim_trailing_whitespace = true
