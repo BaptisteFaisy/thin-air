@@ -4,6 +4,7 @@
  * Le vocabulaire est celui du cahier §5.4 : « measured » et « estimated »
  * portent toujours sur une durée, jamais de superlatif de vitesse.
  */
+import { profilesEn } from "./profiles.en.js";
 
 export const en = {
   meta: {
@@ -35,6 +36,9 @@ export const en = {
     latencyNote: "The page shows latency part by part: what is measured, and what is estimated.",
     keyboardHint: "Everything works from the keyboard. Press Start or Play without a camera to begin.",
     cameraNote: "The camera is only opened after you press Start, and never with sound.",
+    kiosk: "Kiosk mode",
+    kioskHint:
+      "Opens the page as an exhibition stand: full screen, no settings, and a ghost plays when nobody is in front of it.",
   },
   stage: {
     instrument: "Instrument",
@@ -129,6 +133,13 @@ export const en = {
     layerLabel: (n: number, instrument: string) => `Layer ${n} — ${instrument}`,
     beat: (n: number, of: number) => `beat ${n} of ${of}`,
     compensating: "Recorded layers are moved earlier by the estimated latency, so they fall back on the beat.",
+    session: "Session file",
+    saveSession: "Save the session",
+    openSession: "Open a session file",
+    openHint: "A session file holds the loop, its layers and your settings. It is validated before it is opened.",
+    sessionSaved: "The session file is downloaded to this device.",
+    saveFailed: "The browser refused to write the file.",
+    sessionRefused: (reason: string) => `This session file was refused: ${reason}`,
   },
   calibration: {
     title: "Calibrate the play area",
@@ -185,6 +196,7 @@ export const en = {
     reducedMotion: "Your system asks for less motion: the trail and the string vibration are off, only state changes remain.",
     stored: "Settings are kept on this device only.",
   },
+  profiles: profilesEn,
   camera: {
     requesting: "Waiting for the camera…",
     granted: "Camera on.",

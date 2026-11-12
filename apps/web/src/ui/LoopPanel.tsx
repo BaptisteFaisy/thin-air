@@ -3,7 +3,9 @@ import type { JSX } from "react";
 import { MAX_LAYERS } from "@thin-air/core";
 import type { Messages } from "../i18n/index.js";
 import { BARS_CHOICES, currentBeat, isFull, loopLengthS, type LoopState } from "../state/loopState.js";
+import type { SessionResult } from "../state/sessionFile.js";
 import { Button, Panel, Slider } from "./Controls.js";
+import { SessionFile } from "./SessionFile.js";
 
 export interface LoopPanelProps {
   readonly m: Messages;
@@ -18,6 +20,9 @@ export interface LoopPanelProps {
   readonly onClear: () => void;
   readonly onExportWav: () => void;
   readonly onExportMidi: () => void;
+  /** Le fichier de session (cahier §7.10) : écrit sur l'appareil, relu et validé. */
+  readonly onSaveSession: () => boolean;
+  readonly onOpenSession: (raw: string) => SessionResult;
   readonly onClose: () => void;
 }
 
@@ -41,6 +46,7 @@ export function LoopPanel(props: LoopPanelProps): JSX.Element {
       <h3>{m.loop.layers}</h3>
       <Couches m={m} loop={loop} onToggleMute={props.onToggleMute} />
       <Commandes props={props} />
+      <SessionFile m={m} onSave={props.onSaveSession} onOpen={props.onOpenSession} />
       <p className="help">{m.loop.compensating}</p>
     </Panel>
   );

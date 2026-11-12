@@ -5,6 +5,11 @@ import { fr } from "./fr.js";
 export type { Messages };
 export type Lang = "en" | "fr";
 
+/** Les textes de la borne (cahier §12.2, parcours P11) : exposés pour la parité et l'audit. */
+export { kioskEn } from "./kiosk.en.js";
+export { kioskFr } from "./kiosk.fr.js";
+export type { KioskMessages } from "./kiosk.en.js";
+
 export const MESSAGES: Readonly<Record<Lang, Messages>> = { en, fr };
 
 /** Langue de la page : `?lang=fr` dans l'adresse, anglais sinon. */

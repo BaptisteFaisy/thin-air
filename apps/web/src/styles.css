@@ -141,6 +141,32 @@ input[type="range"] { accent-color: var(--spectre); }
 .countdown { font-size: 2rem; color: var(--spectre); }
 .rect code { color: var(--os); }
 
+/* Les profils de mobilité (cahier §3, §12.4) : trois boutons, un effet chacun. */
+.profiles { display: grid; gap: 0.4rem; margin-block: 0.5rem 0.75rem; }
+.profile {
+  display: grid;
+  gap: 0.15rem;
+  text-align: start;
+  background: var(--bouton);
+  color: var(--os);
+  border: 1px solid var(--discret);
+  border-radius: 0.3rem;
+  padding: 0.5rem;
+  font: inherit;
+  cursor: pointer;
+}
+.profile.is-active { border-color: var(--spectre); }
+.profile-name { color: var(--spectre); }
+.profile-effect { color: var(--discret); font-size: 0.9rem; }
+
+/* Le fichier de session (cahier §7.10) : mêmes commandes ordinaires que le reste. */
+.session-file { margin-block-start: 1rem; }
+.session-file .actions { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+
+/* La porte discrète vers la borne (§12.2) : un lien, annoncé depuis l'accueil. */
+.kiosk-entry { padding: 0.75rem 1rem; display: grid; gap: 0.2rem; }
+.kiosk-entry a { color: var(--os); }
+
 /* Moins de mouvement : plus de traîne ni de vibration, seulement des états. */
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; }
