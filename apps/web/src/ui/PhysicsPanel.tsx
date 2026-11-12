@@ -16,6 +16,8 @@ export interface PhysicsPanelProps {
 const LARGEUR = 240;
 const HAUTEUR = 72;
 
+const LECONS_LINK = "What the numbers say";
+
 export function PhysicsPanel({ m, instrument, display, onClose }: PhysicsPanelProps): JSX.Element {
   const frequence = display.frequencyHz;
   const texte = frequence === null ? m.common.none : `${frequence.toFixed(1)} ${m.physics.frequencyUnit}`;
