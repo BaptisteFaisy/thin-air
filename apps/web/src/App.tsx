@@ -18,6 +18,7 @@ import { Home } from "./ui/Home.js";
 import { KioskEntry } from "./ui/KioskEntry.js";
 import { SeanceView } from "./ui/Seance.js";
 import { RealTakePage } from "./ui/RealTake.js";
+import { LessonsPanel } from "./ui/LessonsPanel.js";
 
 /** Les paramètres de l'adresse courante, vides hors navigateur. */
 function recherche(): string {
@@ -29,9 +30,23 @@ function recordMode(): boolean {
   return new URLSearchParams(recherche()).get("record") === "1";
 }
 
+/** Route `?lecons=1` : les trois leçons chiffrées (parcours P5, §12.1). */
+function lessonsMode(): boolean {
+  if (typeof window === "undefined") return false;
+  return new URLSearchParams(window.location.search).get("lecons") === "1";
+}
+
 export function App(): JSX.Element {
   if (kioskWanted(recherche())) return <Kiosk />;
   if (recordMode()) return <RealTakePage />;
+  if (lessonsMode()) {
+    return (
+      <main>
+        <p><a href="?">Back to the stage</a></p>
+        <LessonsPanel />
+      </main>
+    );
+  }
   const seance = useSeance();
   const { session, m } = seance;
   const refus = seance.data.fragmentRefus;
