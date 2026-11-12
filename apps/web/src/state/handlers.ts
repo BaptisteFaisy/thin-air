@@ -3,11 +3,12 @@
  * dupliquer, importer un fichier, piloter la boucle, calibrer, régler.
  * Aucune logique musicale ici — seulement de l'aiguillage.
  */
-import type { Instrument } from "@thin-air/core";
+import { DEFAULT_SETTINGS, type Instrument } from "@thin-air/core";
 import type { Messages } from "../i18n/index.js";
 import type { LoopState } from "./loopState.js";
 import {
   beginCalibration,
+  idleCalibration,
   keepDefault,
   restartCalibration,
   startCountdown,
@@ -23,6 +24,13 @@ import {
   withTempo,
 } from "./loopState.js";
 import { duplicate, validate } from "./instruments.js";
+import { decodeSession, encodeSession, loopFromSession, sessionFromLoop, SESSION_FILE, type SessionResult } from "./sessionFile.js";
+import {
+  applySettings,
+  noProfileRect,
+  profileById,
+  type ProfileId,
+} from "./profiles.js";
 import { download, exportMidi, exportWav, toSession } from "../lib/exportLoop.js";
 import type { PanelId } from "../ui/Stage.js";
 import type { PanelHandlers } from "../ui/Panels.js";
@@ -74,8 +82,59 @@ export function gestionnaires(deps: HandlersDeps): PanelHandlers {
     onRestart: () => data.setCalibration(restartCalibration),
     onKeepDefault: () => data.setCalibration(keepDefault),
     onSettings: (settings) => data.setSettings(settings),
+    onApplyProfile: (id: ProfileId) => appliquerProfil(id, data),
+    onClearProfile: () => effacerProfil(data),
+    onSaveSession: () => enregistrerSession(deps),
+    onOpenSession: (raw) => ouvrirSession(raw, deps),
     onClose: () => data.setPanel(null),
   };
+}
+
+/**
+ * Un profil de mobilité (cahier §3, §12.4, AIR-F-10 à 12) : les réglages qu'il
+ * porte sont posés par-dessus ceux en place, et sa zone de jeu — quand il en
+ * définit une — devient la zone stockée. Rien d'autre ne bouge : l'étendue
+ * d'un instrument vit dans son fichier, jamais dans un réglage.
+ */
+function appliquerProfil(id: ProfileId, data: SeanceData): void {
+  const profil = profileById(id);
+  data.setSettings(applySettings(data.settings, profil));
+  const zone = profil.playRect;
+  if (zone !== null) data.setCalibration(() => idleCalibration(zone));
+  data.setProfileId(id);
+}
+
+/** « Aucun profil » : les réglages et la zone reviennent à leurs défauts. */
+function effacerProfil(data: SeanceData): void {
+  data.setProfileId(null);
+  data.setSettings({ ...DEFAULT_SETTINGS });
+  data.setCalibration(() => idleCalibration(noProfileRect()));
+}
+
+/**
+ * Le fichier de session (cahier §7.10) : la boucle courante et les réglages,
+ * écrits en `thin-air-session/1` et téléchargés sur l'appareil. Aucun son dans
+ * le fichier, aucune requête réseau (AIR-N-01).
+ */
+function enregistrerSession(deps: HandlersDeps): boolean {
+  const { loop, settings } = deps.data;
+  try {
+    const texte = encodeSession(sessionFromLoop(loop, settings as Settings));
+    download(new Blob([texte], { type: "application/json" }), SESSION_FILE);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** AIR-F-43 : un fichier de session refusé l'est en entier, avec ses raisons. */
+function ouvrirSession(raw: string, deps: HandlersDeps): SessionResult {
+  const lu = decodeSession(raw);
+  const session = lu.session;
+  if (session === null) return { ok: false, reasons: lu.reasons };
+  deps.data.setLoop(() => loopFromSession(session));
+  deps.data.setSettings(session.settings);
+  return { ok: true };
 }
 
 function finEnregistrement(avant: LoopState, deps: HandlersDeps): LoopState {

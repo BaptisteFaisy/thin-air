@@ -1,5 +1,6 @@
 /** Traduction française (AIR-N-14). Même forme que `en.ts`, vérifiée par test. */
 import type { Messages } from "./en.js";
+import { profilesFr } from "./profiles.fr.js";
 
 export const fr: Messages = {
   meta: {
@@ -31,6 +32,9 @@ export const fr: Messages = {
     latencyNote: "La page affiche le retard composante par composante : ce qui est mesuré, et ce qui est estimé.",
     keyboardHint: "Tout se fait au clavier. Appuie sur Commencer ou Jouer sans caméra pour démarrer.",
     cameraNote: "La caméra ne s'ouvre qu'après ton clic, et jamais avec le son.",
+    kiosk: "Mode borne",
+    kioskHint:
+      "Ouvre la page comme une borne d'exposition : plein écran, aucun réglage, et le fantôme joue quand personne n'est devant.",
   },
   stage: {
     instrument: "Instrument",
@@ -126,6 +130,13 @@ export const fr: Messages = {
     layerLabel: (n: number, instrument: string) => `Couche ${n} — ${instrument}`,
     beat: (n: number, of: number) => `temps ${n} sur ${of}`,
     compensating: "Les couches enregistrées sont avancées du retard estimé, pour retomber sur le temps.",
+    session: "Fichier de session",
+    saveSession: "Enregistrer la session",
+    openSession: "Ouvrir un fichier de session",
+    openHint: "Un fichier de session contient la boucle, ses couches et tes réglages. Il est validé avant d'être ouvert.",
+    sessionSaved: "Le fichier de session est téléchargé sur cet appareil.",
+    saveFailed: "Le navigateur a refusé d'écrire le fichier.",
+    sessionRefused: (reason: string) => `Ce fichier de session a été refusé : ${reason}`,
   },
   calibration: {
     title: "Calibrer la zone de jeu",
@@ -183,6 +194,7 @@ export const fr: Messages = {
       "Ton système demande moins de mouvement : la traîne et la vibration des cordes sont coupées, seuls les changements d'état restent.",
     stored: "Les réglages restent sur cet appareil.",
   },
+  profiles: profilesFr,
   camera: {
     requesting: "En attente de la caméra…",
     granted: "Caméra allumée.",
