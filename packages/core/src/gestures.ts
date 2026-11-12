@@ -96,12 +96,49 @@ function dansZone(u: number, v: number, zone: readonly [number, number, number, 
 
 export class GestureTracker {
   private etats = new Map<HandRole, EtatGeste>();
-  private readonly cordes: readonly number[];
-  private readonly axe: "u" | "v";
+  private cordes: readonly number[];
+  private axe: "u" | "v";
 
-  constructor(readonly instrument: Instrument, readonly settings: Settings) {
+  constructor(
+    public instrument: Instrument,
+    public settings: Settings,
+  ) {
     this.cordes = instrument.strings ? stringPositions(instrument.strings.count) : [];
     this.axe = instrument.strings?.axis ?? "u";
+  }
+
+  /**
+   * La zone de jeu a changé : les positions repartent de zéro, pour qu'aucune
+   * traversée de corde ne soit déduite d'un simple décalage de repère (§7.4).
+   */
+  repositionner(): void {
+    for (const etat of this.etats.values()) {
+      etat.dernierCross.clear();
+      etat.positionPrecedente = null;
+    }
+  }
+
+  /**
+   * Applique un nouvel instrument et de nouveaux réglages sans rejouer les
+   * gestes en cours (§7.6) : une pince maintenue reste maintenue, et seule la
+   * géométrie qui change (cordes, zones) repart de zéro.
+   */
+  reconfigurer(instrument: Instrument, settings: Settings): void {
+    const memeInstrument = instrument === this.instrument;
+    this.instrument = instrument;
+    this.settings = settings;
+    this.cordes = instrument.strings ? stringPositions(instrument.strings.count) : [];
+    this.axe = instrument.strings?.axis ?? "u";
+    if (memeInstrument) return;
+    // L'instrument change : les zones et les traversées repartent de zéro. La
+    // pince et le poing, eux, restent : un geste en cours ne se rejoue pas.
+    for (const etat of this.etats.values()) {
+      etat.zones.clear();
+      etat.entreeZone.clear();
+      etat.dwellPose.clear();
+      etat.dernierCross.clear();
+      etat.positionPrecedente = null;
+    }
   }
 
   /** Une image : les gestes qui commencent ou finissent, dans l'ordre. */

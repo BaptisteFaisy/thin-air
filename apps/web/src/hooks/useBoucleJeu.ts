@@ -49,6 +49,14 @@ function pasDeJeu(t: number, deps: BoucleJeuDeps): void {
   const engine = session.engineRef.current;
   if (suivi !== null) {
     const mains = mainsJouees(deps);
+    // Un instrument, des réglages ou une zone changés en cours de jeu : la
+    // chaîne se met à jour sans couper la caméra, et les voix en cours
+    // s'éteignent en fondu AVANT les notes nouvelles (AIR-F-24).
+    const relaches = suivi.reconfigurer(t, courant.instrument, courant.settings, courant.rect);
+    if (relaches.length > 0) {
+      sonnerie(engine).play(relaches);
+      onEvents(relaches);
+    }
     if (mustReleaseAll(etat)) releaseAll(t, suivi, sonnerie(engine), onEvents);
     else tick(t, mains, suivi, sonnerie(engine), onEvents);
   }

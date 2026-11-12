@@ -38,7 +38,18 @@ export class RoleTracker {
   private suivis: Suivi[] = [];
   private prochainId = 1;
 
-  constructor(readonly settings: Settings) {}
+  constructor(public settings: Settings) {}
+
+  /**
+   * Applique de nouveaux réglages (§7.3) : le mode « gaucher » inverse les
+   * rôles déjà attribués, la continuité des mains est conservée.
+   */
+  reconfigurer(settings: Settings): void {
+    const bascule = settings.leftHanded !== this.settings.leftHanded;
+    this.settings = settings;
+    if (!bascule) return;
+    for (const suivi of this.suivis) suivi.role = suivi.role === "pitch" ? "volume" : "pitch";
+  }
 
   push(tSeconds: number, hands: readonly DetectedHand[]): readonly AssignedHand[] {
     this.purger(tSeconds);

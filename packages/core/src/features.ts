@@ -149,12 +149,28 @@ export class FeatureTracker {
   private etat: EtatMain;
 
   constructor(
-    readonly rect: PlayRect,
-    readonly aspect: number,
-    readonly settings: Settings,
-    readonly pointer: PointerKind,
+    public rect: PlayRect,
+    public aspect: number,
+    public settings: Settings,
+    public pointer: PointerKind,
   ) {
     this.etat = etatNeuf(settings);
+  }
+
+  /**
+   * Applique une nouvelle zone de jeu, de nouveaux réglages et un nouveau point
+   * visé (§7.4) : le lissage repart quand la zone ou la force du filtre change,
+   * pour ne pas faire croire à un mouvement de main.
+   */
+  reconfigurer(rect: PlayRect, settings: Settings, pointer: PointerKind): void {
+    const avant = this.settings;
+    const zoneChange = rect !== this.rect;
+    const filtreChange = settings.fcMin !== avant.fcMin || settings.beta !== avant.beta
+      || settings.fcD !== avant.fcD || settings.fcTrigger !== avant.fcTrigger;
+    this.rect = rect;
+    this.settings = settings;
+    this.pointer = pointer;
+    if (zoneChange || filtreChange) this.etat = etatNeuf(settings);
   }
 
   /** `hand` = null si la main n'est pas vue sur cette image. */

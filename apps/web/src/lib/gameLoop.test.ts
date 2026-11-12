@@ -24,6 +24,7 @@ function suiviDouble(events: readonly MusicEvent[]): Tracking & { readonly appel
       return events;
     },
     currentMidi: () => 60,
+    reconfigurer: () => [],
   };
 }
 
