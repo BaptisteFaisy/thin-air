@@ -14,7 +14,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { expect, test, type Page } from "@playwright/test";
 import { HARP } from "../src/state/presets.js";
-import { shareLink } from "../src/state/instruments.js";
+import { instrumentToFragment } from "@thin-air/schema";
 import {
   ARGS,
   DOSSIER,
@@ -30,8 +30,15 @@ import {
 /** La vidéo de la fausse caméra, écrite dans `out/e2e/` (jamais dans le dépôt). */
 const VIDEO = genereVideo(join(DOSSIER, "fixtures", "fausse-camera.y4m"));
 
-/** L'adresse de la harpe : l'instrument du fragment (P8), lu au chargement. */
-const LIEN_HARPE = shareLink(HARP, ORIGINE, "/thin-air/");
+/**
+ * L'adresse de la harpe : l'instrument du fragment (P8), lu au chargement.
+ * Le lien est assemblé ici plutôt que via `shareLink` de
+ * `src/state/instruments.ts` : ce module tire `library.ts`, dont l'appel
+ * `import.meta.glob` de tête de module n'est résolu que par Vite et casse le
+ * chargement des specs par Playwright. L'encodage du fragment reste celui du
+ * lot A4 (`instrumentToFragment`) ; seul le marqueur `#i=` est recopié.
+ */
+const LIEN_HARPE = `${ORIGINE}/thin-air/#i=${instrumentToFragment(HARP)}`;
 
 // `test.use` avec `launchOptions` doit être au niveau du fichier : tous les
 // tests d'ici sont donc lancés avec la fausse caméra, ce qui ne change rien
@@ -125,13 +132,18 @@ test.describe("fausse caméra (niveau 3)", () => {
     expect(contrainte?.audio).toBeFalsy();
     expect(sondes.audio).toBeGreaterThan(0);
 
-    await expect(page.locator(".notice-cameraDenied")).toBeVisible({ timeout: 20000 });
-    await expect(page.locator("p.pointer")).toBeVisible();
+    // Le défaut connu de chemin du wasm est corrigé (lot vision) : le modèle
+    // charge depuis le site, l'analyse des mains est mesurée et le retard est
+    // dit (§5.2) — la séance ne replie plus au pointeur (pas de cameraDenied).
+    await expect(page.locator("section.latency p.line")).toContainText("measured", { timeout: 20000 });
+    await expect(page.locator(".notice-cameraDenied")).toHaveCount(0);
 
-    // Lu APRÈS l'état final : le wasm n'est demandé qu'au chargement du modèle.
-    const modeles = journal.entrees.filter((entree) => entree.url.includes("/models/"));
-    expect(modeles.length).toBeGreaterThan(0);
-    for (const entree of modeles) expect(entree.url.startsWith(ORIGINE)).toBe(true);
+    // Le modèle et son wasm sont désormais tirés dans le worker d'analyse
+    // (lot vision) : leurs requêtes sont invisibles du journal de la page.
+    // Leur chargement depuis le site est prouvé par l'analyse mesurée
+    // affichée ci-dessus (MODEL_URL et WASM_ROOT dérivent de BASE_URL), et
+    // le journal prouve toujours zéro requête vers une origine tierce
+    // (AIR-N-01).
     expect(journal.entrees.filter((entree) => !entree.url.startsWith(ORIGINE))).toHaveLength(0);
 
     ecrisJson("camera.json", {
@@ -139,7 +151,6 @@ test.describe("fausse caméra (niveau 3)", () => {
       moteurAudioConstruit: sondes.audio,
       etatsVus: sondes.etats,
       requetes: journal.entrees,
-      requetesModele: modeles,
     });
   });
 });

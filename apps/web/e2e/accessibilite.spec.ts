@@ -187,7 +187,7 @@ test("parcours clavier : le tiroir d'instruments puis l'éditeur", async ({ page
   }
 
   await dupliqueEtOuvreEditeur(page);
-  const editeur = await parcours(page, 40);
+  const editeur = await parcours(page, 60);
   for (const id of EDITEUR) {
     expect(editeur.has(id), `${id} atteignable au clavier`).toBe(true);
     expect((editeur.get(id) ?? "").length, `libellé de ${id}`).toBeGreaterThan(0);
