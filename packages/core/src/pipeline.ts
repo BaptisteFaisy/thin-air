@@ -101,19 +101,27 @@ export function defaultStages(instrument: Instrument, settings: Settings, option
 }
 
 export class TakeProcessor {
+  /** L'instrument en cours de séance : il peut changer sans tout réinitialiser. */
+  instrument: Instrument;
+  /** Les réglages demandés : ils s'appliquent tels quels, instrumentDefaults dessus. */
+  settings: Settings;
   /** Réglages en vigueur : ceux de l'instrument par-dessus les défauts. */
-  private readonly reglages: Settings;
-  private readonly stages: PipelineStages;
-  private readonly player: InstrumentPlayer;
+  private reglages: Settings;
+  private stages: PipelineStages;
+  private player: InstrumentPlayer;
   private readonly events: MusicEvent[] = [];
   private lastT = 0;
   private done = false;
+  /** Le plus grand nombre de voix vues depuis le début, tous instruments. */
+  private peak = 0;
 
   constructor(
-    readonly instrument: Instrument,
-    readonly settings: Settings,
+    instrument: Instrument,
+    settings: Settings,
     readonly options?: PipelineOptions,
   ) {
+    this.instrument = instrument;
+    this.settings = settings;
     this.reglages = withSettings({ ...instrument.defaults, ...settings });
     this.stages = options?.stages ?? defaultStages(instrument, this.reglages, options);
     this.player = new InstrumentPlayer(instrument, this.reglages, options);
@@ -127,6 +135,7 @@ export class TakeProcessor {
     const gestures = this.stages.gestures.push(t, hands);
     const events = this.player.frame(t, hands, gestures);
     this.lastT = t;
+    this.peak = Math.max(this.peak, this.player.peakVoices);
     this.events.push(...events);
     return events;
   }
@@ -153,6 +162,56 @@ export class TakeProcessor {
     return this.events;
   }
 
+  /**
+   * Changer d'instrument EN COURS DE SÉANCE : les voix qui sonnent sont
+   * relâchées au moment du changement (le moteur audio les fond, la note ne
+   * claque pas), puis le nouvel instrument prend le relais sur les images
+   * suivantes. La prise n'est pas réinitialisée : le temps continue, les mains
+   * gardent leurs rôles, et la nouvelle gamme s'applique aux notes suivantes.
+   */
+  setInstrument(instrument: Instrument): readonly MusicEvent[] {
+    this.instrument = instrument;
+    this.reglages = withSettings({ ...instrument.defaults, ...this.settings });
+    return this.reconstruire();
+  }
+
+  /**
+   * Changer des réglages EN COURS DE SÉANCE (aimant, plafond de voix, une
+   * main, le maintien). Comme un changement d'instrument : les voix en cours
+   * s'éteignent d'abord, les notes suivantes prennent la nouvelle valeur.
+   */
+  setSettings(partial: Partial<Settings>): readonly MusicEvent[] {
+    this.settings = { ...this.settings, ...partial };
+    this.reglages = withSettings({ ...this.instrument.defaults, ...this.settings });
+    return this.reconstruire();
+  }
+
+  /**
+   * Reconstruire le lecteur et les étages pour l'instrument et les réglages en
+   * vigueur. Les voix en cours sont relâchées d'abord : elles ne chevauchent
+   * jamais les notes suivantes (AIR-P-10) et aucune ne reste coincée (AIR-P-09).
+   */
+  private reconstruire(): readonly MusicEvent[] {
+    const extinction = this.player.stall(this.lastT);
+    this.peak = Math.max(this.peak, this.player.peakVoices);
+    this.player = new InstrumentPlayer(this.instrument, this.reglages, this.options);
+    this.stages = this.etages();
+    this.events.push(...extinction);
+    return extinction;
+  }
+
+  /**
+   * Les étages de l'instrument en vigueur : les rôles des mains sont gardés
+   * (une main garde son rôle, §7.3), les gestes et les mesures repartent —
+   * ils dépendent de l'instrument (pointeur, cordes, zones).
+   */
+  private etages(): PipelineStages {
+    const injectes = this.options?.stages;
+    if (injectes) return injectes;
+    const complet = defaultStages(this.instrument, this.reglages, this.options);
+    return { roles: this.stages.roles, gestures: complet.gestures, featuresFor: complet.featuresFor };
+  }
+
   /** Voix actives : doit valoir zéro après `finish` (AIR-P-09). */
   get activeVoiceCount(): number {
     return this.player.activeVoiceCount;
@@ -160,7 +219,7 @@ export class TakeProcessor {
 
   /** Le plus grand nombre de voix actives vues (AIR-P-10). */
   get peakVoices(): number {
-    return this.player.peakVoices;
+    return this.peak;
   }
 
   /** Note visée, pour l'écran (AIR-F-53). */
