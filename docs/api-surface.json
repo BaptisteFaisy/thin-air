@@ -421,5 +421,20 @@
         "wrapDetector": { "kind": "function", "type": "(detector: RawLandmarker, delegate: \"GPU\" | \"CPU\", now: () => number = defaultNow) : Landmarker", "description": "Enveloppe un détecteur brut dans le contrat du modèle." }
       }
     }
+  },
+  "entryPoints": {
+    "description": "Les points d'entrée pour reprendre le moteur depuis l'extérieur : un exemple exécutable, et le document qui l'explique.",
+    "items": [
+      {
+        "kind": "example",
+        "path": "exemples/premier-instrument/index.ts",
+        "description": "Un projet autonome : une note MIDI rendue hors ligne, écrite en WAV, mesurée — trois nombres, aucun son."
+      },
+      {
+        "kind": "document",
+        "path": "docs/reprendre-le-moteur.md",
+        "description": "Pour un tiers : ce que le moteur fait, ce qu'il ne fait pas, l'essayer en cinq minutes, à quoi lire ensuite."
+      }
+    ]
   }
 }
