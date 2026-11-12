@@ -2,9 +2,36 @@
   "name": "@thin-air/schema",
   "version": "0.1.0",
   "private": true,
+  "description": "Validation zod des fichiers Thin Air (instrument, prise) : refus en entier avec raisons lisibles, jamais de réparation silencieuse.",
+  "license": "MIT",
   "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BaptisteFaisy/thin-air.git",
+    "directory": "packages/schema"
+  },
+  "keywords": [
+    "thin-air",
+    "schema",
+    "validation",
+    "zod",
+    "typescript",
+    "esm"
+  ],
+  "sideEffects": false,
+  "files": [
+    "src"
+  ],
   "main": "src/index.ts",
   "types": "src/index.ts",
-  "exports": { ".": "./src/index.ts", "./*": "./src/*" },
-  "dependencies": { "zod": "^4.6.7" }
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*"
+  },
+  "dependencies": {
+    "zod": "^4.6.7"
+  }
 }

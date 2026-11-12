@@ -8,5 +8,6 @@
  */
 await import("../../../instruments/instruments.test");
 await import("../../../instruments/guards.test");
+await import("../../../instruments/publication.test");
 
 export {};

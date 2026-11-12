@@ -73,23 +73,28 @@ Deux décisions de conception ont déjà été prises et consignées dans
 
 ## Ce qu'il reste à faire pour publier sur un registre
 
-Décrit ici, non fait : `scripts/pack-check.mjs` vérifie la cohérence, et les
-écarts ci-dessous sont ce qu'il faut combler avant `npm publish`.
+Décrit ici, non fait : `scripts/pack-check.mjs` vérifie la cohérence, et la
+marche à suivre exacte (ordre, vérifications, `npm pack --dry-run`) est dans
+`docs/publication.md`. Les trois paquets sont **source-only** : `exports` cible
+`./src/index.ts` et `files` ne livre que `src/`, choix justifié dans
+`docs/publication.md`. Reste à combler avant `npm publish` :
 
-- **Retirer `"private": true`** des trois `package.json` de paquets.
-- **Ajouter `"license": "MIT"`** (la racine est déjà MIT) et un champ
-  `"repository"`/`"homepage"` pointant vers le dépôt.
-- **Compiler puis pointer `exports` vers la sortie** : aujourd'hui `exports`
-  cible `./src/index.ts` (source TypeScript). Un consommateur nu (`node` /
-  `tsc`) ne la compile pas ; il faut un build `tsc` vers `dist/` + un champ
-  `types` en `.d.ts`, et `"files": ["dist"]` pour ne livrer que le compilé.
+- **Retirer `"private": true`** des trois `package.json` de paquets — c'est le
+  verrou qui empêche aujourd'hui toute publication accidentelle.
+- **Décider le nom scopé ou non, et le registre** (npmjs.org, GitHub Packages,
+  registre privé) : rien n'est configuré dans le dépôt.
 - **Déclarer et figer les dépendances entre paquets** : `@thin-air/schema`
   importe `@thin-air/core` sans le déclarer, et `@thin-air/audio` le déclare en
   `"*"`. Les deux veulent `"@thin-air/core": "^0.1.0"` (versions synchronisées).
-- **Versionner** : aligner les trois `version` sur un semver commun, dès que la
-  première publication fige l'API publique.
+- **Éventuellement compiler vers `dist/`** si un consommateur JavaScript nu
+  doit pouvoir importer le paquet : `tsconfig` par paquet, script `build`,
+  `"files": ["dist"]` et `exports` en `{ "types": …, "default": … }`.
 
-La garde `node scripts/pack-check.mjs` liste ces points en « conseil » tant que
-les paquets restent `private`, et échoue (code non nul) dès qu'un paquet
-publiable en est privé ; elle refuse toute importation d'un paquet non déclaré
-et tout fichier sonore.
+Déjà faits : `version` 0.1.0 sur les trois paquets, `license: "MIT"`,
+`repository`, `description`, `keywords`, `files`, `sideEffects: false`.
+
+La garde `node scripts/pack-check.mjs` échoue (code non nul) dès qu'un paquet
+est privé de `license`, de `files` ou d'un `exports` dont une cible ne pointe
+vers aucun fichier existant ; elle refuse toute importation d'un paquet non
+déclaré et tout fichier sonore. Le banc `instruments/publication.test.ts`
+revérifie les trois manifests dans `npx vitest run`.
