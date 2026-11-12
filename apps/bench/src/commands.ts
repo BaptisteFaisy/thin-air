@@ -6,8 +6,6 @@
  * elles lisent des fichiers, calculent, écrivent des fichiers (AIR-N-02).
  */
 import type { MusicEvent } from "@thin-air/core";
-import { basename, extname } from "node:path";
-
 import type { ParsedArgs } from "./args.js";
 import { numberValue, optionalValue, parseArgs, requireValue, wantsHelp } from "./args.js";
 import { compareReports, formatComparison } from "./compare.js";
@@ -15,7 +13,7 @@ import { BenchError, UsageError, isUnavailableContract } from "./errors.js";
 import type { EventsOptions } from "./events.js";
 import { eventsOf, formatEvents } from "./events.js";
 import { commandHelp } from "./help.js";
-import { fileSize, readJsonFile, writeBytesFile, writeJsonFile } from "./io.js";
+import { fileSize, readJsonFile, takeLabel, writeBytesFile, writeJsonFile } from "./io.js";
 import { loadEncoding } from "./contracts.js";
 import { readInstrumentFile, readSettingsFile, readTakeFile } from "./load.js";
 import { parseReport } from "./report.js";
@@ -86,11 +84,6 @@ function eventOptions(args: ParsedArgs): EventsOptions {
     oneHand: args.flags.has("one-hand") ? true : undefined,
     hold: args.flags.has("hold") ? true : undefined,
   };
-}
-
-function takeLabel(path: string): string {
-  const extension = extname(path);
-  return basename(path, extension);
 }
 
 function summary(label: string, instrument: string, events: readonly MusicEvent[]): string {
