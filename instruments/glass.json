@@ -1,0 +1,24 @@
+{
+  "format": "thin-air-instrument/1",
+  "name": "Glass",
+  "pointer": "palm",
+  "scale": { "root": 60, "steps": [0, 2, 3, 5, 7, 8, 10] },
+  "range": { "low": 60, "high": 84 },
+  "snap": 0,
+  "voices": 1,
+  "controls": [
+    { "hand": "pitch", "feature": "u", "to": "pitch" },
+    { "hand": "volume", "feature": "v", "to": "gain", "curve": "db48" }
+  ],
+  "oneHand": [
+    { "feature": "u", "to": "pitch" },
+    { "feature": "open", "to": "gain", "curve": "db48" }
+  ],
+  "sound": {
+    "engine": "osc",
+    "wave": "sine",
+    "attackMs": 250,
+    "releaseMs": 900,
+    "glideMs": 120
+  }
+}
