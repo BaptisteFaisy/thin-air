@@ -55,7 +55,8 @@ jobs:
       # Runner persistant : un `out/sonde/` d'un run précédent fausserait
       # l'artefact du jour. `node_modules` est conservé (inutilisé ici).
       - name: Nettoyage du workspace
-        run: git clean -ffdx -e node_modules
+        # Les dossiers de runner sont exclus explicitement (docs/runners.md).
+        run: git clean -ffdx -e node_modules -e 'actions-runner-*' -e '_work*'
 
       # Échec = alerte : la sonde sort non nul dès la première anomalie.
       - name: Sonde du site publié (page, JS, modèle, wasm)

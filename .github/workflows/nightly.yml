@@ -43,7 +43,8 @@ jobs:
       # Runner persistant : nettoyer un éventuel reste d'un run précédent
       # (comme `ci.yml`), en conservant `node_modules` qui sera régénéré.
       - name: Nettoyage du workspace
-        run: git clean -ffdx -e node_modules
+        # Les dossiers de runner sont exclus explicitement (docs/runners.md).
+        run: git clean -ffdx -e node_modules -e 'actions-runner-*' -e '_work*'
 
       - name: Dépendances (npm ci, hors ligne au maximum)
         run: npm ci --prefer-offline --no-audit --no-fund
@@ -80,7 +81,8 @@ jobs:
           persist-credentials: false
 
       - name: Nettoyage du workspace
-        run: git clean -ffdx -e node_modules
+        # Les dossiers de runner sont exclus explicitement (docs/runners.md).
+        run: git clean -ffdx -e node_modules -e 'actions-runner-*' -e '_work*'
 
       - name: Dépendances (npm ci, hors ligne au maximum)
         run: npm ci --prefer-offline --no-audit --no-fund

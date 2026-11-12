@@ -49,7 +49,8 @@ jobs:
       # contrôle des fichiers sonores. `node_modules` est conservé (il est
       # régénéré par `npm ci` juste après).
       - name: Nettoyage du workspace
-        run: git clean -ffdx -e node_modules
+        # Les dossiers de runner sont exclus explicitement (docs/runners.md).
+        run: git clean -ffdx -e node_modules -e 'actions-runner-*' -e '_work*'
 
       - name: Dépendances (npm ci, hors ligne au maximum)
         run: npm ci --prefer-offline --no-audit --no-fund
