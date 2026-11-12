@@ -19,6 +19,7 @@ import { KioskEntry } from "./ui/KioskEntry.js";
 import { SeanceView } from "./ui/Seance.js";
 import { RealTakePage } from "./ui/RealTake.js";
 import { LessonsPanel } from "./ui/LessonsPanel.js";
+import { langFrom, lessonsFor, messagesFor } from "./i18n/index.js";
 
 /** Les paramètres de l'adresse courante, vides hors navigateur. */
 function recherche(): string {
@@ -40,10 +41,13 @@ export function App(): JSX.Element {
   if (kioskWanted(recherche())) return <Kiosk />;
   if (recordMode()) return <RealTakePage />;
   if (lessonsMode()) {
+    // Les libellés du panneau viennent du catalogue i18n, dans la langue de la
+    // page (`?lang=fr`), comme le reste de l'application.
+    const lang = langFrom(typeof window === "undefined" ? "" : window.location.search);
     return (
       <main>
-        <p><a href="?">Back to the stage</a></p>
-        <LessonsPanel />
+        <p><a href="?">{messagesFor(lang).common.back}</a></p>
+        <LessonsPanel messages={lessonsFor(lang)} />
       </main>
     );
   }

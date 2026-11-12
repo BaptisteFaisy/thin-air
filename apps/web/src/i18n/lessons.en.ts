@@ -60,6 +60,43 @@ export interface LessonHorlogesMessages {
   readonly mesure: NombreLabel;
   readonly camera: NombreLabel;
   readonly total: NombreLabel;
+  /** La rampe des paramètres : jamais une marche (§7.9, règle 1). */
+  readonly rampe: NombreLabel;
+  /** La couture des deux horloges, en une phrase. */
+  readonly seam: string;
+}
+
+/** Ce que le panneau dit quand il lit la séance en cours. */
+export interface LessonLiveMessages {
+  /** Étiquette du mode direct : les nombres viennent de la séance. */
+  readonly modeLive: string;
+  /** Étiquette du mode exemple : la prise de synthèse, jamais le jeu réel. */
+  readonly modeDemo: string;
+  /** Message affiché quand aucune image n'a encore été analysée. */
+  readonly noData: string;
+  /** Bouton qui bascule vers l'exemple. */
+  readonly showExample: string;
+  /** Bouton qui revient aux nombres de la séance. */
+  readonly showLive: string;
+  /** Mention obligatoire d'une valeur mesurée sur cette machine. */
+  readonly measured: string;
+  /** Mention obligatoire d'une valeur estimée (§5.1). */
+  readonly estimated: string;
+  readonly analysisMean: NombreLabel;
+  readonly analysisMax: string;
+  readonly frameInterval: string;
+  readonly framesPerSecond: string;
+  readonly thread: string;
+  readonly threadNone: string;
+  readonly camera: string;
+  readonly framesAnalysed: string;
+  /** La note réellement jouée par la personne, quand elle en joue une. */
+  readonly playedNote: string;
+  readonly noNote: string;
+  /** Ce qui manque pour la leçon du filtre en direct. */
+  readonly tremorPending: string;
+  /** Ce qui manque pour la leçon des centièmes en direct. */
+  readonly aimPending: string;
 }
 
 /** Le catalogue des trois leçons, dans une langue. */
@@ -68,9 +105,11 @@ export interface LessonMessages {
   readonly title: string;
   readonly close: string;
   readonly ms: string;
+  readonly centsUnit: string;
   readonly filter: LessonFilterMessages;
   readonly cents: LessonCentsMessages;
   readonly horloges: LessonHorlogesMessages;
+  readonly live: LessonLiveMessages;
 }
 
 export const lessonsEn: LessonMessages = {
@@ -78,6 +117,7 @@ export const lessonsEn: LessonMessages = {
   title: "The three lessons",
   close: "Close",
   ms: "ms",
+  centsUnit: "cents",
   filter: {
     title: "The filter",
     legend: "Trace of the trembling hand: raw position, smoothed channel, trigger channel.",
@@ -116,5 +156,32 @@ export const lessonsEn: LessonMessages = {
     mesure: (nombre) => `Measured latency: ${nombre} ms`,
     camera: (nombre) => `Estimated camera latency: ${nombre} ms`,
     total: (nombre) => `Total: ${nombre} ms`,
+    rampe: (nombre) => `Parameter ramp: ${nombre} ms — never a step (§7.9, rule 1)`,
+    seam:
+      "Every event carries a timestamp on the sound clock, not on the frame clock: that seam is where this kind of instrument usually crackles, drags, or leaves a note stuck.",
+  },
+  live: {
+    modeLive: "live — this session",
+    modeDemo: "example — synthetic take",
+    noData:
+      "No live data yet: start a session and every number below will be measured on this machine. Nothing is invented in the meantime.",
+    showExample: "Show the example",
+    showLive: "Back to the live numbers",
+    measured: "measured",
+    estimated: "estimated",
+    analysisMean: (nombre) => `Analysis, mean over the last ${nombre} frames`,
+    analysisMax: "Analysis, worst frame",
+    frameInterval: "Interval between two frames",
+    framesPerSecond: "Frames actually delivered per second",
+    thread: "Analysis thread",
+    threadNone: "not started",
+    camera: "Camera (exposure, sensor, transport)",
+    framesAnalysed: "Frames analysed",
+    playedNote: "Note played right now",
+    noNote: "silence",
+    tremorPending:
+      "The tremor of the person playing is not collected yet: the tracking chain exposes no sliding buffer of raw and filtered positions. The numbers of this lesson come from the example.",
+    aimPending:
+      "The height that was aimed at is not exposed by the session: only the note that was played is known here.",
   },
 };
