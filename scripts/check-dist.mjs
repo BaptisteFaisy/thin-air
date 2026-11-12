@@ -34,7 +34,16 @@ import { readFileSync } from "node:fs";
 const racine = process.cwd();
 const dist = join(racine, process.argv[2] ?? "apps/web/dist");
 
-/** Préfixes d'URL présents dans le bundle sans être des requêtes. */
+/**
+ * Préfixes d'URL présents dans le bundle sans être des requêtes.
+ *
+ * `odml.pa.googleapis.com` est le point de journalisation du paquet MediaPipe
+ * : MediaPipe ne l'appelle que si une clé d'API de journalisation est
+ * configurée, et notre code n'en configure jamais (`grep -rn "odml\|apiKey"
+ * apps/web/src packages/vision/src` ne rend rien). L'adresse reste une
+ * chaîne dans le bundle : elle est listée ici, avec sa raison, comme les
+ * autres adresses qui ne sont jamais résolues.
+ */
 const AUTORISEES = [
   ["http://www.w3.org/", "espace de noms XML, SVG et MathML"],
   ["https://www.w3.org/", "espace de noms XML, SVG et MathML"],
@@ -45,6 +54,7 @@ const AUTORISEES = [
   ["https://opensource.org/", "identifiant de licence en commentaire"],
   ["https://choosealicense.com/", "identifiant de licence en commentaire"],
   ["https://github.com/Tradoooo/thin-air", "adresse du dépôt, dans la page"],
+  ["https://odml.pa.googleapis.com/", "journalisation MediaPipe, jamais activée : aucune clé d'API dans notre code"],
 ];
 
 const EXTENSIONS_SONORES = new Set([
