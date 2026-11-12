@@ -178,6 +178,9 @@ export const en = {
     octave: "One octave up doubles the frequency.",
     partials: "Second harmonic",
   },
+  lessons: {
+    link: "What the numbers say",
+  },
   settings: {
     title: "Settings",
     snap: "Magnet",
