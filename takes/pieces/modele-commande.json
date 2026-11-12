@@ -1,0 +1,60 @@
+{
+  "format": "thin-air-session/1",
+  "tempo": 90,
+  "bars": 4,
+  "beatsPerBar": 4,
+  "layers": [
+    {
+      "id": 1,
+      "instrument": "Harp",
+      "events": [
+        { "type": "noteOn", "t": 0, "voice": "harpe-1", "midi": 50, "velocity": 0.5 },
+        { "type": "noteOn", "t": 1.333333, "voice": "harpe-2", "midi": 57, "velocity": 0.45 },
+        { "type": "noteOn", "t": 2.666667, "voice": "harpe-3", "midi": 53, "velocity": 0.5 },
+        { "type": "noteOn", "t": 4, "voice": "harpe-4", "midi": 60, "velocity": 0.45 },
+        { "type": "noteOn", "t": 5.333333, "voice": "harpe-5", "midi": 62, "velocity": 0.5 },
+        { "type": "noteOn", "t": 6.666667, "voice": "harpe-6", "midi": 69, "velocity": 0.45 },
+        { "type": "noteOn", "t": 8, "voice": "harpe-7", "midi": 65, "velocity": 0.5 },
+        { "type": "noteOn", "t": 9.333333, "voice": "harpe-8", "midi": 72, "velocity": 0.45 }
+      ],
+      "muted": false
+    }
+  ],
+  "settings": {
+    "frameRateIdeal": 60,
+    "numHands": 2,
+    "graceMs": 150,
+    "fcMin": 1.5,
+    "beta": 5,
+    "fcD": 1,
+    "fcTrigger": 6,
+    "pinchOn": 0.25,
+    "pinchOff": 0.4,
+    "fistOn": 0.2,
+    "fistOff": 0.35,
+    "zoneMargin": 0.1,
+    "noteHysteresis": 0.15,
+    "stringRearmMs": 80,
+    "minPluckSpeed": 0.15,
+    "paramTauMs": 20,
+    "lookaheadMs": 5,
+    "maxVoices": 8,
+    "masterGainDb": -12,
+    "ceilingDb": -1,
+    "cameraLatencyMs": 50,
+    "tempo": 90,
+    "loopBars": 4,
+    "beatsPerBar": 4,
+    "dwellMs": 400,
+    "wirelessWarnMs": 100,
+    "stallReleaseMs": 300,
+    "magnet": null,
+    "leftHanded": false,
+    "oneHand": false,
+    "hold": false,
+    "reverb": 0.25,
+    "quantize": "off",
+    "quantizeStrength": 0,
+    "showCamera": false
+  }
+}
