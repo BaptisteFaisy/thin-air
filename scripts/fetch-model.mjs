@@ -19,12 +19,23 @@
  * la variante module ajouterait 13,93 Mo morts au site ; `--all` la conserve
  * si un appel futur passe `useWasmModule: true`.
  *
- * Usage : npm run fetch-model            (variante utile seule)
- *         node scripts/fetch-model.mjs --all   (les deux variantes)
+ * Usage : npm run fetch-model                          (défaut : --variante les-deux)
+ *         node scripts/fetch-model.mjs --variante gpu  (délégué GPU)
+ *         node scripts/fetch-model.mjs --variante cpu  (délégué processeur, AIR-N-07)
+ *         node scripts/fetch-model.mjs --all           (les deux variantes de wasm)
+ *
+ * `--variante` nomme le ou les délégués à servir : `gpu`, `cpu`, ou `les-deux`
+ * (le défaut, qui garde le repli processeur AIR-N-07). Les trois chargent le
+ * MÊME fileset non-module — le délégué est choisi dans `createFromOptions`,
+ * après le fileset, et la preuve par journal de requêtes est dans
+ * docs/latency.md : l'option ne change donc pas les fichiers copiés, et le
+ * rappel des poids le dit à chaque exécution. `--all` seul ajoute la variante
+ * module (poids mort tant qu'aucun appel ne passe `useWasmModule: true`).
  */
 import { mkdir, writeFile, readFile, stat, readdir, rm } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { formaterPoids } from "./lib/poids.mjs";
 
 const racine = join(dirname(fileURLToPath(import.meta.url)), "..");
 const cible = join(racine, "public", "models");
@@ -36,7 +47,25 @@ const MODELE =
 const VARIANTE_UTILE = ["vision_wasm_internal.js", "vision_wasm_internal.wasm"];
 /** La variante que le site ne demande jamais, sauf `useWasmModule: true`. */
 const VARIANTE_MODULE = ["vision_wasm_module_internal.js", "vision_wasm_module_internal.wasm"];
+/** Valeurs acceptées par `--variante` : les délégués à servir. */
+const DELEGUES = ["gpu", "cpu", "les-deux"];
+
+/** Lit la valeur qui suit un drapeau (`--variante gpu` → `gpu`). */
+function lireValeur(argv, drapeau) {
+  const index = argv.indexOf(drapeau);
+  return index >= 0 && index + 1 < argv.length ? argv[index + 1] : undefined;
+}
+
+const delegue = lireValeur(process.argv, "--variante") ?? "les-deux";
+if (!DELEGUES.includes(delegue)) {
+  process.stderr.write(`--variante attend ${DELEGUES.join(" | ")} : reçu « ${delegue} »\n`);
+  process.exit(1);
+}
 const toutGarder = process.argv.includes("--all");
+// GPU, processeur, ou les deux (repli AIR-N-07) chargent le même fileset
+// non-module (voir l'en-tête) : les trois valeurs retiennent la variante
+// utile. `--all` seul ajoute la variante module — du poids mort tant qu'aucun
+// appel futur ne passe `useWasmModule: true`.
 const aCopier = toutGarder ? [...VARIANTE_UTILE, ...VARIANTE_MODULE] : VARIANTE_UTILE;
 
 async function telecharger(url, fichier) {
@@ -86,6 +115,31 @@ async function copierWasm(wasmSource, wasmCible) {
   return poids;
 }
 
+/** Rappel : ce que pèse chaque variante, mesuré sur les fichiers réels. */
+async function rappelerPoids(wasmSource, wasmCible, poidsModele) {
+  const mesurer = async (dossier, noms) => {
+    let total = 0;
+    for (const nom of noms) {
+      try {
+        total += (await stat(join(dossier, nom))).size;
+      } catch {
+        /* fichier absent : non compté */
+      }
+    }
+    return total;
+  };
+  const utile = await mesurer(wasmSource, VARIANTE_UTILE);
+  const morte = await mesurer(wasmSource, VARIANTE_MODULE);
+  const publiee = await mesurer(wasmCible, [...VARIANTE_UTILE, ...VARIANTE_MODULE]);
+  process.stdout.write(
+    "rappel des poids (mesurés sur les fichiers réels) :\n" +
+      `  modèle hand_landmarker.task : ${formaterPoids(poidsModele)}\n` +
+      `  variante non-module, chargée par le délégué GPU comme par le processeur : ${formaterPoids(utile)}\n` +
+      `  variante module, jamais chargée (--all seulement) : ${formaterPoids(morte)}\n` +
+      `  fichiers d'exécution effectivement publiés : ${formaterPoids(publiee)}\n`,
+  );
+}
+
 await mkdir(cible, { recursive: true });
 const poids = await telecharger(MODELE, "hand_landmarker.task");
 
@@ -99,9 +153,10 @@ const poidsWasm = await copierWasm(wasmSource, wasmCible);
 
 const total = poids + poidsWasm;
 process.stdout.write(
-  `poids du modèle : ${(poids / 1e6).toFixed(2)} Mo · ` +
-    `fichiers d'exécution publiés : ${(poidsWasm / 1e6).toFixed(2)} Mo ` +
-    `(${toutGarder ? "deux variantes, --all" : "variante utile seule"}) · ` +
-    `total premier chargement : ${(total / 1e6).toFixed(2)} Mo\n`,
+  `poids du modèle : ${formaterPoids(poids)} · ` +
+    `fichiers d'exécution publiés : ${formaterPoids(poidsWasm)} ` +
+    `(${toutGarder ? "deux variantes, --all" : `variante utile seule, --variante ${delegue}`}) · ` +
+    `total premier chargement : ${formaterPoids(total)}\n`,
 );
+await rappelerPoids(wasmSource, wasmCible, poids);
 process.stdout.write("à reporter dans docs/latency.md (ligne « poids du premier chargement »)\n");
