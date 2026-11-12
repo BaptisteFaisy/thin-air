@@ -16,8 +16,6 @@ export interface PhysicsPanelProps {
 const LARGEUR = 240;
 const HAUTEUR = 72;
 
-const LECONS_LINK = "What the numbers say";
-
 export function PhysicsPanel({ m, instrument, display, onClose }: PhysicsPanelProps): JSX.Element {
   const frequence = display.frequencyHz;
   const texte = frequence === null ? m.common.none : `${frequence.toFixed(1)} ${m.physics.frequencyUnit}`;
@@ -42,6 +40,13 @@ export function PhysicsPanel({ m, instrument, display, onClose }: PhysicsPanelPr
         <polyline points={toPolyline(pathFor(instrument.sound), LARGEUR, HAUTEUR)} />
       </svg>
       <p className="help">{m.physics.octave}</p>
+      {/* Raccord 2 : les leçons chiffrées sont atteignables depuis l'écran
+          Physique, avec le même libellé que depuis l'accueil. */}
+      <p className="help">
+        <a className="link-lecons" href="?lecons=1">
+          {m.lessons.link}
+        </a>
+      </p>
     </Panel>
   );
 }

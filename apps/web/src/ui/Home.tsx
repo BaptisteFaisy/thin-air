@@ -8,8 +8,6 @@ export interface HomeProps {
   readonly onPointer: () => void;
 }
 
-const LECONS_LINK = "What the numbers say";
-
 export function Home({ m, onStart, onPointer }: HomeProps): JSX.Element {
   return (
     <main className="screen home">
@@ -27,10 +25,9 @@ export function Home({ m, onStart, onPointer }: HomeProps): JSX.Element {
           {m.home.playWithoutCamera}
         </button>
         {/* Raccord 1 : les leçons chiffrées sont atteignables depuis l'accueil.
-            Libellé provisoirement en anglais — voir docs/ui-lecons.md pour le
-            raccordement à i18n (une clé à ajouter dans en.ts et fr.ts). */}
+            Le libellé vient du catalogue i18n (`lessons.link`), comme le reste. */}
         <a className="link-lecons" href="?lecons=1">
-          {LECONS_LINK}
+          {m.lessons.link}
         </a>
       </div>
       <ul className="notes">

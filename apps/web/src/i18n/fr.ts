@@ -175,6 +175,9 @@ export const fr: Messages = {
     octave: "Une octave au-dessus double la fréquence.",
     partials: "Harmonique 2",
   },
+  lessons: {
+    link: "Ce que disent les nombres",
+  },
   settings: {
     title: "Réglages",
     snap: "Aimant",
