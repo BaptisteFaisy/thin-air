@@ -1,0 +1,71 @@
+name: sonde
+
+# Sonde de disponibilité du site publié (AIR-N-13 : statique, HTTPS, gratuit,
+# en ligne jusqu'au 29 janvier 2027 au moins).
+#
+# Déclencheurs : un `schedule` quotidien et `workflow_dispatch`, et RIEN
+# d'autre — JAMAIS `pull_request` : une PR ne change rien à ce que l'hébergeur
+# sert, et la sonde n'a pas à se glisser dans le verdict en 5 min des PR
+# (`ci.yml`, `.github/ci-budget/check_timeouts.py`).
+#
+# Ce que la sonde prouve : la page, le JS principal, `models/hand_landmarker.task`
+# et un fichier wasm sont servis, avec le bon Content-Type et un Cache-Control.
+# Ce qu'elle ne prouve pas : que l'instrument joue (docs/disponibilite.md).
+#
+# L'alerte, c'est le rouge : la moindre anomalie fait échouer le job, donc
+# apparaître un run rouge dans l'onglet Actions et un courriel de GitHub
+# Actions. Le résultat JSON horodaté est publié en artefact quoi qu'il arrive.
+#
+# Aucune dépendance installée : la sonde est en Node pur, elle n'interroge que
+# l'origine du site (AIR-N-01) et ne télécharge jamais les ~22 Mo du modèle.
+on:
+  schedule:
+    # 05 h 12 UTC, soit 06 h 12 à Paris en hiver et 07 h 12 en été.
+    - cron: "12 5 * * *"
+  workflow_dispatch:
+
+# Une sonde par run : aucun run n'en annule un autre, chaque jour garde sa trace.
+concurrency:
+  group: sonde-${{ github.run_id }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  sonde:
+    name: sonde
+    runs-on: [self-hosted, linux, x64, thin-air-worker]
+    # Budget : 5 min. Quatre requêtes d'en-têtes, quelques secondes en pratique.
+    timeout-minutes: 5
+    env:
+      # Runner auto-hébergé : node vit en espace utilisateur.
+      PATH: /home/baptiste/bin:/usr/local/bin:/usr/bin:/bin
+      # Aucun navigateur, aucune dépendance à installer pour ce job.
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # L'historique n'a rien à voir ici : un seul commit suffit.
+          fetch-depth: 1
+          # Le job n'écrit pas dans le dépôt : aucun jeton laissé dans .git.
+          persist-credentials: false
+          clean: false
+
+      # Runner persistant : un `out/sonde/` d'un run précédent fausserait
+      # l'artefact du jour. `node_modules` est conservé (inutilisé ici).
+      - name: Nettoyage du workspace
+        run: git clean -ffdx -e node_modules
+
+      # Échec = alerte : la sonde sort non nul dès la première anomalie.
+      - name: Sonde du site publié (page, JS, modèle, wasm)
+        run: node scripts/sonde-dispo.mjs
+
+      - name: Publier le résultat horodaté (trace AIR-N-13)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonde-dispo-${{ github.run_id }}
+          path: out/sonde/*.json
+          if-no-files-found: error
+          retention-days: 90
