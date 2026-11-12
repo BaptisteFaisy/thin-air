@@ -4,6 +4,10 @@
   "version": "0.1.0",
   "description": "Thin Air — a webcam turns thin air into an instrument. Kiroween 2026, category Frankenstein.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Tradoooo/thin-air.git"
+  },
   "type": "module",
   "engines": {
     "node": ">=22"
