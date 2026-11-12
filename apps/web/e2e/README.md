@@ -40,14 +40,9 @@ asserte que `getUserMedia` est appelé avec `audio: false`.
 | l'accueil propose les deux portes | « Start » et « Play without a camera » (§12.1) |
 | P2 : le pointeur joue… | La souris fait une main (harpe chargée par le fragment d'adresse, P8) ; la note en cours est affichée **en texte** et change avec le pointeur ; **journal réseau** : toutes les requêtes du chargement jusqu'à 20 s de jeu sont sur `127.0.0.1:4173`, et **aucune requête pendant le jeu** (AIR-N-01). Écrit `apps/web/out/e2e/reseau.json` |
 | AIR-P-09 à l'écran | Marqué `test.fail` : **défaut produit connu** — la main virtuelle du pointeur ne se relâche jamais (aucun `pointerleave` dans `usePointerHands`), la note reste affichée après la sortie. Le jour où le produit relâche la note, le test passera de façon inattendue et il faudra retirer la marque |
-| fausse caméra (niveau 3) | Chromium lancé avec fausse caméra + fausse UI + fichier vidéo YUV généré à la volée (`out/e2e/fixtures/fausse-camera.y4m`) : `getUserMedia` est demandé **sans audio**, un `AudioContext` est construit, l'écran passe par « Loading the hand model… », le wasm est demandé **au site lui-même** (même origine). Écrit `apps/web/out/e2e/camera.json` |
+| fausse caméra (niveau 3) | Chromium lancé avec fausse caméra + fausse UI + fichier vidéo YUV généré à la volée (`out/e2e/fixtures/fausse-camera.y4m`) : `getUserMedia` est demandé **sans audio**, un `AudioContext` est construit, l'écran passe par « Loading the hand model… », et le modèle charge depuis le site : la ligne de retard (§5.2) porte « measured » et aucun repli `cameraDenied` n'apparaît. Le modèle et son wasm sont tirés dans le worker d'analyse — invisibles du journal de la page, qui prouve toujours **zéro requête tierce**. Écrit `apps/web/out/e2e/camera.json` |
 
-Ce que la fausse caméra **n'a pas** prouvé : la détection de mains réelle —
-le wasm du modèle est demandé à `/models/wasm/` au lieu de
-`/thin-air/models/wasm/` (`WASM_ROOT` de `useSession.ts` n'est pas passé à
-`loadLandmarker`), donc il répond 404 et le chargement échoue ; l'app replie
-au pointeur avec un message clair (comportement P6, vérifié). Défaut transmis
-au lot vision.
+Ce que la fausse caméra **n'a pas** prouvé : la reconnaissance de mains réelles — la vidéo YUV générée ne contient pas de main. L'ancien défaut de chemin du wasm (demandé à `/models/wasm/` au lieu de `/thin-air/models/wasm/`, donc 404 et repli au pointeur) a été corrigé par le lot vision : le modèle et son wasm chargent depuis le site, l'analyse tourne et son temps est mesuré. Le test l'asserte : la ligne de retard (§5.2, `section.latency`) porte la mention « measured » et aucune notice `cameraDenied` (repli) n'apparaît.
 
 ### `accessibilite.spec.ts`
 
@@ -65,8 +60,7 @@ au lot vision.
 |---|---|
 | après une première visite, tout redémarre sans réseau | Site servi sous `/thin-air/` : le worker s'installe (scope vérifié), un rechargement en ligne met la coquille et les assets en cache pendant que le modèle et son wasm sont préchauffés en arrière-plan ; puis `context.setOffline(true)` (coupure au niveau du navigateur), rechargement : la page redémarre, le jeu au pointeur fonctionne, et le modèle (7 819 105 o) comme le wasm (14 603 354 o) sont lus **en entier depuis le cache** — prouvé par l'en-tête `x-thin-air-source: cache` posé par le worker. Journal réseau : aucune requête hors de l'origine (AIR-N-01). Écrit `apps/web/out/e2e/hors-ligne.json`. Détails et invalidation : `docs/hors-ligne.md` |
 
-Ce que la spec ne prouve pas : la détection de mains hors ligne (le défaut
-connu de chemin du wasm, ci-dessus, est indépendant du cache).
+Ce que la spec ne prouve pas : la détection de mains hors ligne (le chargement du modèle et du wasm depuis le cache est prouvé, mais aucune image n'est analysée dans ce test).
 
 ## Artefacts
 
