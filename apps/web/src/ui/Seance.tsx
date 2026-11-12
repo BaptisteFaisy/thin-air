@@ -47,6 +47,7 @@ export function SeanceView({ s }: { readonly s: Seance }): JSX.Element {
         loop={data.loop}
         calibration={data.calibration}
         settings={data.settings}
+        profileId={data.profileId}
         display={data.display}
         midiAvailable={session.state.midi === "available"}
         reducedMotion={s.reducedMotion}

@@ -4,13 +4,19 @@ import type { Instrument, Settings } from "@thin-air/core";
 import { DEFAULT_SETTINGS } from "@thin-air/core";
 import type { Messages } from "../i18n/index.js";
 import { effectiveMagnet, filterStrength, patchSettings, withFilterStrength } from "../state/settings.js";
+import type { ProfileId } from "../state/profiles.js";
 import { Panel, Slider, Toggle } from "./Controls.js";
+import { Profiles } from "./Profiles.js";
 
 export interface SettingsPanelProps {
   readonly m: Messages;
   readonly settings: Settings;
   readonly instrument: Instrument;
   readonly reducedMotion: boolean;
+  /** Le profil choisi, ou `null` : les profils sont des réglages proposés d'un coup. */
+  readonly profileId: ProfileId | null;
+  readonly onApplyProfile: (id: ProfileId) => void;
+  readonly onClearProfile: () => void;
   readonly onChange: (settings: Settings) => void;
   readonly onClose: () => void;
 }
@@ -20,6 +26,12 @@ export function SettingsPanel(props: SettingsPanelProps): JSX.Element {
   const patch = (partiel: Partial<Settings>) => onChange(patchSettings(settings, partiel));
   return (
     <Panel title={m.settings.title} onClose={props.onClose} closeLabel={m.common.close}>
+      <Profiles
+        m={m.profiles}
+        active={props.profileId}
+        onApply={props.onApplyProfile}
+        onClear={props.onClearProfile}
+      />
       <ReglagesJeu m={m} settings={settings} instrument={instrument} patch={patch} />
       <ReglagesSon m={m} settings={settings} patch={patch} />
       <ReglagesRetard m={m} settings={settings} patch={patch} onChange={onChange} />

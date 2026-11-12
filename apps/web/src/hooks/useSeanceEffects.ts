@@ -7,6 +7,7 @@ import { mesurerRetard } from "../state/latencyProbe.js";
 import { detecterMidi, type SessionApi } from "./useSession.js";
 import { useBoucleJeu } from "./useBoucleJeu.js";
 import { useCalibrationLoop } from "./useCalibrationLoop.js";
+import { useGhost } from "./useGhost.js";
 import type { Miroir } from "../scene/modele.js";
 import type { SeanceData } from "./useSeanceData.js";
 
@@ -69,6 +70,12 @@ export function useSeanceEffects(deps: EffetsDeps): void {
   useLibraryPersistence(data);
   useMidiDetection(session);
   useLatencyProbe(session, data);
-  useBoucleJeu({ session, miroir, etat: session.state, onEvents: data.onEventsRef.current });
+  /**
+   * AIR-F-50, P11 : le fantôme rejoue une prise à faible volume. Son effet
+   * passe APRÈS la persistance des réglages : tant qu'il joue, c'est son volume
+   * abaissé qui gagne.
+   */
+  const fantome = useGhost(session, data.settings);
+  useBoucleJeu({ session, miroir, etat: session.state, fantome, onEvents: data.onEventsRef.current });
   useCalibrationLoop(data.calibration, data.setCalibration, miroir);
 }

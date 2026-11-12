@@ -7,6 +7,8 @@ import type { CalibrationState } from "../state/calibration.js";
 import type { LoopState } from "../state/loopState.js";
 import type { Settings } from "@thin-air/core";
 import type { PanelId } from "./Stage.js";
+import type { ProfileId } from "../state/profiles.js";
+import type { SessionResult } from "../state/sessionFile.js";
 import { InstrumentsDrawer } from "./InstrumentsDrawer.js";
 import { LoopPanel } from "./LoopPanel.js";
 import { CalibrationPanel } from "./CalibrationPanel.js";
@@ -31,6 +33,12 @@ export interface PanelHandlers {
   readonly onRestart: () => void;
   readonly onKeepDefault: () => void;
   readonly onSettings: (settings: Settings) => void;
+  /** Un profil de mobilité (cahier §3, AIR-F-10 à 12), ou son retrait. */
+  readonly onApplyProfile: (id: ProfileId) => void;
+  readonly onClearProfile: () => void;
+  /** Le fichier de session (cahier §7.10) : écrit, puis relu et validé. */
+  readonly onSaveSession: () => boolean;
+  readonly onOpenSession: (raw: string) => SessionResult;
   readonly onClose: () => void;
 }
 
@@ -42,6 +50,7 @@ export interface PanelsProps {
   readonly loop: LoopState;
   readonly calibration: CalibrationState;
   readonly settings: Settings;
+  readonly profileId: ProfileId | null;
   readonly display: StageDisplay;
   readonly midiAvailable: boolean;
   readonly reducedMotion: boolean;
@@ -87,6 +96,8 @@ function tiroir(props: PanelsProps): JSX.Element | null {
         onClear={handlers.onClear}
         onExportWav={handlers.onExportWav}
         onExportMidi={handlers.onExportMidi}
+        onSaveSession={handlers.onSaveSession}
+        onOpenSession={handlers.onOpenSession}
         onClose={handlers.onClose}
       />
     );
@@ -116,6 +127,9 @@ function atelier(props: PanelsProps): JSX.Element {
         settings={props.settings}
         instrument={props.instrument}
         reducedMotion={props.reducedMotion}
+        profileId={props.profileId}
+        onApplyProfile={handlers.onApplyProfile}
+        onClearProfile={handlers.onClearProfile}
         onChange={handlers.onSettings}
         onClose={handlers.onClose}
       />

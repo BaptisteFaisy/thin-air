@@ -9,6 +9,7 @@ import { emptyLoop, type LoopState } from "../state/loopState.js";
 import { BUILT_IN, premierLivre } from "../state/library.js";
 import { PHANTOM } from "../state/presets.js";
 import { lireFragment, type FragmentLecture } from "../state/instruments.js";
+import type { ProfileId } from "../state/profiles.js";
 import { latencyInitiale, type LatencyParts } from "../state/latency.js";
 import { lireMine, lireRect, lireSettings } from "../lib/storage.js";
 import type { PanelId } from "../ui/Stage.js";
@@ -16,6 +17,9 @@ import type { PanelId } from "../ui/Stage.js";
 export interface SeanceData {
   readonly settings: Settings;
   readonly setSettings: (settings: Settings) => void;
+  /** Le profil de mobilité choisi, ou `null` (cahier §3, AIR-F-10 à 12). */
+  readonly profileId: ProfileId | null;
+  readonly setProfileId: (id: ProfileId | null) => void;
   readonly library: readonly Instrument[];
   readonly setLibrary: (fn: (avant: readonly Instrument[]) => readonly Instrument[]) => void;
   readonly instrument: Instrument;
@@ -58,6 +62,7 @@ export function instrumentInitial(): FragmentLecture {
 
 export function useSeanceData(): SeanceData {
   const [settings, setSettings] = useState<Settings>(lireSettings);
+  const [profileId, setProfileId] = useState<ProfileId | null>(null);
   const [library, setLibrary] = useState<readonly Instrument[]>(() => [...BUILT_IN, ...lireMine()]);
   const [fragment] = useState<FragmentLecture>(instrumentInitial);
   const [instrument, setInstrument] = useState<Instrument>(fragment.instrument);
@@ -72,7 +77,7 @@ export function useSeanceData(): SeanceData {
   const onEventsRef = useRef<(events: readonly MusicEvent[]) => void>(() => undefined);
   return {
     onEventsRef,
-    settings, setSettings, library, setLibrary, instrument, setInstrument, display, setDisplay,
+    settings, setSettings, profileId, setProfileId, library, setLibrary, instrument, setInstrument, display, setDisplay,
     fragmentRefus: fragment.refus,
     loop, setLoop, calibration, setCalibration, panel, setPanel, editing, setEditing,
     hovered, setHovered, parts, setParts, enregistres,
