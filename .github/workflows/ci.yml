@@ -60,6 +60,9 @@ jobs:
       - name: Tests — propriétés et unités, aucun son
         run: npx vitest run --reporter=dot
 
+      - name: Tests du contrôle de budget CI
+        run: npx vitest run --config scripts/vitest.scripts.config.ts scripts/check-budget.test.ts
+
       - name: Gardes du projet (fichiers sonores, vocabulaire, prises)
         run: node scripts/hooks/run-all-guards.mjs
 

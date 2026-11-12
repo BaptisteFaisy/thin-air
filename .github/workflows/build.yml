@@ -3,7 +3,7 @@ name: build
 # Build du site et E2E navigateur — HORS PR, volontairement.
 #
 # La règle du projet est un verdict en 5 min par job sur les PR (règle user,
-# ~/Bureau/CI-BUDGET-5MIN.md, `.github/ci-budget/check_timeouts.py`) : le build
+# ~/Bureau/CI-BUDGET-5MIN.md, `scripts/check-budget.mjs`) : le build
 # du site et l'E2E navigateur n'ont rien à y faire, ils allongeraient le chemin
 # critique de chaque PR sans rien prouver de plus qu'un typecheck et des
 # propriétés. Ils tournent donc sur `main` seulement, et à la demande.
