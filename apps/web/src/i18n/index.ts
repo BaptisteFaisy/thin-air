@@ -1,8 +1,10 @@
 /** Le choix de la langue : anglais pour la soumission (AIR-N-14). */
 import { en, type Messages } from "./en.js";
 import { fr } from "./fr.js";
+import { lessonsEn, type LessonMessages } from "./lessons.en.js";
+import { lessonsFr } from "./lessons.fr.js";
 
-export type { Messages };
+export type { Messages, LessonMessages };
 export type Lang = "en" | "fr";
 
 /** Les textes de la borne (cahier §12.2, parcours P11) : exposés pour la parité et l'audit. */
@@ -20,6 +22,14 @@ export function langFrom(search: string): Lang {
 
 export function messagesFor(lang: Lang): Messages {
   return MESSAGES[lang];
+}
+
+/**
+ * Les libellés des leçons, dans la langue de la page — le même mécanisme que
+ * la borne (`kiosk.en.ts` / `kiosk.fr.ts` choisis par la langue de l'adresse).
+ */
+export function lessonsFor(lang: Lang): LessonMessages {
+  return lang === "fr" ? lessonsFr : lessonsEn;
 }
 
 /** Toutes les clés textuelles, à plat : sert au test de parité en/fr. */

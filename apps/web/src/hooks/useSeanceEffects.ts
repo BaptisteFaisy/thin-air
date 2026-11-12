@@ -5,6 +5,7 @@ import { ecrireMine, ecrireRect, ecrireSettings, lireRect } from "../lib/storage
 import { isBuiltIn } from "../state/instruments.js";
 import { mesurerRetard } from "../state/latencyProbe.js";
 import { lireAnalyse, publierAnalyse } from "./analysisStore.js";
+import { publierNote } from "./noteStore.js";
 import { detecterMidi, type SessionApi } from "./useSession.js";
 import { useBoucleJeu } from "./useBoucleJeu.js";
 import { useCalibrationLoop } from "./useCalibrationLoop.js";
@@ -76,6 +77,22 @@ function useLatencyProbe(session: SessionApi, data: SeanceData): void {
   }, [camera, session, setParts]);
 }
 
+/**
+ * P5 : la note réellement jouée est publiée pour le panneau des leçons. Elle
+ * vient de l'affichage de la scène (`reduceDisplay`), donc du son qui sort
+ * réellement — jamais d'une formule.
+ */
+function useNotePublication(data: SeanceData): void {
+  const { display } = data;
+  useEffect(() => {
+    publierNote(
+      display.midi === null
+        ? null
+        : { note: display.note, midi: display.midi, frequencyHz: display.frequencyHz },
+    );
+  }, [display]);
+}
+
 export function useSeanceEffects(deps: EffetsDeps): void {
   const { session, data, rect, miroir } = deps;
   useSettingsPersistence(session, data);
@@ -89,6 +106,7 @@ export function useSeanceEffects(deps: EffetsDeps): void {
    * abaissé qui gagne.
    */
   const fantome = useGhost(session, data.settings);
+  useNotePublication(data);
   useBoucleJeu({ session, miroir, etat: session.state, fantome, onEvents: data.onEventsRef.current });
   useCalibrationLoop(data.calibration, data.setCalibration, miroir);
 }

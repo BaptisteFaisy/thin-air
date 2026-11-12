@@ -7,18 +7,26 @@
  * par un lecteur d'écran (AIR-N-06). Aucune animation continue : le réglage
  * « moins de mouvement » n'a alors rien à désactiver.
  *
- * Libellés en anglais, en dur pour le moment : le raccordement à `i18n/`
- * (fichiers `lessons.en.ts` / `lessons.fr.ts`, déjà écrits) est décrit dans
- * `docs/ui-lecons.md`.
+ * Deux modes, et la différence est dite à l'écran :
+ * - « direct » lit les mesures RÉELLES de la séance en cours (temps d'analyse,
+ *   intervalle entre deux images, note réellement jouée) ; chaque valeur porte
+ *   « mesuré », la caméra reste « estimée » (§5.1) ;
+ * - « exemple » montre la prise de synthèse à graine fixe, toujours étiquetée
+ *   « exemple » — jamais « mesuré ».
+ *
+ * Sans séance, aucun nombre n'est inventé : le panneau dit qu'il n'y a pas de
+ * données en direct et propose l'exemple. Les libellés viennent de
+ * `i18n/lessons.en.ts` / `lessons.fr.ts`, passés en prop.
  */
 import type { JSX } from "react";
-import { useMemo, useSyncExternalStore } from "react";
-import { DEFAULT_SETTINGS, SAMPLE_RATE } from "@thin-air/core";
+import { useMemo, useState, useSyncExternalStore } from "react";
+import { DEFAULT_SETTINGS, SAMPLE_RATE, SCALES } from "@thin-air/core";
 import { buildFilterLesson } from "../lessons/filterLesson.js";
 import { buildCentsLesson, sweepCents, tremblementEnCents } from "../lessons/centsLesson.js";
 import { enEchantillons } from "../lessons/horlogesLesson.js";
-import { lireAnalyse, suivreAnalyse } from "../hooks/analysisStore.js";
-import { SCALES } from "@thin-air/core";
+import { lireAnalyse, suivreAnalyse, type AnalysisView } from "../hooks/analysisStore.js";
+import { lireNote, suivreNote, type NoteJouee } from "../hooks/noteStore.js";
+import { formaterNombre, type LessonMessages } from "../i18n/lessons.en.js";
 
 const GAMME = { root: 50, steps: SCALES.harmonicMinor };
 const ETENDUE = { low: 45, high: 81 };
@@ -51,106 +59,216 @@ function Tracé({ series, légende }: {
 }
 
 export interface LessonsPanelProps {
+  /** Les libellés du panneau, dans la langue de la page. */
+  readonly messages: LessonMessages;
+  /** Mode de départ : « direct » (défaut) ou « exemple ». */
+  readonly mode?: "direct" | "exemple";
   /** Aimant affiché dans la leçon « viser juste » (0 à 1). */
   readonly magnet?: number;
   /** Amplitude du tremblement de la leçon « filtre », en fraction de largeur. */
   readonly amplitude?: number;
 }
 
-export function LessonsPanel({ magnet = 1, amplitude = 0.01 }: LessonsPanelProps): JSX.Element {
-  // Les mesures RÉELLES de la séance en cours : temps d'analyse, intervalle
-  // entre images, fil d'exécution. Rien n'est inventé : si aucune image n'a été
-  // analysée, `count` vaut 0 et le panneau le dit au lieu d'afficher des nombres.
+export function LessonsPanel({
+  messages: m,
+  mode = "direct",
+  magnet = 1,
+  amplitude = 0.01,
+}: LessonsPanelProps): JSX.Element {
+  const [exemple, setExemple] = useState(mode === "exemple");
+  // Les mesures RÉELLES de la séance : rien n'est inventé, et si aucune image
+  // n'a été analysée le panneau le dit au lieu d'afficher des nombres.
   const analyse = useSyncExternalStore(suivreAnalyse, lireAnalyse, lireAnalyse);
-  const live = analyse.snapshot.count > 0;
+  const note = useSyncExternalStore(suivreNote, lireNote, lireNote);
+  const mesure = analyse.snapshot.count > 0;
+  return (
+    <section className="lecons" aria-labelledby="lecons-titre">
+      <h2 id="lecons-titre">{m.title}</h2>
+      {exemple ? (
+        <Exemple m={m} magnet={magnet} amplitude={amplitude} onDirect={() => setExemple(false)} />
+      ) : (
+        <Direct m={m} analyse={analyse} note={note} mesure={mesure} onExemple={() => setExemple(true)} />
+      )}
+    </section>
+  );
+}
+
+/** Le mode direct : les nombres de la séance, ou le message « rien encore ». */
+function Direct({
+  m,
+  analyse,
+  note,
+  mesure,
+  onExemple,
+}: {
+  readonly m: LessonMessages;
+  readonly analyse: AnalysisView;
+  readonly note: NoteJouee | null;
+  readonly mesure: boolean;
+  readonly onExemple: () => void;
+}): JSX.Element {
+  if (!mesure) {
+    return (
+      <>
+        <p role="status">{m.live.noData}</p>
+        <p>
+          <button type="button" onClick={onExemple}>
+            {m.live.showExample}
+          </button>
+        </p>
+      </>
+    );
+  }
+  const s = analyse.snapshot;
+  return (
+    <>
+      <article aria-labelledby="lecon-filtre">
+        <h3 id="lecon-filtre">
+          {m.filter.title} <span className="badge-live">{m.live.modeLive}</span>
+        </h3>
+        <p>{m.live.tremorPending}</p>
+      </article>
+      <article aria-labelledby="lecon-cents">
+        <h3 id="lecon-cents">
+          {m.cents.title} <span className="badge-live">{m.live.modeLive}</span>
+        </h3>
+        <dl>
+          <dt>{m.live.playedNote}</dt>
+          <dd>{noteJouee(m, note)}</dd>
+        </dl>
+        <p>{m.live.aimPending}</p>
+      </article>
+      <article aria-labelledby="lecon-horloges">
+        <h3 id="lecon-horloges">
+          {m.horloges.title} <span className="badge-live">{m.live.modeLive}</span>
+        </h3>
+        <dl>
+          <dt>{m.live.analysisMean(formaterNombre(s.window, 0, m.lang))}</dt>
+          <dd>{mesuree(m, s.meanInferenceMs)}</dd>
+          <dt>{m.live.analysisMax}</dt>
+          <dd>{mesuree(m, s.maxInferenceMs)}</dd>
+          <dt>{m.live.frameInterval}</dt>
+          <dd>{mesuree(m, s.meanFrameIntervalMs)}</dd>
+          <dt>{m.live.framesPerSecond}</dt>
+          <dd>
+            {formaterNombre(1000 / Math.max(1, s.meanFrameIntervalMs), 1, m.lang)} — {m.live.measured}
+          </dd>
+          <dt>{m.live.thread}</dt>
+          <dd>{analyse.thread ?? m.live.threadNone}</dd>
+          <dt>{m.live.camera}</dt>
+          <dd>
+            {formaterNombre(DEFAULT_SETTINGS.cameraLatencyMs, 0, m.lang)} {m.ms} — {m.live.estimated}
+          </dd>
+          <dt>{m.live.framesAnalysed}</dt>
+          <dd>{formaterNombre(s.count, 0, m.lang)}</dd>
+        </dl>
+        <p>{m.horloges.seam}</p>
+      </article>
+    </>
+  );
+}
+
+/** Une durée mesurée sur cette machine : le nombre et sa mention d'origine. */
+function mesuree(m: LessonMessages, ms: number): string {
+  return `${formaterNombre(ms, 1, m.lang)} ${m.ms} — ${m.live.measured}`;
+}
+
+/** La note jouée, en toutes lettres ; jamais de fréquence inventée. */
+function noteJouee(m: LessonMessages, note: NoteJouee | null): string {
+  if (note === null) return m.live.noNote;
+  if (note.frequencyHz === null) return note.note;
+  return `${note.note} · ${formaterNombre(note.frequencyHz, 2, m.lang)} Hz`;
+}
+
+/** Le mode exemple : la prise de synthèse, étiquetée « exemple ». */
+function Exemple({
+  m,
+  magnet,
+  amplitude,
+  onDirect,
+}: {
+  readonly m: LessonMessages;
+  readonly magnet: number;
+  readonly amplitude: number;
+  readonly onDirect: () => void;
+}): JSX.Element {
   const filtre = useMemo(() => buildFilterLesson(amplitude, { seed: 7, durationS: 2 }), [amplitude]);
   const cents = useMemo(() => buildCentsLesson(0.33, GAMME, ETENDUE, magnet), [magnet]);
   const balayage = useMemo(() => sweepCents(GAMME, ETENDUE, magnet, 0.05), [magnet]);
   const echantillonsParImage = enEchantillons(1 / FPS);
-  const avance = enEchantillons(DEFAULT_SETTINGS.lookaheadMs / 1000);
-
   return (
-    <section className="lecons" aria-labelledby="lecons-titre">
-      <h2 id="lecons-titre">What the numbers say</h2>
-
+    <>
+      <p>
+        <button type="button" onClick={onDirect}>
+          {m.live.showLive}
+        </button>
+      </p>
       <article aria-labelledby="lecon-filtre">
-        <h3 id="lecon-filtre">1. Filtering a trembling hand <span className="badge-example">example — synthetic take</span></h3>
+        <h3 id="lecon-filtre">
+          {m.filter.title} <span className="badge-example">{m.live.modeDemo}</span>
+        </h3>
         <Tracé
-          légende="Hand position: raw, fast channel, smooth channel"
+          légende={m.filter.legend}
           series={[
-            { nom: "raw", points: filtre.brut, couleur: "#8a8f98" },
-            { nom: "fast", points: filtre.vif, couleur: "#c9a227" },
-            { nom: "smooth", points: filtre.lisse, couleur: "#e8e4d9" },
+            { nom: m.filter.brut, points: filtre.brut, couleur: "#8a8f98" },
+            { nom: m.filter.declencheur, points: filtre.vif, couleur: "#c9a227" },
+            { nom: m.filter.lisse, points: filtre.lisse, couleur: "#e8e4d9" },
           ]}
         />
         <dl>
-          <dt>Tremor, raw</dt><dd>{filtre.ecartTypeBrut.toFixed(5)}</dd>
-          <dt>Tremor, fast channel</dt><dd>{filtre.ecartTypeVif.toFixed(5)}</dd>
-          <dt>Tremor, smooth channel</dt><dd>{filtre.ecartTypeLisse.toFixed(5)}</dd>
-          <dt>α at rest (1.5 Hz, 30 fps)</dt><dd>{filtre.alphaArret.toFixed(2)}</dd>
-          <dt>α at one width per second (6.5 Hz)</dt><dd>{filtre.alphaRapide.toFixed(2)}</dd>
+          <dt>{m.filter.ecartTypeBrut}</dt>
+          <dd>{filtre.ecartTypeBrut.toFixed(5)}</dd>
+          <dt>{m.filter.ecartTypeVif}</dt>
+          <dd>{filtre.ecartTypeVif.toFixed(5)}</dd>
+          <dt>{m.filter.ecartTypeLisse}</dt>
+          <dd>{filtre.ecartTypeLisse.toFixed(5)}</dd>
+          <dt>{m.filter.alphaArret}</dt>
+          <dd>{filtre.alphaArret.toFixed(2)}</dd>
+          <dt>{m.filter.alphaRapide}</dt>
+          <dd>{filtre.alphaRapide.toFixed(2)}</dd>
         </dl>
       </article>
-
       <article aria-labelledby="lecon-cents">
-        <h3 id="lecon-cents">2. Aiming in tune <span className="badge-example">example — synthetic take</span></h3>
+        <h3 id="lecon-cents">
+          {m.cents.title} <span className="badge-example">{m.live.modeDemo}</span>
+        </h3>
         <Tracé
-          légende="Distance to the nearest scale note, in cents, across the play area"
+          légende={m.cents.legend}
           series={[{
-            nom: "cents",
+            nom: m.centsUnit,
             points: balayage.map((p) => ({ t: p.u, u: Math.abs(p.cents) / 150 })),
             couleur: "#c9a227",
           }]}
         />
         <dl>
-          <dt>Note aimed at (u = 0.33)</dt><dd>{cents.visee.toFixed(2)}</dd>
-          <dt>Note played</dt><dd>{cents.nom} · {cents.frequenceJouee.toFixed(2)} Hz</dd>
-          <dt>Distance to the scale note</dt><dd>{Math.abs(cents.ecartCents).toFixed(1)} cents</dd>
-          <dt>Magnet</dt><dd>{magnet.toFixed(2)}</dd>
-          <dt>A 0.5 % tremor over 36 semitones</dt><dd>{tremblementEnCents(0.005, 36).toFixed(0)} cents</dd>
-        </dl>
-      </article>
-
-      <article aria-labelledby="lecon-horloges">
-        <h3 id="lecon-horloges">3. Stitching two clocks together</h3>
-        <dl>
-          <dt>Camera</dt><dd>{FPS} frames per second — one every {(1000 / FPS).toFixed(1)} ms</dd>
-          <dt>Sound</dt><dd>{SAMPLE_RATE.toLocaleString("en-US")} samples per second</dd>
-          <dt>Samples between two frames</dt><dd>{Math.round(echantillonsParImage).toLocaleString("en-US")}</dd>
-          <dt>Programming lead (§7.9, rule 2)</dt>
-          <dd>{DEFAULT_SETTINGS.lookaheadMs} ms — {Math.round(avance)} samples</dd>
-          <dt>Parameter ramp</dt><dd>{DEFAULT_SETTINGS.paramTauMs} ms — never a step (§7.9, rule 1)</dd>
+          <dt>{m.cents.visee}</dt>
+          <dd>{cents.visee.toFixed(2)}</dd>
+          <dt>{m.cents.jouee}</dt>
+          <dd>{cents.nom} · {formaterNombre(cents.frequenceJouee, 2, m.lang)} Hz</dd>
+          <dt>{m.cents.gamme}</dt>
+          <dd>{m.cents.ecart(`${formaterNombre(Math.abs(cents.ecartCents), 1, m.lang)} ${m.centsUnit}`)}</dd>
+          <dt>{m.cents.aimant}</dt>
+          <dd>{magnet.toFixed(2)}</dd>
         </dl>
         <p>
-          Every event carries a timestamp on the sound clock, not on the frame clock:
-          that seam is where this kind of instrument usually crackles, drags, or
-          leaves a note stuck.
+          {m.cents.tremblement(`${formaterNombre(tremblementEnCents(0.005, 36), 0, m.lang)} ${m.centsUnit}`)}
         </p>
-        {live ? (
-          <dl aria-label="Measured on this session">
-            <dt>Analysis, mean over the last {analyse.snapshot.window} frames</dt>
-            <dd>{analyse.snapshot.meanInferenceMs.toFixed(1)} ms — measured</dd>
-            <dt>Analysis, worst frame</dt>
-            <dd>{analyse.snapshot.maxInferenceMs.toFixed(1)} ms — measured</dd>
-            <dt>Interval between two frames</dt>
-            <dd>{analyse.snapshot.meanFrameIntervalMs.toFixed(1)} ms — measured</dd>
-            <dt>Frames actually delivered per second</dt>
-            <dd>{(1000 / Math.max(1, analyse.snapshot.meanFrameIntervalMs)).toFixed(1)} — measured</dd>
-            <dt>Analysis thread</dt>
-            <dd>{analyse.thread ?? "not started"}</dd>
-            <dt>Camera (exposure, sensor, transport)</dt>
-            <dd>{DEFAULT_SETTINGS.cameraLatencyMs} ms — estimated, never measurable here</dd>
-            <dt>Frames analysed</dt>
-            <dd>{analyse.snapshot.count}</dd>
-          </dl>
-        ) : (
-          <p role="status">
-            No live data yet. Start a session — every line below the seam will then be
-            filled with values measured on this machine, and nothing will be invented
-            in the meantime.
-          </p>
-        )}
       </article>
-    </section>
+      <article aria-labelledby="lecon-horloges">
+        <h3 id="lecon-horloges">
+          {m.horloges.title} <span className="badge-example">{m.live.modeDemo}</span>
+        </h3>
+        <p>
+          {m.horloges.imagesParSeconde(formaterNombre(FPS, 0, m.lang))} ·{" "}
+          {m.horloges.parImage(formaterNombre(1000 / FPS, 1, m.lang))}
+        </p>
+        <p>{m.horloges.echantillonsParSeconde(formaterNombre(SAMPLE_RATE, 0, m.lang))}</p>
+        <p>{m.horloges.echantillonsParImage(formaterNombre(echantillonsParImage, 0, m.lang))}</p>
+        <p>{m.horloges.avance(formaterNombre(DEFAULT_SETTINGS.lookaheadMs, 0, m.lang))}</p>
+        <p>{m.horloges.rampe(formaterNombre(DEFAULT_SETTINGS.paramTauMs, 0, m.lang))}</p>
+        <p>{m.horloges.camera(formaterNombre(DEFAULT_SETTINGS.cameraLatencyMs, 0, m.lang))}</p>
+        <p>{m.horloges.seam}</p>
+      </article>
+    </>
   );
 }

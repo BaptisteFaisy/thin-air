@@ -3,7 +3,8 @@
  * forme que `lessons.en.ts` ; le vocabulaire respecte le cahier §5.4 : on dit
  * « retard mesuré » et « retard estimé », jamais un mot qui promet un retard
  * nul ou imperceptible. Les nombres arrivent déjà mis en forme : aucun n'est
- * écrit en dur ici, ils viennent des fonctions pures de `src/lessons/`.
+ * écrit en dur ici, ils viennent des fonctions pures de `src/lessons/` ou des
+ * mesures de la séance.
  */
 import type { LessonMessages } from "./lessons.en.js";
 
@@ -12,6 +13,7 @@ export const lessonsFr: LessonMessages = {
   title: "Les trois leçons",
   close: "Fermer",
   ms: "ms",
+  centsUnit: "centièmes",
   filter: {
     title: "Le filtre",
     legend: "Tracé de la main qui tremble : position brute, canal lissé, canal des déclenchements.",
@@ -50,5 +52,32 @@ export const lessonsFr: LessonMessages = {
     mesure: (nombre) => `Retard mesuré : ${nombre} ms`,
     camera: (nombre) => `Retard estimé de la caméra : ${nombre} ms`,
     total: (nombre) => `Total : ${nombre} ms`,
+    rampe: (nombre) => `Rampe des paramètres : ${nombre} ms — jamais une marche (§7.9, règle 1)`,
+    seam:
+      "Chaque événement porte un horodatage sur l'horloge du son, pas sur celle des images : c'est cette couture que ce genre d'instrument fait craquer, traîne, ou laisse une note coincée.",
+  },
+  live: {
+    modeLive: "direct — cette séance",
+    modeDemo: "exemple — prise de synthèse",
+    noData:
+      "Pas de données en direct : lance une séance, et tous les nombres ci-dessous seront mesurés sur cette machine. Rien n'est inventé entre-temps.",
+    showExample: "Voir l'exemple",
+    showLive: "Revenir aux nombres mesurés",
+    measured: "mesuré",
+    estimated: "estimé",
+    analysisMean: (nombre) => `Analyse, moyenne sur les ${nombre} dernières images`,
+    analysisMax: "Analyse, image la plus lente",
+    frameInterval: "Intervalle entre deux images",
+    framesPerSecond: "Images réellement délivrées par seconde",
+    thread: "Fil d'exécution de l'analyse",
+    threadNone: "pas démarré",
+    camera: "Caméra (exposition, capteur, transport)",
+    framesAnalysed: "Images analysées",
+    playedNote: "Note jouée à ce moment",
+    noNote: "silence",
+    tremorPending:
+      "Le tremblement de la personne qui joue n'est pas encore recueilli : la chaîne de suivi n'expose aucun tampon glissant des positions brutes et filtrées. Les nombres de cette leçon viennent de l'exemple.",
+    aimPending:
+      "La hauteur visée n'est pas exposée par la séance : seule la note jouée est connue ici.",
   },
 };
