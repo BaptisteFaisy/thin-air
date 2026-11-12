@@ -181,6 +181,9 @@ export const en = {
   lessons: {
     link: "What the numbers say",
   },
+  limites: {
+    link: "What this project is not",
+  },
   settings: {
     title: "Settings",
     snap: "Magnet",

@@ -19,6 +19,7 @@ import { KioskEntry } from "./ui/KioskEntry.js";
 import { SeanceView } from "./ui/Seance.js";
 import { RealTakePage } from "./ui/RealTake.js";
 import { LessonsPanel } from "./ui/LessonsPanel.js";
+import { PasCeQue } from "./ui/PasCeQue.js";
 import { langFrom, lessonsFor, messagesFor } from "./i18n/index.js";
 
 /** Les paramètres de l'adresse courante, vides hors navigateur. */
@@ -37,6 +38,12 @@ function lessonsMode(): boolean {
   return new URLSearchParams(window.location.search).get("lecons") === "1";
 }
 
+/** Route `?limites=1` : la page « ce que ce projet n'est pas » (§13.4). */
+function limitesMode(): boolean {
+  if (typeof window === "undefined") return false;
+  return new URLSearchParams(window.location.search).get("limites") === "1";
+}
+
 export function App(): JSX.Element {
   if (kioskWanted(recherche())) return <Kiosk />;
   if (recordMode()) return <RealTakePage />;
@@ -48,6 +55,17 @@ export function App(): JSX.Element {
       <main>
         <p><a href="?">{messagesFor(lang).common.back}</a></p>
         <LessonsPanel messages={lessonsFor(lang)} />
+      </main>
+    );
+  }
+  if (limitesMode()) {
+    // Le titre, la date et les points viennent du document importé au build
+    // (`docs/pas-ce-que-ce-project-nest-pas.md`), jamais du catalogue i18n.
+    const lang = langFrom(typeof window === "undefined" ? "" : window.location.search);
+    return (
+      <main>
+        <p><a href="?">{messagesFor(lang).common.back}</a></p>
+        <PasCeQue />
       </main>
     );
   }
