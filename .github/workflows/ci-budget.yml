@@ -1,6 +1,9 @@
 name: ci-budget (≤ 5 min)
 
-# Règle user 2026-10-24 : toute CI rend son verdict en 5 min au plus.
+# Toute CI rend son verdict en 5 min au plus, et la règle est contrôlée,
+# pas espérée : `scripts/check-budget.mjs` relit tous les workflows et échoue
+# si un job de PR dépasse 5 minutes, si un job n'écrit pas son budget, ou si
+# un job de PR est tolérant à l'échec.
 # Ce workflow est un garde-fou de configuration, pas un test applicatif :
 # il échoue si un job déclare plus de 5 minutes (ou aucun timeout).
 # Il tourne sur chaque PR pour que le check `ci-budget` existe toujours
@@ -24,6 +27,9 @@ jobs:
     name: ci-budget
     runs-on: [self-hosted, thin-air-worker]
     timeout-minutes: 5
+    env:
+      # Runner auto-hébergé : node vit dans l'espace utilisateur.
+      PATH: /home/baptiste/bin:/usr/local/bin:/usr/bin:/bin
     steps:
       - name: Checkout (superficiel)
         uses: actions/checkout@v4
@@ -31,4 +37,4 @@ jobs:
           fetch-depth: 1
           persist-credentials: false
       - name: Vérifier le budget de 5 min par job
-        run: python3 .github/ci-budget/check_timeouts.py
+        run: node scripts/check-budget.mjs
