@@ -29,6 +29,11 @@ export function Home({ m, onStart, onPointer }: HomeProps): JSX.Element {
         <a className="link-lecons" href="?lecons=1">
           {m.lessons.link}
         </a>
+        {/* Raccord 2 : la liste honnête de ce que le projet n'est pas (§13.4),
+            atteignable depuis l'accueil (`limites.link`). */}
+        <a className="link-limites" href="?limites=1">
+          {m.limites.link}
+        </a>
       </div>
       <ul className="notes">
         <li>{m.home.audioNote}</li>

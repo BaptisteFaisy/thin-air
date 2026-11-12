@@ -171,3 +171,18 @@ input[type="range"] { accent-color: var(--spectre); }
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; }
 }
+
+/* La page « ce que ce projet n'est pas » : la source unique est
+   `docs/pas-ce-que-ce-project-nest-pas.md`, affichée telle quelle. */
+.link-lecons, .link-limites {
+  color: var(--os);
+  text-underline-offset: 0.2em;
+}
+.limites { padding: 1.5rem; max-width: 60rem; margin: 0 auto; }
+.limites h1 { font-size: 1.5rem; }
+.limites-date { color: var(--discret); font-size: 0.9rem; }
+.limites h2 { margin-block: 1.5rem 0.5rem; color: var(--os); }
+.limites ul { padding-inline-start: 1.2rem; }
+.limites li { margin-block: 0.6rem; }
+.limites li strong { color: var(--spectre); }
+.limites-verification { color: var(--discret); font-size: 0.9rem; margin-block: 0.2rem 0; }

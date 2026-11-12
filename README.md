@@ -64,6 +64,13 @@ does not claim to invent it. What it claims (cahier §6.2):
 4. **Latency is stated and compensated.** Displayed part by part, and given back
    by the loop, which advances recorded events by the estimated latency.
 
+## What this project is not
+
+A dated French page lists what this project is **not**, what is **not tested**,
+what is **not measured**, and what still needs a **human being** — each line says
+how to check it: [`docs/pas-ce-que-ce-project-nest-pas.md`](docs/pas-ce-que-ce-project-nest-pas.md)
+(validated 2026-11-12, same list on the site at `?limites=1`).
+
 ## Repository
 
 ```text
