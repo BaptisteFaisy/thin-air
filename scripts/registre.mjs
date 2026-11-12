@@ -51,7 +51,7 @@ const { parseInstrument, instrumentToFragment } = await import(SCHEMA.href);
 
 const MOTEURS = { osc: "oscillateurs", pluck: "corde pincée", fm: "modulation de fréquence", drum: "percussion" };
 const IGNORES = new Set([".git", "node_modules", "out", "dist", "coverage"]);
-const SITE = "https://baptistefaisy.github.io/thin-air/";
+const SITE = "https://tradoooo.github.io/thin-air/";
 
 function usage(code) {
   process.stderr.write(

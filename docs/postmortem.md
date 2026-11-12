@@ -308,7 +308,7 @@ moment du geste.
 supprimés alors que les unités systemd restaient « active ». Les purger, puis
 ré-enregistrer.
 
-**État mesuré ce jour.** `gh api repos/BaptisteFaisy/thin-air/actions/runners`
+**État mesuré ce jour.** `gh api repos/Tradoooo/thin-air/actions/runners`
 renvoie **un** runner en ligne, `r630-thin-air-04` (`busy=true` au moment de la
 mesure) : le dépôt n'a plus qu'un runner pour ses checks.
 
@@ -424,7 +424,7 @@ qui les a produits.
 | Prises de référence figées | **7** | `ls takes/reference/*.json \| wc -l` |
 | Lots repris à la main (commits `wip`) | **4** | `git log --oneline --grep='^wip(' origin/main` |
 | PR `wip` mergées | **2** (#52, #53) | `gh pr list --state merged --search "wip in:title" --json number,title` |
-| Runners en ligne sur le dépôt | **1** (`r630-thin-air-04`, `busy=true` à la mesure) | `gh api repos/BaptisteFaisy/thin-air/actions/runners --jq '.runners[] \| {name,status,busy}'` |
+| Runners en ligne sur le dépôt | **1** (`r630-thin-air-04`, `busy=true` à la mesure) | `gh api repos/Tradoooo/thin-air/actions/runners --jq '.runners[] \| {name,status,busy}'` |
 | Gardes du projet | **toutes vertes** (code de sortie 0) | `node scripts/hooks/run-all-guards.mjs` |
 
 ### 4.2 Cités, pas re-mesurés
