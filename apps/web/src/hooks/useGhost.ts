@@ -13,17 +13,23 @@ export function useGhost(session: SessionApi, settings: Settings): GhostHands {
   const ghostRef = useRef<Ghost | null>(null);
   if (ghostRef.current === null) ghostRef.current = createGhost(session.engineRef);
   const ghost = ghostRef.current;
+  // AIR-F-01 (useGhost.test.tsx) : le fantôme reste endormi tant que la séance
+  // n'est pas démarrée — ni préparation du rejeu, ni démarrage, donc aucun son
+  // ne peut sortir avant le clic « Start ».
+  const demarre = session.state.phase !== "idle";
   const joue = session.state.ghost === "playing";
 
   useEffect(() => {
+    if (!demarre) return;
     void ghost.prepare();
     return () => ghost.release();
-  }, [ghost]);
+  }, [ghost, demarre]);
 
   useEffect(() => {
+    if (!demarre) return;
     if (joue) ghost.start(settings);
     else ghost.stop(settings);
-  }, [ghost, joue, settings]);
+  }, [ghost, demarre, joue, settings]);
 
   return ghost.hands;
 }
