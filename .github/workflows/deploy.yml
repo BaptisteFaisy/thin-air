@@ -46,7 +46,8 @@ jobs:
           clean: false
 
       - name: Nettoyage du workspace (node_modules et public/models conservés)
-        run: git clean -ffdx -e node_modules -e public/models
+        # Les dossiers de runner sont exclus explicitement (docs/runners.md).
+        run: git clean -ffdx -e node_modules -e public/models -e 'actions-runner-*' -e '_work*'
 
       - name: Dépendances
         run: npm ci --prefer-offline --no-audit --no-fund
