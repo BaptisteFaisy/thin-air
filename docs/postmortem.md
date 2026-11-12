@@ -74,7 +74,7 @@ Symptôme : le rapport de rendu annonçait 390 Hz là où un sol à 196 Hz étai
 attendu — un nombre qui ne voulait rien dire.
 Cause : le rapport moyennait sur toute la voix ; or un thérémine est une voix
 continue dont la hauteur glisse, et `noteOn → noteOff` ne fait qu'un palier de
-4,2 s.
+4 200 ms.
 Trouvé : la lecture du rapport (`render` puis `bench-out/report.json`) contre
 les fréquences du cahier.
 Corrigé : le rapport découpe la voix à chaque contrôle de hauteur
@@ -235,9 +235,9 @@ Ce qui s'est passé, dans l'ordre, avec les mesures.
 aucun job (`total_count: 0`), alors que les runners étaient annoncés
 `online` et `busy=false`. Sur ce dépôt, la trace est dans le titre de la PR
 #52 : « *wip(n3-poids): travail repris et sauvé (file Actions bloquée, checks en
-attente)* », mergée à 22:25 UTC le 2026-11-11.
+attente)* », mergée à 2026-11-11T22:25:00.000Z.
 
-**La mesure, au niveau du compte.** Notes de chantier du 2026-11-11, à 21:50 :
+**La mesure, au niveau du compte.** Notes de chantier du 2026-11-11T21:50:00.000Z :
 mes jobs restaient `queued` avec 4 runners `online/idle` et une machine à
 charge 2. Cause mesurée : les autres dépôts du compte avaient respectivement
 **16, 16, 20, 13, 10, 8, 7, 5 et 3** runs `queued` chacun, et presque aucun
@@ -254,7 +254,7 @@ que la panne était chez GitHub : la cause n'était pas locale. Le même geste,
 lui, était le remède d'un *autre* incident, purement local : les journaux
 `~/actions-runner-<repo>-01/_diag/Runner_*.log` montraient `SocketException
 (125)` puis « *Back off 8 812 seconds before next retry* » — le listener se
-reculait de 2 h 30 pendant que l'API continuait d'annoncer le runner en
+reculait de 9 000 000 ms pendant que l'API continuait d'annoncer le runner en
 ligne. Un runner « online » n'est pas un runner qui écoute : seul `_diag/` le
 dit.
 
@@ -286,16 +286,16 @@ concurrence `ci-<n>`, et toute la CI du dépôt restait derrière lui.
 **La file qui s'affame elle-même.** Le workflow `pr-auto-merge` ouvrait une
 matrice « sweep » d'un job par PR ouverte, y compris sur les branches
 `mergify/merge-queue/**` ; avec 4 workers, le balayeur mangeait les runners et
-le `ci` du lot attendait 20 minutes. Palliatif : `gh workflow disable
+le `ci` du lot attendait 1 200 000 ms. Palliatif : `gh workflow disable
 pr-auto-merge.yml` pendant que la file passe, puis `enable`. Mergify est de
 toute façon le seul pilote de merge du dépôt.
 
 ### 2.2 Les runners passés `offline`
 
 **La collision entre agents.** Le pool de runners du r630 est partagé, sans
-coordination. Trois des quatre runners déplacés à 16:13 avaient disparu à
-16:48 — dossiers et unités systemd — au moment exact où un autre agent
-enregistrait `r630-thin-air-01..04`. Ils ont été recréés à 17:05 depuis
+coordination. Trois des quatre runners déplacés à 2026-11-12T15:13:00.000Z avaient disparu à
+2026-11-12T15:48:00.000Z — dossiers et unités systemd — au moment exact où un autre agent
+enregistrait `r630-thin-air-01..04`. Ils ont été recréés à 2026-11-12T16:05:00.000Z depuis
 `~/runner.tgz`. Le déplacement des runners d'un dépôt au repos, acté au
 journal (« *runners auto-hébergés déplacés depuis des dépôts au repos* »), est
 donc à l'origine du heurt.
@@ -315,17 +315,17 @@ mesure) : le dépôt n'a plus qu'un runner pour ses checks.
 ### 2.3 Les figeages du fournisseur de modèle sur les sous-agents
 
 **Le phénomène.** Sur le fournisseur `combo/cheap` partagé ce jour-là, des
-sous-agents se figeaient : aucune activité pendant 30 minutes, dernier outil
+sous-agents se figeaient : aucune activité pendant 1 800 000 ms, dernier outil
 appelé à l'heure du lancement, aucun fichier écrit. Les proportions
 observées, notées le 2026-11-11 sur des chantiers voisins utilisant le même
 fournisseur :
 
 - **9 sur 12** agents figés sur un chantier (12 lancés d'un coup) ;
 - **environ 4 sur 12** figés sur un autre ;
-- **1 sur 1** figé sur un troisième (5 outils en 20 s, 0 fichier écrit), repris
-  à la main en ~25 min ;
-- **7 agents** sans un seul fichier écrit en 40 minutes sur un quatrième,
-  annulés et refaits à la main en ~1 h.
+- **1 sur 1** figé sur un troisième (5 outils en 20 000 ms, 0 fichier écrit), repris
+  à la main en ~1 500 000 ms ;
+- **7 agents** sans un seul fichier écrit en 2 400 000 ms sur un quatrième,
+  annulés et refaits à la main en ~3 600 000 ms.
 
 **Ce que cela a coûté sur ce dépôt.** Quatre lots ont dû être repris à la
 main par l'intégrateur, et deux PR ont été ouvertes en « wip » par lui :
@@ -347,15 +347,15 @@ se sont superposés sur la même heure.
 
 **Le temps, compté sans inventer.** Sur 13 lots (A1–A8 et B1–B5,
 `docs/CONTRACT.md`), 4 ont exigé une reprise manuelle. Le chantier complet a
-occupé **7 h 40** d'horloge mur (premier commit 15:45:25, dernier 23:02:36
-+0100, `docs/submission.md`), en parallèle d'autres chantiers qui partageaient
+occupé **28 800 000 ms** d'horloge mur (premier commit
+2026-11-11T14:45:25.000Z, dernier 2026-11-11T22:02:36.000Z, `docs/submission.md`), en parallèle d'autres chantiers qui partageaient
 le même fournisseur et les mêmes runners. Le lendemain, remettre au vert les
 PR restantes a demandé une mission entière (11 PR).
 
 **Les règles sorties de là, le jour même.** Au plus 4 à 6 agents en vol ;
 brief écrit dans un fichier et prompt court ; « écrire le premier fichier dans
 les 3 premières actions » ; un commit local après chaque fichier ; et, après
-15 minutes sans fichier écrit, reprendre la main. Un agent figé n'est pas
+900 000 ms sans fichier écrit, reprendre la main. Un agent figé n'est pas
 perdu s'il a commité : on pousse sa branche et on ouvre la PR à sa place.
 
 ---
@@ -431,14 +431,14 @@ qui les a produits.
 
 | Grandeur | Valeur | Source |
 |---|---|---|
-| Durée du chantier | 7 h 40 (15:45:25 → 23:02:36 +0100) | `docs/submission.md`, annexe |
+| Durée du chantier | 28 800 000 ms (2026-11-11T14:45:25.000Z → 2026-11-11T22:02:36.000Z) | `docs/submission.md`, annexe |
 | Écart maximal de justesse | 3,05 centièmes (tolérance 5) | `docs/recette.md` |
 | Crête du rendu | −35,3 dB (plafond −1 dB) | `docs/recette.md` |
 | Silence après la sortie des mains | 723 ms (cible ≤ 800 ms) | `docs/recette.md` |
 | Traîne du filtre | 87 ms en moyenne (0 à 110) | `docs/recette.md` |
 | Prise brute / compactée | 64–127 Ko/s → 18 Ko/s (une main), 35 Ko/s (deux) | `docs/journal.md` |
 | Poids du modèle | 7 819 105 octets (+ 13,93 Mo d'exécution) | `docs/journal.md` |
-| Budget CI | 39 s à 2 min 41 s par job | `docs/recette.md` |
+| Budget CI | 39 000 ms à 161 000 ms par job | `docs/recette.md` |
 | Licence du fichier de modèle | **non établie** à ce jour | `docs/journal.md`, lot N1 |
 
 Ces nombres sont ceux du chantier : ils sont dans le dépôt, avec la commande

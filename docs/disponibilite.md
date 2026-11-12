@@ -52,7 +52,7 @@ node scripts/sonde-dispo.mjs --url https://autre.adresse/ --out /tmp/sonde
 
 L'adresse par défaut est celle que publie `.github/workflows/deploy.yml`
 (GitHub Pages, base `/thin-air/`). Le workflow `.github/workflows/sonde.yml` la
-lance chaque jour à 05 h 12 UTC et à la demande ; **il n'est jamais déclenché par
+lance chaque jour à 05:12:00.000Z et à la demande ; **il n'est jamais déclenché par
 une PR** — une PR ne change rien à ce que l'hébergeur sert. Le JSON part en
 artefact, et un run rouge est l'alerte.
 
@@ -67,7 +67,7 @@ sonde Thin Air (AIR-N-13) — https://baptistefaisy.github.io/thin-air/
   ✓ js      HEAD               200  application/javascript; charset=utf-8 · cache-control: max-age=600
   ✓ modele  HEAD               200  application/octet-stream · cache-control: max-age=600
   ✓ wasm    HEAD               200  application/wasm · cache-control: max-age=600
-site servi, aucune anomalie — résultat écrit dans out/sonde/2026-11-12.json
+site servi, aucune anomalie — résultat écrit dans out/sonde/2026-11-12T00-00-00.000Z.json
 ```
 
 Le `206` de la page est la réponse normale à une requête à plage : l'hébergeur
@@ -141,7 +141,7 @@ Dans l'ordre :
    `node scripts/sonde-dispo.mjs --json`. Un vert immédiat après un rouge isolé
    reste un rouge à noter : l'artefact du jour dans l'onglet Actions en garde la
    trace.
-4. **`requête impossible`** (DNS, TLS, délai dépassé de 20 s) : c'est l'origine
+4. **`requête impossible`** (DNS, TLS, délai dépassé de 20 000 ms) : c'est l'origine
    entière qui ne répond pas, pas une ressource. Vérifier la page d'état de
    l'hébergeur avant de toucher au dépôt.
 5. **Une anomalie `Content-Type` ou `Cache-Control` seule** : l'hébergeur a

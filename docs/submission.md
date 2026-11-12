@@ -87,7 +87,7 @@ The build itself, measured while writing this text (commands in the annex):
 |---|---|---|
 | Commits on the build | 60 (on `origin/main`, still climbing) | `git rev-list --count origin/main` |
 | Merged pull requests, live | 28 (still climbing) | `gh pr list --state merged --limit 300 --json number --jq 'length'` |
-| Elapsed time | 7 h 40 min, all on 2026-11-11 | first commit 15:45:25, last 23:02:36 +0100 |
+| Elapsed time | 28 800 000 ms, all on 2026-11-11 | first commit 2026-11-11T14:45:25.000Z, last 2026-11-11T22:02:36.000Z |
 | Lots run in parallel | 13 (A1–A8, B1–B5), merged in batches ≤ 3 | `docs/CONTRACT.md`, `.mergify.yml` |
 | Tests | 968 pass, 21 `todo` (989 total), 65 files | `npx vitest run` |
 | Lines of TypeScript (`.ts`/`.tsx`/`.mjs`, no `node_modules`) | 30 604 | `find … | wc -l` (annex) |
@@ -122,8 +122,8 @@ re-measured here):
 | Peak level | −35.3 dB, requirement < −1 dB | `docs/recette.md` |
 | Silence after the hands leave | 723 ms, target ≤ 800 ms | `docs/recette.md` |
 | Filter trail on theremin notes | mean 87 ms (0–110); the brief predicted ≈ 80 | `docs/recette.md` |
-| 4-bar loop at 90 bpm | exactly 512 000 samples at 48 kHz, 10.667 s | `docs/recette.md` |
-| CI budget | 39 s to 2 min 41 s per job | `docs/recette.md` |
+| 4-bar loop at 90 bpm | exactly 512 000 samples at 48 kHz, 10 667 ms | `docs/recette.md` |
+| CI budget | 39 000 ms to 161 000 ms per job | `docs/recette.md` |
 
 ## What pushed back
 
