@@ -178,6 +178,9 @@ export const fr: Messages = {
   lessons: {
     link: "Ce que disent les nombres",
   },
+  limites: {
+    link: "Ce que ce projet n'est pas",
+  },
   settings: {
     title: "Réglages",
     snap: "Aimant",
