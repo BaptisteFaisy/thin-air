@@ -71,7 +71,12 @@ function Editeur({ s }: { readonly s: Seance }): JSX.Element {
       readOnly={isBuiltIn(edition)}
       onSave={(suivant) => {
         data.setLibrary((biblio) => remplacer(biblio.filter((autre) => autre.name !== edition.name), suivant));
-        if (edition.name === data.instrument.name) data.setInstrument(suivant);
+        // L'instrument édité est celui qui joue : la séance le suit, son
+        // compris (le son change avec la géométrie).
+        if (edition.name === data.instrument.name) {
+          data.setInstrument(suivant);
+          s.session.setInstrument(suivant);
+        }
         data.setEditing(null);
       }}
       onClose={() => data.setEditing(null)}

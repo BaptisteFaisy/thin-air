@@ -79,8 +79,8 @@ export interface InstrumentOptions {
  * `Scheduler`) qui date tout ce qui sort d'ici (§7.9, règle 2).
  */
 export class InstrumentPlayer {
-  private readonly pool: VoicePool;
-  private readonly magnet: NoteMagnet;
+  private pool: VoicePool;
+  private magnet: NoteMagnet;
   private readonly pending = new Map<string, number>();
   private readonly controls = new Map<string, number>();
   private muted = false;
@@ -94,20 +94,46 @@ export class InstrumentPlayer {
   private peak = 0;
 
   constructor(
-    readonly instrument: Instrument,
-    readonly settings: Settings,
-    readonly options?: InstrumentOptions,
+    public instrument: Instrument,
+    public settings: Settings,
+    public options?: InstrumentOptions,
   ) {
+    this.pool = new VoicePool(Math.min(settings.maxVoices, instrument.voices));
+    this.magnet = this.aimant();
+  }
+
+  /** L'aimant du lecteur : la force vient des réglages, sinon du fichier (§7.7). */
+  private aimant(): NoteMagnet {
+    const forced = this.options?.magnet ?? this.settings.magnet ?? this.instrument.snap;
+    const { root, steps } = this.instrument.scale;
+    return new NoteMagnet(root, steps, this.settings.noteHysteresis, clamp01(forced), this.instrument.range);
+  }
+
+  /**
+   * Applique un nouvel instrument, de nouveaux réglages ou de nouvelles options
+   * sans couper la séance (§7.8). Quand l'instrument change, les voix en cours
+   * s'éteignent en fondu — un `noteOff` par voix, avant les notes nouvelles
+   * (AIR-F-24) — et la nouvelle gamme sert dès la note suivante.
+   */
+  reconfigurer(tSeconds: number, instrument: Instrument, settings: Settings, options?: InstrumentOptions): readonly MusicEvent[] {
+    const t = this.instant(tSeconds);
+    const out: MusicEvent[] = [];
     const cap = Math.min(settings.maxVoices, instrument.voices);
-    this.pool = new VoicePool(cap);
-    const forced = options?.magnet ?? settings.magnet ?? instrument.snap;
-    this.magnet = new NoteMagnet(
-      instrument.scale.root,
-      instrument.scale.steps,
-      settings.noteHysteresis,
-      clamp01(forced),
-      instrument.range,
-    );
+    const changementInstrument = instrument.name !== this.instrument.name || instrument.sound !== this.instrument.sound;
+    if (changementInstrument || cap !== this.pool.maxVoices) {
+      // L'instrument change : les voix en cours s'éteignent en fondu, et la
+      // nouvelle géométrie (cordes, zones, étendue) sert dès l'image suivante.
+      this.silence(t, out);
+      this.pool = new VoicePool(cap);
+    }
+    this.instrument = instrument;
+    this.settings = settings;
+    this.options = options;
+    const neuf = this.aimant();
+    const vieux = this.magnet;
+    if (neuf.root !== vieux.root || neuf.steps !== vieux.steps || neuf.hysteresis !== vieux.hysteresis
+      || neuf.amount !== vieux.amount || neuf.range !== vieux.range) this.magnet = neuf;
+    return this.ordonner(out);
   }
 
   frame(tSeconds: number, hands: readonly TrackedHand[], gestures: readonly GestureEvent[]): readonly MusicEvent[] {
