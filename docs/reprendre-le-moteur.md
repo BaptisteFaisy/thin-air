@@ -80,6 +80,10 @@ inattendu. Aucun son n'accompagne la mesure : ce n'est qu'un fichier.
 
 - `docs/bibliotheque.md` — la frontière entre les trois paquets, les garanties,
   et ce qui reste à faire avant une publication sur un registre.
+- `docs/api-surface.json` — le contrat d'API : la surface publique figée de
+  chaque paquet, export par export. C'est la liste à lire avant d'écrire la
+  première ligne qui importe `@thin-air/core` ; ses `entryPoints` pointent
+  sur l'exemple et sur ce document.
 - `packages/core/README.md`, `packages/audio/README.md`,
   `packages/schema/README.md` — l'API de chaque paquet, avec un exemple
   vérifié et sa sortie réelle.
@@ -88,9 +92,8 @@ inattendu. Aucun son n'accompagne la mesure : ce n'est qu'un fichier.
 - `docs/CONTRACT.md` — qui écrit quoi, et ce qu'un lot n'a pas le droit de
   toucher.
 
-Il n'existe pas encore de `docs/api-surface.json` : le contrat d'API se lit
-aujourd'hui dans les README des trois paquets, qui font foi. L'exemple
-`exemples/premier-instrument/` en est le point d'entrée le plus court.
+L'exemple `exemples/premier-instrument/` reste le point d'entrée le plus
+court : vingt lignes, trois nombres.
 
 ## Une phrase à retenir
 
