@@ -1,0 +1,21 @@
+{
+  "name": "premier-instrument",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Un exemple autonome : une note MIDI rendue hors ligne, mesurée, écrite en WAV. Aucun son.",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "tsx index.ts"
+  },
+  "dependencies": {
+    "@thin-air/core": "^0.1.0",
+    "@thin-air/audio": "^0.1.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.23.15"
+  }
+}

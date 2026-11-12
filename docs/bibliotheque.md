@@ -98,3 +98,9 @@ est privé de `license`, de `files` ou d'un `exports` dont une cible ne pointe
 vers aucun fichier existant ; elle refuse toute importation d'un paquet non
 déclaré et tout fichier sonore. Le banc `instruments/publication.test.ts`
 revérifie les trois manifests dans `npx vitest run`.
+
+## Reprendre le moteur de l'extérieur
+
+Pour un tiers qui veut l'employer — sans navigateur, sans carte son — l'entrée
+la plus courte est `docs/reprendre-le-moteur.md`, et l'exemple de travail est
+`exemples/premier-instrument/` : une note, trois nombres, un WAV, aucun son.
