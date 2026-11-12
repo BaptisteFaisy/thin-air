@@ -21,6 +21,7 @@ import { RealTakePage } from "./ui/RealTake.js";
 import { LessonsPanel } from "./ui/LessonsPanel.js";
 import { PasCeQue } from "./ui/PasCeQue.js";
 import { langFrom, lessonsFor, messagesFor } from "./i18n/index.js";
+import { PreuvesPanel } from "./ui/PreuvesPanel.js";
 
 /** Les paramètres de l'adresse courante, vides hors navigateur. */
 function recherche(): string {
@@ -42,6 +43,12 @@ function lessonsMode(): boolean {
 function limitesMode(): boolean {
   if (typeof window === "undefined") return false;
   return new URLSearchParams(window.location.search).get("limites") === "1";
+}
+
+/** Route `?preuves=1` : le registre des preuves (cahier §18). */
+function preuvesMode(): boolean {
+  if (typeof window === "undefined") return false;
+  return new URLSearchParams(window.location.search).get("preuves") === "1";
 }
 
 export function App(): JSX.Element {
@@ -66,6 +73,15 @@ export function App(): JSX.Element {
       <main>
         <p><a href="?">{messagesFor(lang).common.back}</a></p>
         <PasCeQue />
+      </main>
+    );
+  }
+  if (preuvesMode()) {
+    const lang = langFrom(typeof window === "undefined" ? "" : window.location.search);
+    return (
+      <main>
+        <p><a href="?">{messagesFor(lang).common.back}</a></p>
+        <PreuvesPanel />
       </main>
     );
   }
