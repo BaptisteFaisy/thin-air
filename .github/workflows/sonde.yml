@@ -6,7 +6,7 @@ name: sonde
 # Déclencheurs : un `schedule` quotidien et `workflow_dispatch`, et RIEN
 # d'autre — JAMAIS `pull_request` : une PR ne change rien à ce que l'hébergeur
 # sert, et la sonde n'a pas à se glisser dans le verdict en 5 min des PR
-# (`ci.yml`, `.github/ci-budget/check_timeouts.py`).
+# (`ci.yml`, `scripts/check-budget.mjs`).
 #
 # Ce que la sonde prouve : la page, le JS principal, `models/hand_landmarker.task`
 # et un fichier wasm sont servis, avec le bon Content-Type et un Cache-Control.

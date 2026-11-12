@@ -5,7 +5,7 @@ name: Nocturne — fuzz long et budget de performance
 # Déclenché UNIQUEMENT la nuit (cron) ou à la main (workflow_dispatch) : jamais
 # sur pull_request, pour ne pas mordre sur le budget CI de 5 min des PR
 # (règle user « 5 min de CI par job, jamais plus », garde
-# `ci-budget/check_timeouts.py`).
+# `scripts/check-budget.mjs`).
 #
 # AIR-N-02 : aucun test n'émet de son — tout tourne hors ligne, dans des
 # tableaux d'échantillons, sans périphérique audio (le même chemin que `ci.yml`).
