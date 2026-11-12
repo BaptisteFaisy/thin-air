@@ -21,3 +21,4 @@ export * from "./virtual-hand.js";
 export * from "./replay.js";
 export * from "./worker/protocol.js";
 export * from "./worker/host.js";
+export * from "./analysis-history.js";

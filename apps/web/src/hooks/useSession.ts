@@ -10,7 +10,9 @@ import { toPlayPosition, type DetectedHand, type HandRole, type Instrument, type
 import { DEFAULT_SETTINGS, defaultPlayRect } from "@thin-air/core";
 import { reduceUi, initialUiState, type UiEvent, type UiState } from "../state/machine.js";
 import { createEngine, type Engine } from "../lib/engine.js";
+import type { CameraSource } from "@thin-air/vision";
 import type { HandInput } from "../scene/geometry.js";
+import { pousserAnalyse, reinitialiserAnalyse } from "./analysisStore.js";
 
 /**
  * Chemin du modèle et de ses fichiers d'exécution, RELATIFS à la racine du
@@ -78,24 +80,26 @@ export function useSession(
     dispatch({ type: "start" });
     await ouvrirMoteur();
     detecterMidi();
+    let source: CameraSource | null = null;
     try {
       const vision = await import("@thin-air/vision");
       const video = videoRef.current;
       if (video === null) throw new Error("video");
-      await vision.openCamera(video, { frameRateIdeal: settingsRef.current.frameRateIdeal });
-      dispatch({ type: "cameraGranted" });
       dispatch({ type: "modelLoading" });
-      const landmarker = await vision.loadLandmarker({
-        modelUrl: MODEL_URL,
-        numHands: settingsRef.current.numHands,
-        onProgress: (ratio) => dispatch({ type: "modelProgress", ratio }),
-      });
-      dispatch({ type: "modelReady" });
-      const source = vision.createCameraSource(video, {
+      // La caméra et le modèle sont ouverts ensemble par la source : le modèle
+      // est chargé UNE fois, dans le worker quand c'est possible (AIR-F-07),
+      // avec les chemins du site — jamais absolus, jamais tiers (AIR-N-01).
+      source = vision.createCameraSource(video, {
         frameRateIdeal: settingsRef.current.frameRateIdeal,
-        onStats: () => undefined,
+        modelUrl: MODEL_URL,
+        wasmRoot: WASM_ROOT,
+        numHands: settingsRef.current.numHands,
+        onStats: (mesure) =>
+          pousserAnalyse(
+            { inferenceMs: mesure.inferenceMs, frameIntervalMs: mesure.frameIntervalMs },
+            mesure.analysisThread ?? null,
+          ),
       });
-      await source.start();
       sourceRef.current = source;
       source.onFrame((frame) => {
         const mains = vision.normaliseSides(frame.hands, true);
@@ -104,10 +108,19 @@ export function useSession(
         const bord = handsRef.current.some((main) => main.u <= 0 || main.u >= 1 || main.v <= 0 || main.v >= 1);
         dispatch({ type: "hands", count: mains.length, atEdge: bord });
       });
-      void landmarker;
+      await source.start();
+      dispatch({ type: "cameraGranted" });
+      dispatch({ type: "modelReady" });
     } catch {
       // Caméra refusée, absente, ou modèle non livré : le jeu continue au
       // pointeur, avec le même moteur (AIR-F-02, P6).
+      try {
+        source?.stop();
+      } catch {
+        /* déjà arrêté */
+      }
+      sourceRef.current = null;
+      reinitialiserAnalyse();
       dispatch({ type: "cameraDenied" });
     }
   }, [ouvrirMoteur]);
@@ -121,6 +134,7 @@ export function useSession(
     sourceRef.current = null;
     handsRef.current = [];
     detectedRef.current = [];
+    reinitialiserAnalyse();
     engineRef.current?.releaseAll();
     engineRef.current?.close();
     engineRef.current = null;

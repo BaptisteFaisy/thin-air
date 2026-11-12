@@ -10,6 +10,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { DetectedHand } from "@thin-air/core";
 import { createCameraSource, isNewFrame, presentFramesDefault, type CameraEnvironment } from "./camera-source.js";
 import type { Landmarker } from "./landmarker.js";
+import type { AnalysisHost } from "./worker/host.js";
 import { fakeStream, fakeVideo, manualClock, stubCameraDevice } from "./testing.js";
 import type { VisionFrame } from "./source.js";
 
@@ -18,7 +19,7 @@ const MAIN_GAUCHE: DetectedHand = { side: "left", score: 0.9, points: [[0.4, 0.5
 interface Banc {
   readonly source: ReturnType<typeof createCameraSource>;
   readonly frames: VisionFrame[];
-  readonly stats: { frameIntervalMs: number; inferenceMs: number }[];
+  readonly stats: { frameIntervalMs: number; inferenceMs: number; analysisThread?: string }[];
   readonly conseils: number[];
   readonly horloge: ReturnType<typeof manualClock>;
   readonly analyses: number[];
@@ -76,7 +77,7 @@ function banc(options: {
   };
 
   const frames: VisionFrame[] = [];
-  const stats: { frameIntervalMs: number; inferenceMs: number }[] = [];
+  const stats: { frameIntervalMs: number; inferenceMs: number; analysisThread?: string }[] = [];
   const conseils: number[] = [];
   const source = createCameraSource(video, {
     mirrored: options.mirrored,
@@ -142,7 +143,7 @@ describe("createCameraSource — AIR-F-03, une image, une analyse", () => {
     b.horloge.advance(20);
     b.image(0.2);
     expect(b.frames[1]?.inferenceMs).toBe(11);
-    expect(b.stats[1]).toEqual({ frameIntervalMs: 20, inferenceMs: 11 });
+    expect(b.stats[1]).toEqual({ frameIntervalMs: 20, inferenceMs: 11, analysisThread: "main" });
   });
 
   it("l'intervalle entre images est mesuré ; zéro à la première", async () => {
@@ -355,4 +356,113 @@ describe("presentFramesDefault — le repli sur requestAnimationFrame (§7.2)", 
     expect(() => detacher()).not.toThrow();
     vi.unstubAllGlobals();
   });
+});
+
+describe("createCameraSource — AIR-F-07, l'analyse part dans le worker", () => {
+  it("avec un hôte worker, l'image est soumise et le résultat émis à l'horodatage de l'image", async () => {
+    const horloge = manualClock();
+    const { flux } = fakeStream();
+    const { video } = fakeVideo();
+    stubCameraDevice(flux);
+
+    let surImage: ((mediaTimeS: number) => void) | null = null;
+    let listener: ((frame: VisionFrame) => void) | null = null;
+    const soumis: number[] = [];
+    const host: AnalysisHost = {
+      mode: "worker",
+      start: async () => undefined,
+      submit: (_v: HTMLVideoElement, timestampS: number) => {
+        soumis.push(timestampS);
+      },
+      onFrame: (cb: (frame: VisionFrame) => void) => {
+        listener = cb;
+        return () => {
+          listener = null;
+        };
+      },
+      stop: () => undefined,
+    };
+
+    const stats: { frameIntervalMs: number; inferenceMs: number; analysisThread?: string }[] = [];
+    const source = createCameraSource(video, {
+      onStats: (mesure) => stats.push(mesure),
+      environment: {
+        now: horloge.now,
+        createLandmarker: async () => {
+          throw new Error("l'analyse ne doit pas charger le modèle sur le fil principal");
+        },
+        createHost: () => host,
+        presentFrames: (_v, handler) => {
+          surImage = handler;
+          return () => {
+            surImage = null;
+          };
+        },
+      },
+    });
+    const frames: VisionFrame[] = [];
+    source.onFrame((frame) => frames.push(frame));
+    await source.start();
+
+    // Enveloppes de lecture : `surImage` et `listener` sont affectés dans des
+    // fermetures appelées pendant `start()` ; on les lit au moment de l'appel.
+    const presenter = (t: number): void => {
+      const presente = surImage;
+      if (presente !== null) presente(t);
+    };
+    const repondre = (frame: VisionFrame): void => {
+      const cb = listener;
+      if (cb !== null) cb(frame);
+    };
+
+    presenter(1.5);
+    expect(soumis).toEqual([1.5]);
+    expect(frames).toHaveLength(0); // la réponse du worker n'est pas encore arrivée
+
+    // Réponse tardive : l'horodatage émis est celui de l'IMAGE (AIR-F-03),
+    // et le mode « worker » remonte avec la mesure (comparaison des threads).
+    repondre({ t: 1.5, hands: [MAIN_GAUCHE], inferenceMs: 9 });
+    expect(frames).toHaveLength(1);
+    expect(frames[0]?.t).toBe(1.5);
+    expect(frames[0]?.inferenceMs).toBe(9);
+    expect(stats[0]).toEqual({ frameIntervalMs: 0, inferenceMs: 9, analysisThread: "worker" });
+  });
+
+  it("une réponse reçue après stop() n'émet rien (état arrêté)", async () => {
+    const { flux } = fakeStream();
+    const { video } = fakeVideo();
+    stubCameraDevice(flux);
+    let capteur: ((frame: VisionFrame) => void) | null = null;
+    let arrete = false;
+    const host: AnalysisHost = {
+      mode: "worker",
+      start: async () => undefined,
+      submit: () => undefined,
+      // Le désabonnement ne vide pas `capteur` : le test rejoue la réponse
+      // après `stop()` pour prouver que l'état arrêté l'écarte (AIR-F-03).
+      onFrame: (cb) => {
+        capteur = cb;
+        return () => undefined;
+      },
+      stop: () => {
+        arrete = true;
+      },
+    };
+    const source = createCameraSource(video, { environment: { createHost: () => host } });
+    const frames: VisionFrame[] = [];
+    source.onFrame((frame) => frames.push(frame));
+    await source.start();
+    const rejouer = (frame: VisionFrame): void => {
+      const cb = capteur;
+      if (cb !== null) cb(frame);
+    };
+    source.stop();
+    expect(arrete).toBe(true);
+    rejouer({ t: 9, hands: [MAIN_GAUCHE], inferenceMs: 1 });
+    expect(frames).toHaveLength(0);
+  });
+
+  it.todo(
+    "AIR-F-07 — le worker réel (MediaPipe hors du fil principal) se prouve dans un navigateur, pas dans ce banc Node",
+  );
 });

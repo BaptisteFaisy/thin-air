@@ -1,5 +1,5 @@
 /**
- * La source caméra (cahier §7.2, AIR-F-01 à 03, AIR-F-06, AIR-N-08).
+ * La source caméra (cahier §7.2, AIR-F-01 à 03, AIR-F-06, AIR-F-07, AIR-N-08).
  *
  * Une image présentée = UNE analyse, avec l'horodatage réel de cette image.
  * Le navigateur prévient à chaque image via `requestVideoFrameCallback` ;
@@ -7,12 +7,23 @@
  * `requestAnimationFrame` en surveillant le temps de la vidéo : une image déjà
  * analysée ne l'est jamais deux fois.
  *
+ * L'analyse part dans un WORKER quand le navigateur le permet (AIR-F-07) : le
+ * modèle n'occupe plus la page, et le temps d'analyse mesuré remonte quand
+ * même. Sans `Worker` ou sans `OffscreenCanvas`, l'analyse se fait dans le fil
+ * principal, derrière la même interface (`worker/host.ts`) : le repli est
+ * propre, et l'état du mode est lisible (`analysisThread`).
+ *
  * Tout ce qui touche le navigateur est derrière `CameraEnvironment`, donc
  * injectable : les tests pilotent la source sans DOM, sans caméra et sans
  * modèle, et vérifient le comptage des analyses, les mesures et les états.
  */
 import type { DetectedHand } from "@thin-air/core";
 import { DEFAULT_MODEL_URL, loadLandmarker, type Landmarker } from "./landmarker.js";
+import {
+  createAnalysisHost,
+  type AnalysisHost,
+  type AnalysisMode,
+} from "./worker/host.js";
 import { createNoHandsWatcher, type NoHandsWatcher } from "./no-hands.js";
 import { normaliseSides } from "./sides.js";
 import {
@@ -22,12 +33,15 @@ import {
   frameAt,
   type FrameListener,
   type HandSource,
+  type VisionFrame,
 } from "./source.js";
 import { hasVideoFrameCallback, openCamera, stopStream, type CaptureOptions } from "./capture.js";
 
 export interface CameraStats {
   readonly frameIntervalMs: number;
   readonly inferenceMs: number;
+  /** Où tourne l'analyse : worker, ou fil principal (repli). */
+  readonly analysisThread?: AnalysisMode;
 }
 
 export interface CameraOptions extends CaptureOptions {
@@ -36,6 +50,12 @@ export interface CameraOptions extends CaptureOptions {
   readonly onNoHands?: (seconds: number) => void;
   /** Le modèle est servi par le site (AIR-N-01) : chemin local par défaut. */
   readonly modelUrl?: string;
+  /** Racine des fichiers d'exécution, servie par le site (AIR-N-07). */
+  readonly wasmRoot?: string;
+  /** Nombre de mains suivies (2 par défaut, cahier §7.3). */
+  readonly numHands?: number;
+  /** Délégué demandé : GPU, ou processeur. */
+  readonly delegate?: "GPU" | "CPU";
   /** L'image envoyée au modèle est retournée horizontalement (défaut : non). */
   readonly mirrored?: boolean;
   /** Seuil « aucune main » en secondes (3 dans le cahier). */
@@ -56,6 +76,11 @@ export type FramePresenter = (
 export interface CameraEnvironment {
   readonly now: () => number;
   readonly createLandmarker: () => Promise<Landmarker>;
+  /**
+   * L'hôte d'analyse déportée : worker si possible, sinon fil principal.
+   * Absent (tests anciens), la source retombe sur `createLandmarker`.
+   */
+  readonly createHost?: (options: CameraOptions) => AnalysisHost;
   readonly presentFrames: FramePresenter;
   readonly watchVisibility: (cb: (hidden: boolean) => void) => () => void;
   readonly watchTrackEnded: (stream: MediaStream | null, cb: () => void) => () => void;
@@ -120,7 +145,13 @@ export function defaultCameraEnvironment(
 ): CameraEnvironment {
   return {
     now: defaultNow,
-    createLandmarker: () => loadLandmarker({ modelUrl: options.modelUrl ?? DEFAULT_MODEL_URL }),
+    createLandmarker: () =>
+      loadLandmarker({
+        modelUrl: options.modelUrl ?? DEFAULT_MODEL_URL,
+        wasmRoot: options.wasmRoot,
+        numHands: options.numHands,
+        delegate: options.delegate,
+      }),
     presentFrames: presentFramesDefault,
     watchVisibility: (cb) => {
       const doc = globalThis.document;
@@ -162,14 +193,16 @@ class CameraRunner implements CameraSource {
   readonly #env: CameraEnvironment;
   readonly #hub = new FrameHub();
   readonly #watcher: NoHandsWatcher;
-  #landmarker: Landmarker | null = null;
-  #loading: Promise<Landmarker> | null = null;
+  #host: AnalysisHost | null = null;
+  #loading: Promise<AnalysisHost> | null = null;
+  #detachHost: (() => void) | null = null;
   #detachFrames: (() => void) | null = null;
   #detachVisibility: (() => void) | null = null;
   #detachTrack: (() => void) | null = null;
   #state: CameraState = "idle";
   #dernierMediaTimeS = -1;
-  #derniereImageMs = Number.NaN;
+  #dernierPresentationMs = Number.NaN;
+  #dernierIntervalleMs = 0;
   #dernierTEmis: number | null = null;
   #origineS: number | null = null;
 
@@ -184,17 +217,16 @@ class CameraRunner implements CameraSource {
     return this.#state;
   }
 
-  #emettre(mains: readonly DetectedHand[], mediaTimeS: number, inferenceMs: number): void {
-    const maintenant = this.#env.now();
-    this.#hub.emit(frameAt(mediaTimeS, mains, inferenceMs));
-    this.#dernierTEmis = mediaTimeS;
+  #emettre(mains: readonly DetectedHand[], t: number, inferenceMs: number): void {
+    this.#hub.emit(frameAt(t, mains, inferenceMs));
+    this.#dernierTEmis = t;
     this.#options.onStats?.({
-      frameIntervalMs: Number.isNaN(this.#derniereImageMs) ? 0 : maintenant - this.#derniereImageMs,
+      frameIntervalMs: this.#dernierIntervalleMs,
       inferenceMs,
+      analysisThread: this.#host?.mode,
     });
-    this.#derniereImageMs = maintenant;
     const silence = this.#watcher.push({
-      t: mediaTimeS,
+      t,
       hasHands: mains.length > 0,
       newFrame: true,
     });
@@ -221,14 +253,37 @@ class CameraRunner implements CameraSource {
     return this.#dernierTEmis + PAS_MIN_S - mediaTimeS;
   }
 
+  /**
+   * L'intervalle entre deux images présentées : mesuré À LA PRÉSENTATION, pas
+   * à la réponse. Le temps d'analyse est mesuré par l'hôte ; le temps de
+   * présentation est mesuré ici, et les deux se comparent (§5.1).
+   */
+  #mesurerPresentation(): void {
+    const maintenant = this.#env.now();
+    this.#dernierIntervalleMs = Number.isNaN(this.#dernierPresentationMs)
+      ? 0
+      : maintenant - this.#dernierPresentationMs;
+    this.#dernierPresentationMs = maintenant;
+  }
+
   #surImage(mediaTimeS: number): void {
-    if (this.#state !== "running" || this.#landmarker === null) return;
+    if (this.#state !== "running" || this.#host === null) return;
     if (!isNewFrame(this.#dernierMediaTimeS, mediaTimeS)) return;
     this.#dernierMediaTimeS = mediaTimeS;
     if (this.#origineS === null) this.#origineS = this.#decalageDeSession(mediaTimeS);
-    const resultat = this.#landmarker.detect(this.#video, mediaTimeS * 1000);
-    const mains = normaliseSides(resultat.hands, this.#options.mirrored ?? false);
-    this.#emettre(mains, this.#origineS + mediaTimeS, resultat.inferenceMs);
+    this.#mesurerPresentation();
+    this.#host.submit(this.#video, (this.#origineS ?? 0) + mediaTimeS);
+  }
+
+  /**
+   * Un résultat d'analyse. L'horodatage est celui de L'IMAGE (porté par le
+   * message), jamais celui de la réponse : une réponse tardive arrive avec
+   * l'horodatage de l'image qu'elle analyse (AIR-F-03).
+   */
+  #onAnalyse(frame: VisionFrame): void {
+    if (this.#state !== "running") return;
+    const mains = normaliseSides(frame.hands, this.#options.mirrored ?? false);
+    this.#emettre(mains, frame.t, frame.inferenceMs);
   }
 
   #detacher(): void {
@@ -249,16 +304,33 @@ class CameraRunner implements CameraSource {
   }
 
   #reprendre(): void {
-    if (this.#state !== "paused" || this.#landmarker === null) return;
+    if (this.#state !== "paused" || this.#host === null) return;
     this.#state = "running";
     this.#detachFrames = this.#env.presentFrames(this.#video, (t) => this.#surImage(t));
   }
 
-  async #charger(): Promise<Landmarker> {
-    if (this.#landmarker !== null) return this.#landmarker;
-    this.#loading ??= this.#env.createLandmarker();
-    this.#landmarker = await this.#loading;
-    return this.#landmarker;
+  async #charger(): Promise<AnalysisHost> {
+    if (this.#host !== null) return this.#host;
+    this.#loading ??= this.#demarrerHote();
+    this.#host = await this.#loading;
+    return this.#host;
+  }
+
+  /** L'hôte d'analyse : le worker s'il est possible, sinon le fil principal. */
+  async #demarrerHote(): Promise<AnalysisHost> {
+    const fabrique = this.#env.createHost;
+    const host = fabrique
+      ? fabrique(this.#options)
+      : createAnalysisHost({
+          modelUrl: this.#options.modelUrl ?? DEFAULT_MODEL_URL,
+          wasmRoot: this.#options.wasmRoot,
+          numHands: this.#options.numHands,
+          delegate: this.#options.delegate,
+          environment: { createLandmarker: this.#env.createLandmarker },
+        });
+    await host.start();
+    this.#detachHost = host.onFrame((frame) => this.#onAnalyse(frame));
+    return host;
   }
 
   async start(): Promise<void> {
@@ -270,12 +342,13 @@ class CameraRunner implements CameraSource {
     // l'attente du modèle, ce que le rétrécissement de type ne peut pas voir.
     if (this.state === "stopped") {
       // Arrêté pendant le chargement : on ne laisse pas un modèle ouvert.
-      modele.close();
-      this.#landmarker = null;
+      this.#detachHost?.();
+      this.#detachHost = null;
+      modele.stop();
+      this.#host = null;
       this.#loading = null;
       return;
     }
-    this.#landmarker = modele;
     this.#reinitialiserSession();
     this.#attacher();
     this.#state = "running";
@@ -283,7 +356,8 @@ class CameraRunner implements CameraSource {
 
   #reinitialiserSession(): void {
     this.#dernierMediaTimeS = -1;
-    this.#derniereImageMs = Number.NaN;
+    this.#dernierPresentationMs = Number.NaN;
+    this.#dernierIntervalleMs = 0;
     this.#origineS = null;
     this.#watcher.reset();
   }
@@ -309,8 +383,10 @@ class CameraRunner implements CameraSource {
     this.#emettreSilence();
     this.#env.releaseStream();
     this.#watcher.reset();
-    this.#landmarker?.close();
-    this.#landmarker = null;
+    this.#detachHost?.();
+    this.#detachHost = null;
+    this.#host?.stop();
+    this.#host = null;
     this.#loading = null;
     this.#state = "stopped";
   }

@@ -4,6 +4,7 @@ import type { PlayRect } from "@thin-air/core";
 import { ecrireMine, ecrireRect, ecrireSettings, lireRect } from "../lib/storage.js";
 import { isBuiltIn } from "../state/instruments.js";
 import { mesurerRetard } from "../state/latencyProbe.js";
+import { lireAnalyse, publierAnalyse } from "./analysisStore.js";
 import { detecterMidi, type SessionApi } from "./useSession.js";
 import { useBoucleJeu } from "./useBoucleJeu.js";
 import { useCalibrationLoop } from "./useCalibrationLoop.js";
@@ -57,7 +58,19 @@ function useLatencyProbe(session: SessionApi, data: SeanceData): void {
   const { setParts } = data;
   const camera = data.settings.cameraLatencyMs;
   useEffect(() => {
-    const sonde = window.setInterval(() => setParts(mesurerRetard(session.engineRef.current, camera)), 1000);
+    const sonde = window.setInterval(() => {
+      // Publie la fenêtre glissante (moyenne, maximum, histogramme) du temps
+      // d'analyse, puis l'injecte dans le rapport : le compteur affiche la
+      // moyenne mesurée, l'histogramme vit dans LatencyReadout (§5.4).
+      publierAnalyse();
+      const mesure = mesurerRetard(session.engineRef.current, camera);
+      const analyse = lireAnalyse().snapshot;
+      setParts({
+        ...mesure,
+        inferenceMs: analyse.meanInferenceMs,
+        frameIntervalMs: analyse.count > 0 ? analyse.meanFrameIntervalMs : mesure.frameIntervalMs,
+      });
+    }, 1000);
     return () => window.clearInterval(sonde);
   }, [camera, session, setParts]);
 }
