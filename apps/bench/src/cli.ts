@@ -7,10 +7,12 @@
  *   bench render  --take <prise> --instrument <fichier> --out <dossier>
  *   bench compare <rapport> <référence>
  *   bench synth   <forme> [paramètres]
+ *   bench tune    [--take <prise>]
  *
  * Codes de sortie : 0 conforme · 1 écart ou échec · 2 erreur d'usage.
  */
 import { COMMANDS, PROCESS_WRITERS } from "./commands.js";
+import { runTune } from "./tuning-mesure.js";
 import type { Writers } from "./commands.js";
 import { BenchError, UsageError, describeError } from "./errors.js";
 import { GENERAL_HELP } from "./help.js";
@@ -19,6 +21,7 @@ import { GENERAL_HELP } from "./help.js";
 function knownCommand(argv: readonly string[]): string | undefined {
   const premiere = argv[0];
   if (premiere === undefined) return undefined;
+  if (premiere === "tune") return premiere; // ajout du lot W7 : voir tuning-mesure.ts
   return Object.prototype.hasOwnProperty.call(COMMANDS, premiere) ? premiere : undefined;
 }
 
@@ -44,7 +47,7 @@ export async function main(argv: readonly string[], writers: Writers = PROCESS_W
     writers.err(`  - commandes : ${Object.keys(COMMANDS).join(", ")}`);
     return 2;
   }
-  const run = COMMANDS[commande];
+  const run = commande === "tune" ? runTune : COMMANDS[commande];
   if (run === undefined) return 2;
   try {
     return await run(argv.slice(1), writers);
