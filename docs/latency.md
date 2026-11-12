@@ -32,6 +32,7 @@ versionnage comme tout `out/`.
 |---|---|---|---|---|---|---|---|---|---|
 | `pc` — baptiste-MS-7D18 | Chromium 1254, headless, sans son | simulée, 48 000 Hz | 20 im/s → **50,0 ms** (mesuré) | **non mesurée**, modèle absent → reste **estimée** | **0,000 ms** médiane, 0,12 à 0,77 ms moyenne (mesuré) | **10,7 ms** (mesuré) | **0,0 ms** (mesuré, sortie simulée) | **60,7 ms** (mesuré, partiel) | **110,7 ms** (estimé) |
 | `r630` — R630 (à faire) | | | | | | | | | |
+| _comparaison fil principal ↔ worker (harnais en place, chiffres à relever sur machine réelle)_ | Chromium | filaire | mesuré | moyenne + maximum sur 60 images | mesuré | mesuré | mesuré | mesuré | estimé |
 
 La seconde machine se mesure avec le même outil, sans rien réécrire :
 
@@ -87,6 +88,28 @@ Ce qui n'a donc pas pu être mesuré, et pourquoi : **l'analyse des mains**
 page réellement servie par le site, et les totaux sont calculés par
 `packages/audio/src/graph/latency.ts` — pas par l'outil, qui ne fait que les
 lire.
+
+## Comparaison « fil principal » et « worker » (AIR-F-07)
+
+L'analyse des mains part dans un `Worker` quand le navigateur le permet
+(`packages/vision/src/worker/`) ; sinon elle se fait dans le fil principal,
+derrière la même interface et le même format de sortie. L'écran dit lequel des
+deux tourne (`worker` ou `main`), et le temps d'analyse y est **mesuré** :
+moyenne et maximum sur les 60 dernières images, plus un histogramme de la
+répartition.
+
+La comparaison se fait sur les mêmes grandeurs dans les deux cas :
+
+| Grandeur | Ce qui est mesuré | Où le lire |
+|---|---|---|
+| Temps d'analyse | autour de `detectForVideo` | moyenne et maximum sur 60 images |
+| Intervalle d'images | entre deux images présentées | moyenne sur 60 images |
+| Temps de traitement | filtrage, gestes, correspondance | compteur de retard |
+
+Pour relever la ligne ci-dessus : la même page, le même éclairage et la même
+distance, une navigation avec `Worker` et une navigation sans (en forçant le
+repli sur le fil principal). Les valeurs se recopient telles quelles, sans
+arrondi de convenance.
 
 ## Poids du premier chargement
 
