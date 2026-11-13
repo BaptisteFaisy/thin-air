@@ -31,7 +31,7 @@ si la borne doit rester intouchable.
   --autoplay-policy=no-user-gesture-required \
   --remote-debugging-port=9222 \
   --user-data-dir="$HOME/.thin-air-borne" \
-  "https://baptistefaisy.github.io/thin-air/?kiosk=1"
+  "https://tradoooo.github.io/thin-air/?kiosk=1"
 ```
 
 - `--kiosk` : plein écran, sans barre, sans onglet, sans commande — la scène
@@ -60,7 +60,7 @@ Description=Thin Air — borne kiosque
 After=graphical-session.target
 
 [Service]
-ExecStart=/usr/bin/google-chrome --kiosk --autoplay-policy=no-user-gesture-required --remote-debugging-port=9222 --user-data-dir=%h/.thin-air-borne https://baptistefaisy.github.io/thin-air/?kiosk=1
+ExecStart=/usr/bin/google-chrome --kiosk --autoplay-policy=no-user-gesture-required --remote-debugging-port=9222 --user-data-dir=%h/.thin-air-borne https://tradoooo.github.io/thin-air/?kiosk=1
 Restart=always
 RestartSec=10
 
@@ -142,7 +142,7 @@ prouve ni le son, ni le geste, ni la détection des mains.
   --use-fake-device-for-media-stream --use-fake-ui-for-media-stream \
   --autoplay-policy=no-user-gesture-required \
   --user-data-dir=/tmp/kiosque-test \
-  "https://baptistefaisy.github.io/thin-air/?kiosk=1&lang=fr" \
+  "https://tradoooo.github.io/thin-air/?kiosk=1&lang=fr" \
   >/tmp/chrome-kiosque.log 2>&1 &
 ```
 
