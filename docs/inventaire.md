@@ -102,78 +102,78 @@ w9-latency            lot/w9-latency            d02e92e 2026-11-11  non      3.0
 ## Branches distantes
 
 branche                     commit   date        mergée  non mergés
-ci/inferhub-conflit         2b44163  2026-11-11  non     3         
-gh-pages                    03ee91e  2026-11-12  non     1         
-lot/a1-space                25073a1  2026-11-11  non     1         
-lot/a2-filter               340c80c  2026-11-11  non     2         
-lot/a3-music                3bb56d1  2026-11-11  non     1         
-lot/a4-schema               f99d5d7  2026-11-11  non     1         
-lot/a5-audio                2350f3a  2026-11-11  non     2         
-lot/a6-loop-midi            00a3561  2026-11-11  non     4         
-lot/a7-kiro-instruments     9cd60bf  2026-11-11  non     4         
-lot/a8-docs-build           378ff67  2026-11-11  non     6         
-lot/a9-audio-live           bd73175  2026-11-11  non     2         
-lot/b1a-takegen             16d3d4a  2026-11-11  non     1         
-lot/b1b-gestures            045d95a  2026-11-11  non     1         
-lot/b2-instrument-pipeline  1110f46  2026-11-11  non     4         
-lot/b3-bench                df138c2  2026-11-11  non     4         
-lot/b4-web                  a508881  2026-11-11  non     2         
-lot/b5-vision               3c42618  2026-11-11  non     2         
-lot/budget-ci               d2fc5cb  2026-11-12  non     2         
-lot/cam-live                627913b  2026-11-12  non     2         
-lot/camera-live-controls    c033b36  2026-11-12  non     1         
-lot/contrat-api             cae5d34  2026-11-12  non     1         
-lot/e2e-fix                 0a02a19  2026-11-12  non     1         
-lot/horodatage              4bf04ed  2026-11-12  non     1         
-lot/integr-deploy           799bab2  2026-11-11  non     1         
-lot/integr-dist-check       28bd813  2026-11-11  non     1         
-lot/integr-outillage        26d6a8d  2026-11-11  non     2         
-lot/integr-recette          682104c  2026-11-11  non     1         
-lot/integr-takes-compact    1fdf89d  2026-11-11  non     1         
-lot/isolation-runner        2783d09  2026-11-12  non     2         
-lot/n1-licence              efb47f1  2026-11-11  non     1         
-lot/n2-a11y                 fd35714  2026-11-11  non     4         
-lot/n3-poids                15850bb  2026-11-11  non     2         
-lot/n4-offline              0bcfff6  2026-11-11  non     3         
-lot/n5-galerie              10025b4  2026-11-11  non     2         
-lot/n6-worker               10af47d  2026-11-11  non     1         
-lot/n6-worker-web           a31ed38  2026-11-12  non     1         
-lot/n7-prises               0c88b18  2026-11-11  non     1         
-lot/n8-soumission           bf899ff  2026-11-11  non     2         
-lot/quotidien-format        d49ac73  2026-11-12  non     1         
-lot/rapport-defaut          5475955  2026-11-12  non     1         
-lot/registre-agents         e58ef71  2026-11-12  non     1         
-lot/release                 d1516b1  2026-11-12  non     2         
-lot/t1-worker               3c5abfe  2026-11-11  non     1         
-lot/t2-lib                  2ad7080  2026-11-11  non     1         
-lot/t3-registre             f8f63ce  2026-11-12  non     2         
-lot/t4-mobilite             9d507f2  2026-11-11  non     1         
-lot/t5-lecons               7a14ca6  2026-11-12  non     1         
-lot/t6-fuzz                 d1a78f4  2026-11-12  non     2         
-lot/t7-kiosque              4dfcee8  2026-11-11  non     1         
-lot/t8-lien-prise           41f06d6  2026-11-11  non     2         
-lot/ui-lecons               87b8d79  2026-11-12  non     1         
-lot/ui-lecons-data          8a94a5c  2026-11-12  non     4         
-lot/ui-montage              b2e3ebb  2026-11-12  non     1         
-lot/v10-oeuvre              ff37dd6  2026-11-12  non     2         
-lot/v3-poids                db4510a  2026-11-12  non     4         
-lot/v4-publier              bf26338  2026-11-12  non     2         
-lot/v5-audit                9116cd4  2026-11-12  non     1         
-lot/v6-horloges             03864a8  2026-11-12  non     1         
-lot/v7-compensation         43df604  2026-11-12  non     3         
-lot/v8-postmortem           0e09096  2026-11-12  non     1         
-lot/v9-sonde                be8c143  2026-11-12  non     4         
-lot/versions-formats        aeed0e8  2026-11-12  non     1         
-lot/w1-mcp                  35b14ac  2026-11-11  non     2         
-lot/w10-piece               007f21c  2026-11-11  non     6         
-lot/w10-piece-doc-humain    9248875  2026-11-12  non     1         
-lot/w11-kit                 d45c6c2  2026-11-11  non     3         
-lot/w2-luthier              f7e0678  2026-11-11  non     2         
-lot/w4-e2e                  95a5601  2026-11-11  non     2         
-lot/w7-tuning               aac1208  2026-11-12  non     1         
-lot/w8-twoclocks            44b62e3  2026-11-11  non     4         
-lot/w9-latency              d02e92e  2026-11-11  non     3         
-main                        c22e849  2026-11-12  oui     0         
+ci/inferhub-conflit         2b44163  2026-11-11  non     3
+gh-pages                    03ee91e  2026-11-12  non     1
+lot/a1-space                25073a1  2026-11-11  non     1
+lot/a2-filter               340c80c  2026-11-11  non     2
+lot/a3-music                3bb56d1  2026-11-11  non     1
+lot/a4-schema               f99d5d7  2026-11-11  non     1
+lot/a5-audio                2350f3a  2026-11-11  non     2
+lot/a6-loop-midi            00a3561  2026-11-11  non     4
+lot/a7-kiro-instruments     9cd60bf  2026-11-11  non     4
+lot/a8-docs-build           378ff67  2026-11-11  non     6
+lot/a9-audio-live           bd73175  2026-11-11  non     2
+lot/b1a-takegen             16d3d4a  2026-11-11  non     1
+lot/b1b-gestures            045d95a  2026-11-11  non     1
+lot/b2-instrument-pipeline  1110f46  2026-11-11  non     4
+lot/b3-bench                df138c2  2026-11-11  non     4
+lot/b4-web                  a508881  2026-11-11  non     2
+lot/b5-vision               3c42618  2026-11-11  non     2
+lot/budget-ci               d2fc5cb  2026-11-12  non     2
+lot/cam-live                627913b  2026-11-12  non     2
+lot/camera-live-controls    c033b36  2026-11-12  non     1
+lot/contrat-api             cae5d34  2026-11-12  non     1
+lot/e2e-fix                 0a02a19  2026-11-12  non     1
+lot/horodatage              4bf04ed  2026-11-12  non     1
+lot/integr-deploy           799bab2  2026-11-11  non     1
+lot/integr-dist-check       28bd813  2026-11-11  non     1
+lot/integr-outillage        26d6a8d  2026-11-11  non     2
+lot/integr-recette          682104c  2026-11-11  non     1
+lot/integr-takes-compact    1fdf89d  2026-11-11  non     1
+lot/isolation-runner        2783d09  2026-11-12  non     2
+lot/n1-licence              efb47f1  2026-11-11  non     1
+lot/n2-a11y                 fd35714  2026-11-11  non     4
+lot/n3-poids                15850bb  2026-11-11  non     2
+lot/n4-offline              0bcfff6  2026-11-11  non     3
+lot/n5-galerie              10025b4  2026-11-11  non     2
+lot/n6-worker               10af47d  2026-11-11  non     1
+lot/n6-worker-web           a31ed38  2026-11-12  non     1
+lot/n7-prises               0c88b18  2026-11-11  non     1
+lot/n8-soumission           bf899ff  2026-11-11  non     2
+lot/quotidien-format        d49ac73  2026-11-12  non     1
+lot/rapport-defaut          5475955  2026-11-12  non     1
+lot/registre-agents         e58ef71  2026-11-12  non     1
+lot/release                 d1516b1  2026-11-12  non     2
+lot/t1-worker               3c5abfe  2026-11-11  non     1
+lot/t2-lib                  2ad7080  2026-11-11  non     1
+lot/t3-registre             f8f63ce  2026-11-12  non     2
+lot/t4-mobilite             9d507f2  2026-11-11  non     1
+lot/t5-lecons               7a14ca6  2026-11-12  non     1
+lot/t6-fuzz                 d1a78f4  2026-11-12  non     2
+lot/t7-kiosque              4dfcee8  2026-11-11  non     1
+lot/t8-lien-prise           41f06d6  2026-11-11  non     2
+lot/ui-lecons               87b8d79  2026-11-12  non     1
+lot/ui-lecons-data          8a94a5c  2026-11-12  non     4
+lot/ui-montage              b2e3ebb  2026-11-12  non     1
+lot/v10-oeuvre              ff37dd6  2026-11-12  non     2
+lot/v3-poids                db4510a  2026-11-12  non     4
+lot/v4-publier              bf26338  2026-11-12  non     2
+lot/v5-audit                9116cd4  2026-11-12  non     1
+lot/v6-horloges             03864a8  2026-11-12  non     1
+lot/v7-compensation         43df604  2026-11-12  non     3
+lot/v8-postmortem           0e09096  2026-11-12  non     1
+lot/v9-sonde                be8c143  2026-11-12  non     4
+lot/versions-formats        aeed0e8  2026-11-12  non     1
+lot/w1-mcp                  35b14ac  2026-11-11  non     2
+lot/w10-piece               007f21c  2026-11-11  non     6
+lot/w10-piece-doc-humain    9248875  2026-11-12  non     1
+lot/w11-kit                 d45c6c2  2026-11-11  non     3
+lot/w2-luthier              f7e0678  2026-11-11  non     2
+lot/w4-e2e                  95a5601  2026-11-11  non     2
+lot/w7-tuning               aac1208  2026-11-12  non     1
+lot/w8-twoclocks            44b62e3  2026-11-11  non     4
+lot/w9-latency              d02e92e  2026-11-11  non     3
+main                        c22e849  2026-11-12  oui     0
 
 
 ## Worktrees orphelins
@@ -182,18 +182,18 @@ aucun
 
 ## Plan de nettoyage (propositions, aucune suppression automatique)
 
-cible                         action       raison                                            
-worktree audit-depot          à inspecter  branche lot/audit-depot absente du distant        
+cible                         action       raison
+worktree audit-depot          à inspecter  branche lot/audit-depot absente du distant
 worktree deploiement-garanti  à inspecter  branche lot/deploiement-garanti absente du distant
-worktree features             à inspecter  branche lot/features absente du distant           
-worktree hors-ligne-public    à inspecter  branche lot/hors-ligne-public absente du distant  
-worktree inventaire           à inspecter  branche lot/inventaire absente du distant         
-worktree moteur-tiers         à inspecter  branche lot/moteur-tiers absente du distant       
-worktree pas-ce-que           à inspecter  branche lot/pas-ce-que absente du distant         
-worktree preuves              à inspecter  branche lot/preuves absente du distant            
-worktree raccourcis           à inspecter  branche lot/raccourcis absente du distant         
-worktree variants-wasm        à inspecter  branche lot/variants-wasm absente du distant      
-worktree w3-gallery           à inspecter  branche lot/w3-gallery absente du distant         
-worktree w5-a11y              à inspecter  branche lot/w5-a11y absente du distant            
-worktree w6-golden            à inspecter  branche lot/w6-golden absente du distant          
+worktree features             à inspecter  branche lot/features absente du distant
+worktree hors-ligne-public    à inspecter  branche lot/hors-ligne-public absente du distant
+worktree inventaire           à inspecter  branche lot/inventaire absente du distant
+worktree moteur-tiers         à inspecter  branche lot/moteur-tiers absente du distant
+worktree pas-ce-que           à inspecter  branche lot/pas-ce-que absente du distant
+worktree preuves              à inspecter  branche lot/preuves absente du distant
+worktree raccourcis           à inspecter  branche lot/raccourcis absente du distant
+worktree variants-wasm        à inspecter  branche lot/variants-wasm absente du distant
+worktree w3-gallery           à inspecter  branche lot/w3-gallery absente du distant
+worktree w5-a11y              à inspecter  branche lot/w5-a11y absente du distant
+worktree w6-golden            à inspecter  branche lot/w6-golden absente du distant
 ```
