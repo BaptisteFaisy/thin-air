@@ -69,6 +69,42 @@ rappel des poids (mesurés sur les fichiers réels) :
   fichiers d'exécution effectivement publiés : 14937482 octets (14.94 Mo)
 ```
 
+## L'origine unique (AIR-N-01) — un code tiers servi n'est pas un appel réseau
+
+**La règle** : le site sert lui-même le code de vision et son moteur
+d'exécution — `models/wasm/*.js`, `assets/vision_bundle-*.js` et
+`assets/analysis-worker-*.js` (le worker importe le paquet MediaPipe
+statiquement, donc les mêmes chaînes y sont embarquées). Les URL que ce code
+porte en clair — le journal de télémétrie `odml.pa.googleapis.com/v1/log`,
+l'hébergeur `storage.googleapis.com/…`, les en-têtes de licence emscripten —
+sont des **chaînes**, pas des requêtes : ce site passe au paquet un chemin
+LOCAL (`models/hand_landmarker.task`, `models/wasm`), donc aucune n'est
+ouverte. La preuve que rien ne sort du navigateur n'est pas une lecture de
+texte : c'est **le journal réseau du navigateur de test** (recette §18,
+`scripts/preuves/chargement.mjs`) et l'E2E, qui coupe tout et compte les
+requêtes.
+
+`scripts/check-dist.mjs` applique cette distinction : il exclut du contrôle des
+origines le code tiers servi par le site — en imprimant à chaque exécution la
+liste des fichiers exclus ET la raison — et fait échouer le build si une vraie
+origine tierce apparaît dans NOTRE code. Sortie réelle après correction, sur le
+site construit avec les deux variantes de wasm :
+
+```
+12 fichier(s) publié(s) : aucune origine tierce, aucun fichier sonore
+  code tiers servi par le site, hors contrôle des origines : apps/web/dist/assets/analysis-worker-Ct7hh_9P.js — worker d'analyse — le paquet MediaPipe y est importé statiquement, les mêmes chaînes Google y sont inaccessibles pour la même raison (chemin LOCAL)
+  code tiers servi par le site, hors contrôle des origines : apps/web/dist/assets/vision_bundle-CW6lxI94.js — paquet MediaPipe découpé par Vite — adresse d'hébergeur de Google (téléchargement par NOM de modèle), jamais résolue : ce site passe un chemin LOCAL
+  code tiers servi par le site, hors contrôle des origines : apps/web/dist/models/wasm/vision_wasm_internal.js — chargeur emscripten servi par le site (vision_wasm_internal.js et vision_wasm_module_internal.js) — URL de licence et de commentaires, jamais résolues
+  code tiers servi par le site, hors contrôle des origines : apps/web/dist/models/wasm/vision_wasm_module_internal.js — chargeur emscripten servi par le site (vision_wasm_internal.js et vision_wasm_module_internal.js) — URL de licence et de commentaires, jamais résolues
+  autorisée : http://www.w3.org/ — espace de noms XML, SVG et MathML
+  …
+```
+
+Le test `scripts/check-dist.test.ts` prouve les deux sens : une origine tierce
+dans notre code fait échouer le contrôle (exit 1, en nommant l'hôte et le
+fichier), et une chaîne Google dans le paquet MediaPipe est ignorée mais dite
+dans la liste imprimée (exit 0).
+
 ## Recommandation
 
 **Premier chargement : publier la variante NON-module seule**

@@ -7,10 +7,23 @@
  *             le modèle et son moteur d'exécution sont servis par lui.
  *   AIR-F-25  aucun fichier sonore publié : tout est synthétisé.
  *
- * Les URL absolues qui restent dans un bundle minifié ne sont pas toutes des
- * requêtes : les espaces de noms XML/SVG et les identifiants de schéma ou de
- * licence sont des chaînes, jamais ouvertes sur le réseau. Elles sont listées
- * dans AUTORISEES, avec leur raison — une nouvelle entrée doit être justifiée.
+ * Deux sortes d'URL absolues survivent dans un bundle minifié, et une seule est
+ * une requête :
+ *
+ *   - les identifiants : espaces de noms XML/SVG/MathML, schémas JSON,
+ *     licences, aide en ligne. Des chaînes qu'on cite sans jamais les joindre
+ *     → AUTORISEES ;
+ *   - le code tiers que le site sert lui-même : le paquet MediaPipe et son
+ *     chargeur emscripten. Leurs chaînes internes (journal de télémétrie,
+ *     hébergeur de modèles, commentaires de licence) ne sont jamais demandées
+ *     par ce site, qui passe un chemin LOCAL au paquet → EXCLUSIONS, avec la
+ *     raison écrite ci-dessous.
+ *
+ * Ce qui reste — un `https://` vers un autre hôte dans NOTRE code — est une
+ * vraie origine tierce, et fait échouer le contrôle. Ce script prouve donc que
+ * NOTRE code ne part sur aucune origine tierce ; la preuve que rien ne sort du
+ * navigateur à l'exécution (AIR-N-01) est le journal réseau du navigateur de
+ * test (recette §18) et l'E2E, qui coupe tout et compte les requêtes.
  *
  * Usage : node scripts/check-dist.mjs [dossier-dist]
  */
@@ -41,26 +54,37 @@ const EXTENSIONS_SONORES = new Set([
 const EXTENSIONS_TEXTE = new Set([".html", ".js", ".mjs", ".css", ".json", ".svg", ".map"]);
 
 /**
- * Code tiers que le site sert lui-même, exclu du contrôle des ORIGINES (jamais
- * du contrôle des fichiers sonores) :
+ * Code tiers que le site sert lui-même, exclu du contrôle des ORIGINES —
+ * jamais du contrôle des fichiers sonores. La raison de chaque exclusion est
+ * écrite ici et imprimée à chaque exécution : l'exception reste un fait
+ * vérifiable, pas un blanc-seing.
  *
- *  - `models/wasm/` : le chargeur emscripten du modèle. Ses en-têtes de licence
- *    et ses commentaires contiennent des dizaines d'URL qui ne sont jamais
- *    résolues.
- *  - `vision_bundle-*.js` : le paquet MediaPipe, découpé par Vite. Il contient
- *    l'adresse d'un hébergeur de modèles de Google, utilisée par MediaPipe quand
- *    on lui donne un NOM de modèle à télécharger. Ce site lui donne un chemin
- *    LOCAL (`models/hand_landmarker.task`), donc cette adresse n'est jamais
- *    résolue — mais un contrôle purement textuel ne peut pas le prouver.
- *
- * Ce que ce script prouve : NOTRE code ne part sur aucune origine tierce. Ce
- * qui reste à prouver à l'exécution — rien ne sort du navigateur, AIR-N-01 —
- * l'est par le journal réseau du navigateur de test (recette §18) et par le test
- * E2E, qui coupe tout et compte les requêtes.
+ * `models/wasm/` couvre les DEUX variantes du chargeur emscripten que le paquet
+ * fournit — `vision_wasm_internal.js` (chargée par le délégué GPU comme par le
+ * processeur) et `vision_wasm_module_internal.js` (la variante `module_internal`,
+ * conservée seulement par `--all`, `useWasmModule: true` à venir) : leurs
+ * en-têtes de licence et leurs commentaires portent des dizaines d'URL qui ne
+ * sont jamais résolues.
  */
-const HORS_ORIGINES = ["models/wasm/", `vision_bundle-`];
+const EXCLUSIONS = [
+  [
+    "models/wasm/",
+    "chargeur emscripten servi par le site (vision_wasm_internal.js et " +
+      "vision_wasm_module_internal.js) — URL de licence et de commentaires, jamais résolues",
+  ],
+  [
+    "vision_bundle-",
+    "paquet MediaPipe découpé par Vite — adresse d'hébergeur de Google (téléchargement " +
+      "par NOM de modèle), jamais résolue : ce site passe un chemin LOCAL",
+  ],
+  [
+    "analysis-worker-",
+    "worker d'analyse — le paquet MediaPipe y est importé statiquement, les mêmes " +
+      "chaînes Google y sont inaccessibles pour la même raison (chemin LOCAL)",
+  ],
+];
 
-/** Les fichiers exclus du contrôle des origines sont dits, jamais passés sous silence. */
+/** Les fichiers exclus du contrôle des origines, chacun avec sa raison. */
 const exclus = [];
 
 async function* fichiers(dossier) {
@@ -101,8 +125,9 @@ for await (const chemin of fichiers(dist)) {
   if (EXTENSIONS_SONORES.has(ext)) sonores.push(relative(racine, chemin));
   if (!EXTENSIONS_TEXTE.has(ext)) continue;
   const relatif = relative(racine, chemin);
-  if (HORS_ORIGINES.some((motif) => relatif.includes(motif))) {
-    exclus.push(relatif);
+  const exclu = EXCLUSIONS.find(([motif]) => relatif.includes(motif));
+  if (exclu !== undefined) {
+    exclus.push([relatif, exclu[1]]);
     continue;
   }
   let texte;
@@ -134,8 +159,8 @@ if (sonores.length > 0) {
 if (echec) process.exit(1);
 
 process.stdout.write(`${comptes} fichier(s) publié(s) : aucune origine tierce, aucun fichier sonore\n`);
-for (const fichier of exclus.sort()) {
-  process.stdout.write(`  code tiers servi par le site, hors contrôle des origines : ${fichier}\n`);
+for (const [fichier, raison] of exclus.sort()) {
+  process.stdout.write(`  code tiers servi par le site, hors contrôle des origines : ${fichier} — ${raison}\n`);
 }
 for (const [prefixe, raison] of AUTORISEES) {
   process.stdout.write(`  autorisée : ${prefixe} — ${raison}\n`);
