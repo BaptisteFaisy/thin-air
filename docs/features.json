@@ -4,7 +4,8 @@
   "regle": "Une fonctionnalité non listée n'existe pas ; une fonctionnalité listée sans preuve n'est pas livrée.",
   "exceptions": [
     { "fichier": "apps/web/src/ui/Controls.tsx", "raison": "briques de formulaire génériques (Field, Slider, Toggle…), montées par plusieurs écrans : ce ne sont pas des surfaces" },
-    { "fichier": "apps/web/src/App.tsx", "raison": "la coquille de l'application : elle branche les écrans, elle n'en montre aucun seule" }
+    { "fichier": "apps/web/src/App.tsx", "raison": "la coquille de l'application : elle branche les écrans, elle n'en montre aucun seule" },
+    { "fichier": "apps/web/src/ui/PasCeQue.tsx", "raison": "la page « ce que ce projet n'est pas » : elle dit les exclusions et les limites du cahier (§13.4), elle ne livre aucune des 58 exigences fonctionnelles que la liste décrit" }
   ],
   "ecrans": [
     { "id": "accueil", "nom": "Accueil", "ancres": [{ "fichier": "apps/web/src/ui/Home.tsx", "symbole": "Home" }] },
