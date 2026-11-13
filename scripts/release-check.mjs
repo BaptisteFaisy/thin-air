@@ -33,10 +33,10 @@ import { spawnSync } from "node:child_process";
 import { pathToFileURL } from "node:url";
 
 /** L'adresse publique du site (GitHub Pages, base `/thin-air/`). */
-export const URL_PUBLIQUE = "https://baptistefaisy.github.io/thin-air/";
+export const URL_PUBLIQUE = "https://tradoooo.github.io/thin-air/";
 
 /** L'API GitHub du dépôt : seule autre origine autorisée. */
-export const API_GITHUB = "https://api.github.com/repos/BaptisteFaisy/thin-air";
+export const API_GITHUB = "https://api.github.com/repos/Tradoooo/thin-air";
 
 /** Le dossier du site construit par Vite. */
 export const DOSSIER_BUNDLE = "apps/web/dist";

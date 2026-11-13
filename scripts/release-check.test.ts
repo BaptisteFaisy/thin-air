@@ -153,7 +153,7 @@ describe("les morceaux du contrat", () => {
 
   it("les références de la page publique sont relatives au site", () => {
     const html = '<script src="/thin-air/assets/index-abc.js"></script><link href="/thin-air/a.css">';
-    expect(referencesHtml(html, "https://baptistefaisy.github.io/thin-air/")).toEqual([
+    expect(referencesHtml(html, "https://tradoooo.github.io/thin-air/")).toEqual([
       "a.css",
       "assets/index-abc.js",
     ]);

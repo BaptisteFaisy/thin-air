@@ -46,7 +46,7 @@ fichiers, SHA-256 contre SHA-256 :
 
 - **le bundle construit** — `apps/web/dist`, produit par `npm run build` ;
 - **le bundle servi** — ce que le site public renvoie à
-  `https://baptistefaisy.github.io/thin-air/`.
+  `https://tradoooo.github.io/thin-air/`.
 
 Trois comparaisons, et chacune peut rompre :
 
