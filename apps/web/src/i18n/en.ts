@@ -64,6 +64,7 @@ export const en = {
     calibration: "Calibrate",
     physics: "Show the physics",
     hidePhysics: "Hide the physics",
+    raccourcis: "Keyboard shortcuts",
   },
   hand: {
     left: "left",
@@ -180,6 +181,11 @@ export const en = {
   },
   lessons: {
     link: "What the numbers say",
+  },
+  raccourcis: {
+    action: "Action",
+    touches: "Keys",
+    ecran: "Screen",
   },
   limites: {
     link: "What this project is not",

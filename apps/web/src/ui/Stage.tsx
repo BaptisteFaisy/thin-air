@@ -14,7 +14,7 @@ import { Notices } from "./Notices.js";
 import { SceneCanvas, type FrameRequest } from "../scene/SceneCanvas.js";
 import type { SceneModel } from "../scene/geometry.js";
 
-export type PanelId = "instruments" | "loop" | "calibration" | "settings" | "physics" | null;
+export type PanelId = "instruments" | "loop" | "calibration" | "settings" | "physics" | "raccourcis" | null;
 
 export interface StageProps {
   readonly m: Messages;
@@ -134,6 +134,9 @@ function BarreOutils({ props }: { readonly props: StageProps }): JSX.Element {
         onClick={() => onOpenPanel(openPanel === "physics" ? null : "physics")}
       >
         {openPanel === "physics" ? m.stage.hidePhysics : m.stage.physics}
+      </button>
+      <button type="button" onClick={ouvre("raccourcis")}>
+        {m.stage.raccourcis}
       </button>
     </nav>
   );

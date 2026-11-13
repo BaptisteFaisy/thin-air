@@ -67,6 +67,12 @@ jobs:
       - name: Gardes du projet (fichiers sonores, vocabulaire, prises)
         run: node scripts/hooks/run-all-guards.mjs
 
+      # Le manifeste des raccourcis clavier (`docs/raccourcis.json`) est une
+      # source de vérité : il doit rester conforme au code et au cahier
+      # (aucune touche en conflit, aucun raccourci du navigateur masqué).
+      - name: Raccourcis clavier (le manifeste est-il conforme ?)
+        run: node scripts/check-raccourcis.mjs
+
       - name: Tests des gardes CI (périmètre, conflit, réparation)
         run: |
           python3 .github/couche0/test_check_couche0.py

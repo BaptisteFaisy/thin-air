@@ -14,6 +14,7 @@ import { LoopPanel } from "./LoopPanel.js";
 import { CalibrationPanel } from "./CalibrationPanel.js";
 import { PhysicsPanel } from "./PhysicsPanel.js";
 import { SettingsPanel } from "./SettingsPanel.js";
+import { RaccourcisPanel } from "./RaccourcisPanel.js";
 
 export interface PanelHandlers {
   readonly onUse: (instrument: Instrument) => void;

@@ -1,0 +1,150 @@
+{
+  "version": 1,
+  "regle": {
+    "fr": "Un raccourci par action, jamais deux : dans un contexte donné, une touche appartient à une seule action.",
+    "en": "One shortcut per action, never two: in a given context, a key belongs to a single action."
+  },
+  "ecrans": [
+    { "id": "accueil", "libelle": { "fr": "Accueil", "en": "Home" } },
+    { "id": "jeu", "libelle": { "fr": "Séance", "en": "Session" } },
+    { "id": "tous", "libelle": { "fr": "Tous les écrans", "en": "Every screen" } }
+  ],
+  "actions": [
+    {
+      "id": "pointeur-jouer-corde",
+      "touches": ["A", "S", "D", "F", "G", "H", "J", "K", "L", "M", "Q", "W", "E", "R", "T", "Y"],
+      "ecran": "jeu",
+      "contexte": "pointeur",
+      "libelle": { "fr": "Pincer une corde ou une zone", "en": "Pluck a string or a zone" },
+      "raison": { "fr": "", "en": "" }
+    },
+    {
+      "id": "pointeur-deplacer-main",
+      "touches": ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"],
+      "ecran": "jeu",
+      "contexte": "pointeur",
+      "libelle": { "fr": "Déplacer la main du pointeur", "en": "Move the pointer hand" },
+      "raison": { "fr": "", "en": "" }
+    },
+    {
+      "id": "pointeur-reprendre-le-son",
+      "touches": ["P"],
+      "ecran": "jeu",
+      "contexte": "pointeur",
+      "libelle": { "fr": "Reprendre le son du moteur suspendu", "en": "Resume the suspended audio engine" },
+      "raison": { "fr": "", "en": "" }
+    },
+    {
+      "id": "navigation-controle-suivant",
+      "touches": ["Tab"],
+      "ecran": "tous",
+      "contexte": "navigation",
+      "libelle": { "fr": "Aller au contrôle suivant", "en": "Move to the next control" },
+      "raison": { "fr": "", "en": "" }
+    },
+    {
+      "id": "navigation-controle-precedent",
+      "touches": ["Shift+Tab"],
+      "ecran": "tous",
+      "contexte": "navigation",
+      "libelle": { "fr": "Revenir au contrôle précédent", "en": "Move back to the previous control" },
+      "raison": { "fr": "", "en": "" }
+    },
+    {
+      "id": "navigation-activer",
+      "touches": ["Enter", "Space"],
+      "ecran": "tous",
+      "contexte": "navigation",
+      "libelle": { "fr": "Activer le contrôle qui a le focus", "en": "Activate the focused control" },
+      "raison": { "fr": "", "en": "" }
+    },
+    {
+      "id": "accueil-demarrer-camera",
+      "touches": [],
+      "ecran": "accueil",
+      "contexte": "accueil",
+      "libelle": { "fr": "Démarrer avec la caméra", "en": "Start with the camera" },
+      "raison": {
+        "fr": "Pas de raccourci : le bouton « Commencer » est le premier focus de la page, et Tabulation puis Entrée suffisent. Une touche dédiée risquerait de masquer un raccourci du navigateur.",
+        "en": "No shortcut: the “Start” button is the first focus of the page, and Tab then Enter are enough. A dedicated key would risk masking a browser shortcut."
+      }
+    },
+    {
+      "id": "accueil-jouer-sans-camera",
+      "touches": [],
+      "ecran": "accueil",
+      "contexte": "accueil",
+      "libelle": { "fr": "Jouer sans caméra", "en": "Play without a camera" },
+      "raison": {
+        "fr": "Pas de raccourci : le second bouton de l'accueil est atteint par Tabulation, comme tous les boutons de la page.",
+        "en": "No shortcut: the second button of the home screen is reached by tabbing, like every button on the page."
+      }
+    },
+    {
+      "id": "jeu-ouvrir-instruments",
+      "touches": [],
+      "ecran": "jeu",
+      "contexte": "barre-outils",
+      "libelle": { "fr": "Ouvrir les instruments", "en": "Open the instruments" },
+      "raison": {
+        "fr": "Pas de raccourci : bouton de la barre d'outils, atteint au clavier par Tabulation puis Entrée. L'application ne prend jamais Ctrl, Méta ni Alt — ils appartiennent au navigateur et au système.",
+        "en": "No shortcut: a toolbar button, reached with the keyboard by tabbing then pressing Enter. The app never takes Ctrl, Meta or Alt — they belong to the browser and the system."
+      }
+    },
+    {
+      "id": "jeu-ouvrir-boucle",
+      "touches": [],
+      "ecran": "jeu",
+      "contexte": "barre-outils",
+      "libelle": { "fr": "Ouvrir la boucle", "en": "Open the loop" },
+      "raison": {
+        "fr": "Pas de raccourci : bouton de la barre d'outils, atteint au clavier par Tabulation puis Entrée.",
+        "en": "No shortcut: a toolbar button, reached with the keyboard by tabbing then pressing Enter."
+      }
+    },
+    {
+      "id": "jeu-calibrer",
+      "touches": [],
+      "ecran": "jeu",
+      "contexte": "barre-outils",
+      "libelle": { "fr": "Calibrer la zone de jeu", "en": "Calibrate the play area" },
+      "raison": {
+        "fr": "Pas de raccourci : la calibration demande de rester devant l'écran pendant un compte à rebours ; un raccourci unique la déclencherait par accident.",
+        "en": "No shortcut: calibration asks you to stay in front of the screen during a countdown; a single key would trigger it by accident."
+      }
+    },
+    {
+      "id": "jeu-reglages",
+      "touches": [],
+      "ecran": "jeu",
+      "contexte": "barre-outils",
+      "libelle": { "fr": "Ouvrir les réglages", "en": "Open the settings" },
+      "raison": {
+        "fr": "Pas de raccourci : bouton de la barre d'outils, atteint au clavier par Tabulation puis Entrée.",
+        "en": "No shortcut: a toolbar button, reached with the keyboard by tabbing then pressing Enter."
+      }
+    },
+    {
+      "id": "jeu-physique",
+      "touches": [],
+      "ecran": "jeu",
+      "contexte": "barre-outils",
+      "libelle": { "fr": "Montrer ou masquer la physique", "en": "Show or hide the physics" },
+      "raison": {
+        "fr": "Pas de raccourci : bouton de la barre d'outils, atteint au clavier par Tabulation puis Entrée.",
+        "en": "No shortcut: a toolbar button, reached with the keyboard by tabbing then pressing Enter."
+      }
+    },
+    {
+      "id": "jeu-ouvrir-raccourcis",
+      "touches": [],
+      "ecran": "jeu",
+      "contexte": "barre-outils",
+      "libelle": { "fr": "Ouvrir la liste des raccourcis", "en": "Open the list of shortcuts" },
+      "raison": {
+        "fr": "Pas de raccourci : ce panneau s'ouvre par son bouton de la barre d'outils, pour que la liste reste lisible sans masquer le jeu.",
+        "en": "No shortcut: this panel opens from its toolbar button, so the list stays readable without covering the play."
+      }
+    }
+  ]
+}
