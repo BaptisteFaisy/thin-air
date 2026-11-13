@@ -28,6 +28,7 @@ import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { basename, join, resolve } from "node:path";
 import { URL_DEFAUT, jsPrincipal, normalise } from "./sonde-dispo.mjs";
+import { tailleServeur } from "./lib/taille.mjs";
 
 /** Base publique du site (celle de `apps/web/vite.config.ts`). */
 const BASE_PUBLIQUE = "/thin-air/";
@@ -160,27 +161,16 @@ async function bundlePublic(url) {
   return { octets, sha: sha256(octets) };
 }
 
-/**
- * La taille d'une ressource servie, sans la télécharger : une plage d'un
- * octet suffit — la réponse dit la taille totale. `null` quand l'hébergeur
- * ne la donne pas (réponse sans Content-Length ni Content-Range).
- */
-async function tailleServeur(url) {
-  const reponse = await interroge(url, { headers: { Range: "bytes=0-0" } });
-  const entete = reponse.headers.get("content-range") ?? "";
-  const total = entete.includes("/") ? Number(entete.slice(entete.lastIndexOf("/") + 1)) : 0;
-  const longueur = Number(reponse.headers.get("content-length") ?? 0);
-  await reponse.body?.cancel().catch(() => {});
-  if (total > 0) return { statut: reponse.status, taille: total };
-  if (reponse.status === 200) return { statut: reponse.status, taille: longueur || null };
-  return { statut: reponse.status, taille: null };
-}
-
 /** Le modèle et son moteur d'exécution doivent être servis, non vides. */
 async function verifieRessources(base) {
   for (const chemin of CHEMINS_SERVIS) {
     const url = new URL(chemin, base).toString();
-    const mesure = await tailleServeur(url);
+    let mesure;
+    try {
+      mesure = await tailleServeur(url);
+    } catch (erreur) {
+      throw new ReseauIndisponible(`${url} : ${erreur.message}`);
+    }
     if (mesure.statut !== 200 && mesure.statut !== 206) {
       throw new Ecart(`${chemin} n'est pas servi par le site public (HTTP ${mesure.statut})`);
     }
