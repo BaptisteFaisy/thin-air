@@ -25,16 +25,17 @@ concurrency:
 jobs:
   ci-budget:
     name: ci-budget
-    runs-on: [self-hosted, thin-air-worker]
+    runs-on: ubuntu-latest
     timeout-minutes: 5
-    env:
-      # Runner auto-hébergé : node vit dans l'espace utilisateur.
-      PATH: /home/baptiste/bin:/usr/local/bin:/usr/bin:/bin
     steps:
       - name: Checkout (superficiel)
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
           persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
       - name: Vérifier le budget de 5 min par job
         run: node scripts/check-budget.mjs
