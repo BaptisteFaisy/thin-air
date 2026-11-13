@@ -20,6 +20,10 @@ import { BenchError, UsageError, isUnavailableContract } from "./errors.js";
 
 export interface TakeSchemaModule {
   readonly parseTake: (json: unknown) => ParseResult<Take>;
+  /** La règle de vie privée : une prise ne porte que des points (§7.11). */
+  readonly assertTakePrivacy: (json: unknown) => ParseResult<true>;
+  /** L'écriture JSON compacte d'une prise : la seule du dépôt (§7.11). */
+  readonly compactTakeJson: (take: Take, decimals?: number) => string;
 }
 
 export interface InstrumentSchemaModule {

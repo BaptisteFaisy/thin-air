@@ -4,9 +4,17 @@
  * la raison, jamais un silence.
  */
 import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
+import { basename, dirname, extname, resolve } from "node:path";
 
 import { UsageError } from "./errors.js";
+
+/**
+ * Le nom d'une prise dans un rapport : le nom du fichier, sans extension.
+ * Le chemin ne suit pas — un rapport ne porte pas de chemin personnel.
+ */
+export function takeLabel(path: string): string {
+  return basename(path, extname(path));
+}
 
 /** Texte d'un fichier ; chemin et raison en cas d'échec. */
 export function readTextFile(path: string): string {
