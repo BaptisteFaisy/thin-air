@@ -152,7 +152,12 @@ jobs:
         run: |
           set -euo pipefail
           echo "::notice::E2E non requis : son absence de rouge n'invalide aucun lot."
-          npx --no-install playwright test --reporter=dot
+          # `--config` est obligatoire : sans lui, Playwright cherche ses specs
+          # depuis la racine du dépôt et ramasse les fichiers `*.test.ts` de
+          # Vitest — qui ne sont pas des tests Playwright. Le job échouait
+          # alors sur « Vitest failed to access its internal state », un
+          # message qui ne disait rien du site.
+          npx --no-install playwright test --config apps/web/playwright.config.ts --reporter=dot
 
       - name: Rien à faire (pas d'outil E2E)
         if: steps.sonde.outputs.present != '1'
@@ -212,8 +217,28 @@ jobs:
           fi
           printf 'Chromium en cache : %s\n' "${trouves[@]}"
 
+      # Le modèle de vision n'est pas versionné : il est téléchargé par le
+      # script du dépôt (seule requête réseau autorisée, AIR-N-01 §11.9).
+      # Sans lui, le site construit n'a pas de modèle à servir : la preuve
+      # AIR-F-54 recevait alors la page d'accueil (734 octets) au lieu des
+      # 7,8 Mo du modèle, et l'échec disait « 734 octets » sans dire pourquoi.
+      - name: Modèle de vision (servi par le site, jamais par un tiers)
+        run: npm run fetch-model
+
       - name: Build du site (vite)
         run: npm run build
+
+      # Constat net : pas de modèle dans le construit, la preuve AIR-F-54
+      # échouera sur une taille aberrante. Mieux vaut un message ici.
+      - name: Le modèle est-il dans le site construit ?
+        run: |
+          set -euo pipefail
+          if [ ! -f apps/web/dist/models/hand_landmarker.task ]; then
+            echo "::error::apps/web/dist/models/hand_landmarker.task absent — fetch-model n'a rien produit."
+            exit 1
+          fi
+          du -sh apps/web/dist/models
+          ls -l apps/web/dist/models
 
       # Specs de bout en bout : journal réseau (AIR-N-01), aucun son
       # (--mute-audio, AIR-N-02), axe-core sur les huit écrans du §12.4.
