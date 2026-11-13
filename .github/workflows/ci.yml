@@ -27,11 +27,10 @@ permissions:
 jobs:
   ci:
     name: ci
-    runs-on: [self-hosted, linux, x64, thin-air-worker]
+    runs-on: ubuntu-latest
     timeout-minutes: 5
     env:
       # Runner auto-hébergé : node/npm vivent en espace utilisateur.
-      PATH: /home/baptiste/bin:/usr/local/bin:/usr/bin:/bin
       # Playwright est une dépendance de développement pour les preuves de bout
       # en bout, qui tournent sur le poste et non dans la CI des PR : sans cet
       # arrêt, `npm ci` télécharge les navigateurs et le budget de 5 min saute.
@@ -48,6 +47,10 @@ jobs:
       # Runners persistants : un reste d'un run précédent fausserait le
       # contrôle des fichiers sonores. `node_modules` est conservé (il est
       # régénéré par `npm ci` juste après).
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
       - name: Nettoyage du workspace
         # Les dossiers de runner sont exclus explicitement (docs/runners.md).
         run: git clean -ffdx -e node_modules -e 'actions-runner-*' -e '_work*'
@@ -85,10 +88,8 @@ jobs:
   # pur (AIR-N-01, AIR-N-02).
   format:
     name: format
-    runs-on: [self-hosted, linux, x64, thin-air-worker]
+    runs-on: ubuntu-latest
     timeout-minutes: 5
-    env:
-      PATH: /home/baptiste/bin:/usr/local/bin:/usr/bin:/bin
     steps:
       - uses: actions/checkout@v4
         with:
@@ -96,6 +97,10 @@ jobs:
           persist-credentials: false
           clean: false
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
       - name: Nettoyage du workspace
         run: git clean -ffdx -e node_modules
 
