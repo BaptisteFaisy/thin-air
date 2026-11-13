@@ -27,8 +27,6 @@ jobs:
     name: ci-budget
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    env:
-      # Runner auto-hébergé : node vit dans l'espace utilisateur.
     steps:
       - name: Checkout (superficiel)
         uses: actions/checkout@v4
