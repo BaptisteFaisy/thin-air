@@ -146,7 +146,7 @@ describe("check-runner-safety.mjs — les runners", () => {
   const inventaire: Runner[] = [
     {
       nom: "r630-thin-air-04",
-      depot: "BaptisteFaisy/thin-air",
+      depot: "Tradoooo/thin-air",
       machine: "r630",
       dossier: "actions-runner-thin-air-04",
     },
@@ -178,6 +178,6 @@ describe("check-runner-safety.mjs — les runners", () => {
 
   it("inventorie le runner de ce dépôt", () => {
     expect(controle.INVENTAIRE.map((r) => r.dossier)).toContain("actions-runner-thin-air-04");
-    expect(controle.INVENTAIRE[0]?.depot).toBe("BaptisteFaisy/thin-air");
+    expect(controle.INVENTAIRE[0]?.depot).toBe("Tradoooo/thin-air");
   });
 });
