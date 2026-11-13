@@ -16,7 +16,18 @@ export interface PointerState {
   hovered: number | null;
 }
 
-const TOUCHES = ["a", "s", "d", "f", "g", "h", "j", "k", "l", "m", "q", "w", "e", "r", "t", "y"];
+/**
+ * Les touches qui pincent une corde ou une zone (mode pointeur, §7.5).
+ * Exported pour que le manifeste des raccourcis (`docs/raccourcis.json`) soit
+ * comparable au code : le test lit les deux et refuse qu'ils divergent.
+ */
+export const TOUCHES_CORDE = ["a", "s", "d", "f", "g", "h", "j", "k", "l", "m", "q", "w", "e", "r", "t", "y"];
+
+/** La touche qui reprend le son d'un moteur audio suspendu par le navigateur. */
+export const TOUCHE_SON = "p";
+
+/** Les flèches qui déplacent la main du pointeur. */
+export const TOUCHES_FLECHES = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"];
 const PAS_FLECHE = 0.04;
 
 export interface PointerOptions {
@@ -59,7 +70,7 @@ export function usePointerHands(
         bougerFleches(etat.current, touche);
         return;
       }
-      const index = TOUCHES.indexOf(touche);
+      const index = TOUCHES_CORDE.indexOf(touche);
       if (index >= 0) optionsRef.current.onPluck(index);
     };
     element.addEventListener("pointermove", mouvement);
@@ -97,5 +108,5 @@ export function indexVise(instrument: Instrument, u: number, v: number): number 
 /** Nombre de touches de jeu disponibles pour cet instrument. */
 export function playableKeys(instrument: Instrument): number {
   const forme = shapeOf(instrument);
-  return Math.min(TOUCHES.length, forme.kind === "range" ? TOUCHES.length : forme.count);
+  return Math.min(TOUCHES_CORDE.length, forme.kind === "range" ? TOUCHES_CORDE.length : forme.count);
 }

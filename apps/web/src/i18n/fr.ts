@@ -60,6 +60,7 @@ export const fr: Messages = {
     calibration: "Calibrer",
     physics: "Montrer la physique",
     hidePhysics: "Masquer la physique",
+    raccourcis: "Raccourcis clavier",
   },
   hand: {
     left: "gauche",
@@ -177,6 +178,11 @@ export const fr: Messages = {
   },
   lessons: {
     link: "Ce que disent les nombres",
+  },
+  raccourcis: {
+    action: "Action",
+    touches: "Touches",
+    ecran: "Écran",
   },
   limites: {
     link: "Ce que ce projet n'est pas",

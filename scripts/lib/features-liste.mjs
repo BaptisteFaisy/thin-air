@@ -101,22 +101,35 @@ export function exportsDe(texte) {
   return symbols;
 }
 
+/**
+ * Les constantes qui portent le nom d'un paramètre d'adresse.
+ *
+ * `KIOSK_PARAM = "kiosk"` est un paramètre d'adresse ; `TOUCHE_SON = "p"` est
+ * une touche du jeu. Sans cette distinction, la touche serait prise pour une
+ * route et la couverture la réclamerait à tort.
+ */
+const NOM_PARAMETRE = /(?:^|_)(?:PARAM|ROUTE|URL|QUERY|OPTION)(?:_|$)/;
+
 /** Les paramètres d'adresse réellement lus par l'application. */
 export function decouvrirRoutes(racine) {
   const routes = new Map();
+  /** Ajoute une route lue par un fichier, avec le fichier qui la lit. */
+  const ajoute = (nom, origine) => {
+    const liste = routes.get(nom) ?? [];
+    liste.push(origine);
+    routes.set(nom, liste);
+  };
   for (const chemin of sourcesDuFront(racine)) {
     const texte = lireTexte(chemin) ?? "";
     const origine = relative(racine, chemin);
-    for (const motif of [
-      /\.get\(\s*"([a-z][a-zA-Z0-9_-]*)"\s*\)/g,
-      /(?:export\s+)?const\s+[A-Z][A-Z0-9_]*\s*=\s*"([a-z][a-zA-Z0-9_-]*)"/g,
-    ]) {
-      for (const trouve of texte.matchAll(motif)) {
-        const nom = trouve[1];
-        const liste = routes.get(nom) ?? [];
-        liste.push(origine);
-        routes.set(nom, liste);
-      }
+    // Un paramètre lu en clair : `parametres.get("lang")`.
+    for (const trouve of texte.matchAll(/\.get\(\s*"([a-z][a-zA-Z0-9_-]*)"\s*\)/g)) {
+      ajoute(trouve[1], origine);
+    }
+    // Un paramètre porté par une constante : `KIOSK_PARAM = "kiosk"`.
+    for (const trouve of texte.matchAll(/(?:export\s+)?const\s+([A-Z][A-Z0-9_]*)\s*=\s*"([a-z][a-zA-Z0-9_-]*)"/g)) {
+      if (!NOM_PARAMETRE.test(trouve[1])) continue;
+      ajoute(trouve[2], origine);
     }
   }
   return routes;
