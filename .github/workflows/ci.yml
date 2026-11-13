@@ -75,3 +75,29 @@ jobs:
           python3 .github/fireworks/test_scope_agent.py
           python3 .github/fireworks/test_union_journal.py
           python3 .github/fireworks/test_quota.py
+
+  # Le formatage (retours à la ligne, indentation, UTF-8, coupe finale) est
+  # vérifié sur les fichiers texte du dépôt par le script sans dépendance
+  # `scripts/check-format.mjs`, qui lit les règles de `.editorconfig`. Les
+  # fichiers écrits avant l'adoption de la règle sont signalés sans bloquer
+  # (`scripts/format-heritage.txt`) : tout fichier nouveau ou modifié est
+  # vérifié normalement. Aucun réseau, aucun `npm ci` : le script est du Node
+  # pur (AIR-N-01, AIR-N-02).
+  format:
+    name: format
+    runs-on: [self-hosted, linux, x64, thin-air-worker]
+    timeout-minutes: 5
+    env:
+      PATH: /home/baptiste/bin:/usr/local/bin:/usr/bin:/bin
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+          clean: false
+
+      - name: Nettoyage du workspace
+        run: git clean -ffdx -e node_modules
+
+      - name: Formatage (règles de .editorconfig)
+        run: node scripts/check-format.mjs
