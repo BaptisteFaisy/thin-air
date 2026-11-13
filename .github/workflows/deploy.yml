@@ -72,14 +72,71 @@ jobs:
         with:
           path: apps/web/dist
 
+      # Le bundle construit, mis de côté pour la vérification d'après coup :
+      # `verifier-publication` le télécharge et compare son SHA-256 à celui
+      # que le site public sert (incident du bundle de 9 Kio servi des heures).
+      - name: Bundle construit (vérification après publication)
+        uses: actions/upload-artifact@v4
+        with:
+          name: bundle-publie
+          path: |
+            apps/web/dist/index.html
+            apps/web/dist/assets
+          retention-days: 1
+
   deploy:
     name: deploy
     needs: build
     runs-on: [self-hosted, linux, x64, thin-air-worker]
     timeout-minutes: 5
+    outputs:
+      url: ${{ steps.publication.outputs.page_url }}
     environment:
       name: github-pages
       url: ${{ steps.publication.outputs.page_url }}
     steps:
       - id: publication
         uses: actions/deploy-pages@v4
+
+  # ---------------------------------------------------------------------------
+  # 3. Vérification APRÈS publication : le site public sert-il exactement le
+  #    bundle construit ? (la publication est un effet de bord, pas un espoir.)
+  # ---------------------------------------------------------------------------
+  verifier-publication:
+    name: verifier-publication
+    needs: [build, deploy]
+    runs-on: [self-hosted, linux, x64, thin-air-worker]
+    timeout-minutes: 5
+    env:
+      PATH: /home/baptiste/bin:/usr/local/bin:/usr/bin:/bin
+      PULSE_AUDIO: 0
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+          clean: false
+
+      # Le bundle construit par le job `build`, téléchargé tel quel : aucun
+      # rebuild, on compare les octets réellement publiés.
+      - name: Bundle construit (publié par le job build)
+        uses: actions/download-artifact@v4
+        with:
+          name: bundle-publie
+          path: apps/web/dist
+
+      # La publication peut mettre quelques secondes à se propager : on laisse
+      # à l'hébergeur le temps de servir le nouveau bundle, puis on tranche.
+      - name: Le site public sert-il exactement le bundle construit ?
+        run: |
+          set -uo pipefail
+          for essai in 1 2 3 4 5 6; do
+            if node scripts/check-deployed.mjs --url "${{ needs.deploy.outputs.url }}"; then
+              echo "publication vérifiée (essai $essai) : le site public sert le bundle construit"
+              exit 0
+            fi
+            echo "::notice::le site public ne sert pas encore le bundle construit (essai $essai/6)"
+            sleep 20
+          done
+          echo "::error::publication non vérifiée : le site public ne sert pas le bundle construit"
+          exit 1
