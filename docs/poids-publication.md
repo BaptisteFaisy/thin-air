@@ -105,6 +105,26 @@ dans notre code fait échouer le contrôle (exit 1, en nommant l'hôte et le
 fichier), et une chaîne Google dans le paquet MediaPipe est ignorée mais dite
 dans la liste imprimée (exit 0).
 
+**Résultat réel après correction.** Le workflow `deploy` repasse au vert :
+le job « AIR-N-01 et AIR-F-25 — bundle contrôlé avant publication » sort 0, et
+`deploy-pages` publie l'artefact. Le site public sert alors le bundle
+reconstruit, et les deux ressources que la page référence répondent 200 :
+
+```
+$ curl -s -o /dev/null -w "%{http_code} %{size_download}\n" \
+    https://tradoooo.github.io/thin-air/assets/index-BmF7nuv1.js
+200 595776
+$ curl -s -o /dev/null -w "%{http_code} %{size_download}\n" \
+    -r 0-99 https://tradoooo.github.io/thin-air/models/hand_landmarker.task
+206 100
+```
+
+Le bundle fait donc 595 776 octets (0,60 Mo ; 162 510 octets gzip), et le
+modèle répond 206 sur une requête partielle comme sur une requête entière
+(7 819 105 octets). L'ancien bundle, que la nouvelle page ne référence plus,
+répond 404 : la publication par le workflow remplace l'artefact `pages` en
+entier, donc aucune fenêtre ne sert une coquille avec des assets absents.
+
 ## Recommandation
 
 **Premier chargement : publier la variante NON-module seule**
