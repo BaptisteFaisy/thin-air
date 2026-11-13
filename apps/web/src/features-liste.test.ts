@@ -32,6 +32,7 @@ function lancer(liste = LISTE) {
 
 /** La forme de la liste telle que `docs/features.json` la déclare. */
 interface Liste {
+  exceptions: { fichier: string; raison: string }[];
   ecrans: { ancres: { symbole: string }[] }[];
   fonctionnalites: {
     exigence: string;
@@ -103,6 +104,20 @@ describe("la liste des fonctionnalités promises contre le code", () => {
     const verdict = lancer(chemin);
     expect(verdict.code).toBe(1);
     expect(verdict.sortie).toContain("AIR-F-99");
+  });
+
+  it("refuse une route que plus aucune source exceptée ne porte", () => {
+    // La route « ?limites » n'est lue que par la coquille `App.tsx`, exceptée.
+    // Si l'exception disparaît, la route redevient une surface à revendiquer :
+    // la garde doit la nommer au lieu de l'ignorer.
+    const chemin = listeMutee((donnees) => {
+      donnees.exceptions = donnees.exceptions.filter(
+        (exception) => exception.fichier !== "apps/web/src/App.tsx",
+      );
+    });
+    const verdict = lancer(chemin);
+    expect(verdict.code).toBe(1);
+    expect(verdict.sortie).toContain("?limites");
   });
 
   it("refuse une fonctionnalité portée par un écran inconnu", () => {

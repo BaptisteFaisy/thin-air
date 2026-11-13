@@ -347,13 +347,18 @@ function controlerFonctionnalites(racine, fonctionnalites, contexte, ecransConnu
 
 /** Contrôle que le code livré est entièrement revendiqué par la liste. */
 function controlerCouverture(racine, ecrans, fonctionnalites, vues, routes, exceptions, problemes) {
+  const exceptes = new Set(exceptions);
   for (const composant of decouvrirComposants(racine, exceptions)) {
     if (!vues.has(composant)) problemes.push(`le composant livré « ${composant} » n'est dans aucun écran de la liste`);
   }
   for (const [route, origines] of routes) {
-    if (!vues.has(`?${route}`)) {
-      problemes.push(`la route « ?${route} » lue par ${origines[0]} n'est dans aucun écran de la liste`);
-    }
+    if (vues.has(`?${route}`)) continue;
+    // Une route lue par la seule coquille exceptée (App.tsx) n'ouvre aucune
+    // surface propre : la coquille est exceptée précisément parce qu'elle
+    // « branche les écrans, elle n'en montre aucun seule ». Une route portée
+    // par une vraie source ne profite jamais de cette exemption.
+    if (origines.every((origine) => exceptes.has(origine))) continue;
+    problemes.push(`la route « ?${route} » lue par ${origines[0]} n'est dans aucun écran de la liste`);
   }
   for (const ecran of ecrans) {
     if (!fonctionnalites.some((f) => f.ecran === ecran.id)) {
