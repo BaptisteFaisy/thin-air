@@ -20,7 +20,7 @@ ghost glide. Built by an agent that was never allowed to hear it: every
 musical behaviour is a property test on recorded hand movements, rendered to
 a file and measured. Nothing leaves your browser.
 
-Site: https://baptistefaisy.github.io/thin-air/
+Site: https://tradoooo.github.io/thin-air/
 
 ---
 
