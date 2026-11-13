@@ -100,12 +100,14 @@ test("AIR-F-54 — après une première visite, la coquille, le modèle et le wa
   await page.reload();
   await expect(page.locator("h1")).toHaveText("Thin Air");
 
+  // Le modèle et le wasm published : une seule variante de wasm est
+  // préchauffée, celle que le site demande (`vision_wasm_internal.*`). La
+  // variante module n'est demandée par aucun chemin du site (preuve :
+  // docs/poids-publication.md) : la compter ici ferait échouer le test.
   const lourds = [
     MODELE,
     WASM,
     `${ORIGINE}/thin-air/models/wasm/vision_wasm_internal.js`,
-    `${ORIGINE}/thin-air/models/wasm/vision_wasm_module_internal.js`,
-    `${ORIGINE}/thin-air/models/wasm/vision_wasm_module_internal.wasm`,
   ];
   await expect.poll(() => compteEnCache(page, lourds), { timeout: 60_000 }).toBe(lourds.length);
   const coquille = await compteEnCache(page, [`${ORIGINE}/thin-air/`, `${ORIGINE}/thin-air/index.html`]);
