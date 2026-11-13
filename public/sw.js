@@ -39,13 +39,22 @@ const RACINE = new URL("./", self.location).pathname;
 /** La coquille : mise en cache à l'installation, elle est petite et ne bloque rien. */
 const COQUILLE = ["./", "./index.html"];
 
-/** Le modèle et ses fichiers d'exécution : préchauffés en arrière-plan après l'activation. */
+/**
+ * Le modèle et ses fichiers d'exécution : préchauffés en arrière-plan après
+ * l'activation.
+ *
+ * Une seule variante de wasm est préchauffée : celle que le site demande
+ * (`vision_wasm_internal.*`). La variante module
+ * (`vision_wasm_module_internal.*`) n'est demandée par AUCUN chemin du site :
+ * le chargeur ne la prend que si un appel passe `useWasmModule: true`, et
+ * aucun ne le fait (preuve : docs/poids-publication.md, controlée par
+ * `scripts/check-wasm.mjs`). La préchauffer coûterait 14,9 Mo de
+ * téléchargement pour rien, et son absence ferait échouer le contrôle.
+ */
 const LOURDS = [
   "models/hand_landmarker.task",
   "models/wasm/vision_wasm_internal.js",
   "models/wasm/vision_wasm_internal.wasm",
-  "models/wasm/vision_wasm_module_internal.js",
-  "models/wasm/vision_wasm_module_internal.wasm",
 ].map((chemin) => new URL(chemin, self.location).href);
 
 /** En-tête posé sur chaque réponse : la preuve, lisible par les tests, d'où elle vient. */
