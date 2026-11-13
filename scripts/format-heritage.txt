@@ -1,0 +1,59 @@
+# Fichiers écrits avant l'adoption des règles de `.editorconfig`.
+#
+# Ils ne sont pas conformes (pas de saut de ligne final, tabulation, espace en
+# fin de ligne) et le sont restés : les réécrire serait un changement sans
+# rapport avec le sujet du lot. `scripts/check-format.mjs` les signale sans
+# bloquer ; tout fichier nouveau ou modifié est vérifié normalement.
+#
+# Une ligne par chemin, relatif à la racine du dépôt. Les lignes qui
+# commencent par `#` sont des commentaires. Supprimez la ligne d'un fichier
+# quand vous le normalisez.
+
+.github/ci-budget/check_timeouts.py
+.github/fireworks/scope_agent.py
+.github/fireworks/test_scope_agent.py
+.github/workflows/ci-budget.yml
+.github/workflows/couche0.yml
+.github/workflows/nightly.yml
+.github/workflows/pr-auto-merge.yml
+apps/bench/src/tuning-mesure.test.ts
+apps/bench/src/tuning-mesure.ts
+apps/web/src/i18n/kiosk.en.ts
+apps/web/src/i18n/kiosk.fr.ts
+apps/web/src/i18n/profiles.en.ts
+apps/web/src/i18n/profiles.fr.ts
+apps/web/src/kiosk/Kiosk.tsx
+apps/web/src/kiosk/kiosk.css
+apps/web/src/kiosk/kiosk.ts
+apps/web/src/kiosk/useKiosk.ts
+apps/web/src/state/profiles.test.ts
+apps/web/src/state/profiles.ts
+apps/web/src/ui/Profiles.tsx
+docs/bibliotheque.md
+docs/filter-tuning.md
+docs/fuzz.md
+docs/integration-t4.md
+docs/integration-t7.md
+docs/kiosque.md
+docs/mobilite.md
+docs/partage-prise.md
+docs/submission.md
+packages/audio/README.md
+packages/core/README.md
+packages/schema/README.md
+packages/schema/src/take-fragment.test.ts
+packages/schema/src/take-fragment.ts
+packages/vision/src/landmarker-core.ts
+packages/vision/src/landmarker.ts
+packages/vision/src/worker/analysis-worker.ts
+packages/vision/src/worker/host.test.ts
+packages/vision/src/worker/host.ts
+packages/vision/src/worker/protocol.ts
+scripts/audit/feuille.tsv
+scripts/fuzz.mjs
+scripts/lib/fuzz-run.ts
+scripts/lib/invariants.ts
+scripts/lib/lanceur.mjs
+scripts/lib/perf-run.ts
+scripts/lib/prises-aleatoires.ts
+scripts/perf-budget.mjs
