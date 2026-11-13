@@ -44,7 +44,7 @@ const AUTORISEES = [
   ["https://reactjs.org/", "aide en ligne citée dans un message d'erreur"],
   ["https://opensource.org/", "identifiant de licence en commentaire"],
   ["https://choosealicense.com/", "identifiant de licence en commentaire"],
-  ["https://github.com/BaptisteFaisy/thin-air", "adresse du dépôt, dans la page"],
+  ["https://github.com/Tradoooo/thin-air", "adresse du dépôt, dans la page"],
 ];
 
 const EXTENSIONS_SONORES = new Set([

@@ -62,7 +62,7 @@ Relevé du 12 novembre 2026, `node scripts/sonde-dispo.mjs` sur ce poste, code d
 sortie `0` :
 
 ```text
-sonde Thin Air (AIR-N-13) — https://baptistefaisy.github.io/thin-air/
+sonde Thin Air (AIR-N-13) — https://tradoooo.github.io/thin-air/
   ✓ page    GET corps plafonné 206  text/html; charset=utf-8 · cache-control: max-age=600
   ✓ js      HEAD               200  application/javascript; charset=utf-8 · cache-control: max-age=600
   ✓ modele  HEAD               200  application/octet-stream · cache-control: max-age=600

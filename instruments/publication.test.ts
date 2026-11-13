@@ -76,7 +76,7 @@ describe.each(PAQUETS)("packages/%s/package.json", (paquet) => {
 
   it("décrit un dépôt git avec le sous-dossier du paquet", () => {
     expect(m.repository.type).toBe("git");
-    expect(m.repository.url).toContain("github.com/BaptisteFaisy/thin-air");
+    expect(m.repository.url).toContain("github.com/Tradoooo/thin-air");
     expect(m.repository.directory).toBe(`packages/${paquet}`);
   });
 

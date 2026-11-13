@@ -10,15 +10,15 @@ Ce document dit ce qu'on a, ce qu'on ne casse pas, et comment on réinscrit.
 
 | Nom | Dépôt | Machine | Dossier |
 |---|---|---|---|
-| `r630-thin-air-04` | `BaptisteFaisy/thin-air` | r630 (`100.124.18.48`) | `~/actions-runner-thin-air-04` |
+| `r630-thin-air-04` | `Tradoooo/thin-air` | r630 (`100.124.18.48`) | `~/actions-runner-thin-air-04` |
 
 État mesuré le 12 novembre 2026 :
 
-- GitHub : `gh api repos/BaptisteFaisy/thin-air/actions/runners` renvoie **un**
+- GitHub : `gh api repos/Tradoooo/thin-air/actions/runners` renvoie **un**
   runner, `r630-thin-air-04`, `online`, `busy=false`, étiquettes
   `self-hosted,Linux,X64,thin-air-worker,ci-node`.
 - Sur la machine : `~/actions-runner-thin-air-04` existe, avec `run.sh`,
-  `.runner` (agent `r630-thin-air-04`, dépôt `BaptisteFaisy/thin-air`, dossier
+  `.runner` (agent `r630-thin-air-04`, dépôt `Tradoooo/thin-air`, dossier
   de travail `_work04`) et `.credentials`.
 
 Le pool du r630 est **partagé** : 57 dossiers `actions-runner-*` pour une
@@ -98,11 +98,11 @@ dépot. C'est pour cela que le geste du 12 novembre s'est arrêté là.
    `externals/` : ils pointent encore vers l'ancien emplacement et le
    listener ne démarre pas.
 4. Enregistrer, avec un jeton d'enregistrement du dépôt
-   (`gh api -X POST repos/BaptisteFaisy/thin-air/actions/runners/registration-token`) :
-   `./config.sh --url https://github.com/BaptisteFaisy/thin-air --token <jeton> --name r630-thin-air-04 --labels thin-air-worker,ci-node --work _work04 --unattended --replace`
+   (`gh api -X POST repos/Tradoooo/thin-air/actions/runners/registration-token`) :
+   `./config.sh --url https://github.com/Tradoooo/thin-air --token <jeton> --name r630-thin-air-04 --labels thin-air-worker,ci-node --work _work04 --unattended --replace`
 5. Recréer l'unité systemd utilisateur (`ExecStart=$HOME/actions-runner-<dossier>/run.sh`,
    `WorkingDirectory` le dossier du runner, `Restart=always`) et l'activer.
-6. Revérifier l'inscription : `gh api repos/BaptisteFaisy/thin-air/actions/runners`,
+6. Revérifier l'inscription : `gh api repos/Tradoooo/thin-air/actions/runners`,
    puis **plus tard** (règle §2.2 ci-dessus).
 
 `repo-bootstrap/deplace-runner.sh` fait déjà les étapes 1 à 6 dans cet ordre —

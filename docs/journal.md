@@ -192,3 +192,19 @@ tag `mediapipe`).
 Fichiers touchés : `NOTICE.md` (section modèle réécrite, MIT et tiers séparés)
 et `docs/recette.md` (ligne « main humaine » mise à jour). La ligne reste au
 tableau de la recette puisque la licence du fichier reste non établie.
+
+## 2026-11-12 — le dépôt passe sous l'organisation Tradoooo
+
+- Le dépôt `thin-air` a été **transféré** de `BaptisteFaisy/thin-air` vers
+  l'organisation `Tradoooo` : le chemin public est désormais
+  `Tradoooo/thin-air`, et l'URL publique du site est
+  `https://tradoooo.github.io/thin-air/`.
+- Conséquence : tous les chemins codés en dur (scripts, workflows,
+  documentation, README, manifestes des paquets) ont été remplacés. GitHub
+  redirige les anciennes URL de dépôt, mais plus rien ne doit viser l'ancien
+  chemin.
+- **Runners auto-hébergés : à réenregistrer.** Le runner `r630-thin-air-04`
+  est encore inscrit sur l'ancien dépôt (`BaptisteFaisy/thin-air`) : un
+  transfert ne déplace pas les runners, il faut les réinscrire sur le nouveau
+  chemin (`Tradoooo/thin-air`) — marche à suivre dans `docs/runners.md`,
+  sinon le runner ne verra plus jamais une file de travail.

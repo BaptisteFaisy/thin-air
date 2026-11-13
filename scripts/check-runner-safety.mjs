@@ -37,7 +37,7 @@ import { pathToFileURL } from "node:url";
 export const INVENTAIRE = [
   {
     nom: "r630-thin-air-04",
-    depot: "BaptisteFaisy/thin-air",
+    depot: "Tradoooo/thin-air",
     machine: "r630",
     dossier: "actions-runner-thin-air-04",
   },
