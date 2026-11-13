@@ -105,6 +105,9 @@ const refus = [];
 
 for await (const chemin of fichiersSous(`${base}/takes`, { ignores: IGNORES })) {
   if (extensionDe(chemin) !== ".json") continue;
+  // Un rapport de rendu figé (`takes/reference/<nom>.expected.json`) n'est pas
+  // une prise : il ne contient que les nombres d'un rendu de référence.
+  if (chemin.endsWith(".expected.json")) continue;
   const brut = await readFile(chemin, "utf8");
   const etiquette = relative(base, chemin);
   let prise;

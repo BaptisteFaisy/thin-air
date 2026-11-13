@@ -1,0 +1,34 @@
+{
+  "take": "fast-jab",
+  "instrument": "Harp",
+  "sampleRate": 48000,
+  "samples": 70400,
+  "durationS": 1.4666666666666666,
+  "notes": [
+    {
+      "t": 0.14667,
+      "midi": 57,
+      "expectedHz": 220,
+      "measuredHz": 348.0876643687003,
+      "cents": 794.3365974882531
+    },
+    {
+      "t": 0.21333000000000002,
+      "midi": 60,
+      "expectedHz": 261.6255653005986,
+      "measuredHz": 348.0876643687003,
+      "cents": 494.3365974882531
+    },
+    {
+      "t": 0.2722233333333333,
+      "midi": 62,
+      "expectedHz": 293.6647679174076,
+      "measuredHz": 348.0876643687003,
+      "cents": 294.33659748825306
+    }
+  ],
+  "peakDb": -31.72032081427591,
+  "rmsDb": -48.11551178572621,
+  "maxVoices": 4,
+  "silenceAfterMs": 634
+}
