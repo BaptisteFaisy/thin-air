@@ -25,7 +25,7 @@ import { join } from "node:path";
 import { instantFichier } from "./horodatage.mjs";
 
 /** Adresse publiée par `deploy.yml` (GitHub Pages, base `/thin-air/`). */
-export const URL_DEFAUT = "https://baptistefaisy.github.io/thin-air/";
+export const URL_DEFAUT = "https://tradoooo.github.io/thin-air/";
 const CHEMIN_MODELE = "models/hand_landmarker.task";
 const CHEMIN_WASM = "models/wasm/vision_wasm_internal.wasm";
 /** Plafond du corps lu pour la page : assez pour y trouver le JS, jamais plus. */
