@@ -62,6 +62,12 @@ jobs:
       - name: Sonde du site publié (page, JS, modèle, wasm)
         run: node scripts/sonde-dispo.mjs
 
+      # Le mode hors ligne (AIR-F-54) : ce que le service worker déclare garder
+      # en cache est-il PUBLIÉ ? La liste est lue dans `sw.js`, jamais devinée,
+      # et le modèle n'est pas téléchargé (HEAD seulement, taille déclarée).
+      - name: Le mode hors ligne est-il opérationnel (depuis l'adresse publique) ?
+        run: node scripts/check-offline.mjs
+
       - name: Publier le résultat horodaté (trace AIR-N-13)
         if: always()
         uses: actions/upload-artifact@v4

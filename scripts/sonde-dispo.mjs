@@ -26,8 +26,10 @@ import { instantFichier } from "./horodatage.mjs";
 
 /** Adresse publiée par `deploy.yml` (GitHub Pages, base `/thin-air/`). */
 export const URL_DEFAUT = "https://tradoooo.github.io/thin-air/";
-const CHEMIN_MODELE = "models/hand_landmarker.task";
-const CHEMIN_WASM = "models/wasm/vision_wasm_internal.wasm";
+/** Le modèle de vision, tel que publié sous la racine du site. */
+export const CHEMIN_MODELE = "models/hand_landmarker.task";
+/** Le fichier d'exécution MediaPipe que le site charge (variante non-module). */
+export const CHEMIN_WASM = "models/wasm/vision_wasm_internal.wasm";
 /** Plafond du corps lu pour la page : assez pour y trouver le JS, jamais plus. */
 const OCTETS_PAGE = 65_536;
 const DELAI_MS = 20_000;
@@ -42,9 +44,13 @@ const TYPES_ATTENDUS = {
 
 const HOTES_LOCAUX = new Set(["localhost", "127.0.0.1", "[::1]", "::1"]);
 
-/** Lit les options de la ligne de commande. Usage invalide → sortie 2. */
-export function lisOptions(argv) {
-  const options = { url: URL_DEFAUT, json: false, out: join("out", "sonde") };
+/**
+ * Lit les options de la ligne de commande. Usage invalide → sortie 2.
+ * `dossierParDefaut` est le dossier des résultats écrits ; l'appelant peut
+ * en choisir un autre (`--out` reste prioritaire).
+ */
+export function lisOptions(argv, dossierParDefaut = join("out", "sonde")) {
+  const options = { url: URL_DEFAUT, json: false, out: dossierParDefaut };
   const avecValeur = { "--url": "url", "--out": "out" };
   for (let i = 0; i < argv.length; i += 1) {
     const argument = argv[i] ?? "";
@@ -88,6 +94,7 @@ function releve(reponse, methode) {
     statut: reponse.status,
     contentType: reponse.headers.get("content-type") ?? "",
     cacheControl: reponse.headers.get("cache-control") ?? "",
+    contentLength: Number(reponse.headers.get("content-length") ?? "0"),
   };
 }
 

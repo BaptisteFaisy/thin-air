@@ -8,7 +8,7 @@ import { createRequire } from "node:module";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import type { Page } from "@playwright/test";
+import { expect, type Page } from "@playwright/test";
 
 const require_ = createRequire(import.meta.url);
 
@@ -17,6 +17,30 @@ export const DOSSIER = join(dirname(fileURLToPath(import.meta.url)), "..", "out"
 
 /** L'origine du site servi par `vite preview` : rien ne doit sort d'ici. */
 export const ORIGINE = "http://127.0.0.1:4173";
+
+/** La racine publiée du site local : `/thin-air/` (base de Vite, cf. `vite.config.ts`). */
+export const BASE_LOCALE = `${ORIGINE}/thin-air/`;
+
+/** L'origine du site public, publiée par `deploy.yml` (GitHub Pages). */
+export const ORIGINE_PUBLIQUE = "https://tradoooo.github.io";
+
+/** La racine publiée du site public : la même base `/thin-air/`, sur l'adresse publique. */
+export const BASE_PUBLIQUE = `${ORIGINE_PUBLIQUE}/thin-air/`;
+
+/** Le champ d'action du service worker : la racine du site, en local comme en public. */
+export const PORTEE = "/thin-air/";
+
+/** Le nom du cache, tel que versionné dans `public/sw.js`. */
+export const NOM_CACHE = "thin-air-v1";
+
+/** Le modèle de suivi des mains, tel que publié sous la racine du site. */
+export const MODELE = "models/hand_landmarker.task";
+
+/** Le fichier d'exécution MediaPipe que le site charge : la variante non-module (cf. `scripts/fetch-model.mjs`). */
+export const WASM = "models/wasm/vision_wasm_internal.wasm";
+
+/** Les fichiers que le site charge vraiment : le modèle et ses fichiers d'exécution. */
+export const LOURDS = [MODELE, "models/wasm/vision_wasm_internal.js", WASM];
 
 /**
  * Les arguments du navigateur : aucun son (AIR-N-02), fausse caméra et
@@ -211,4 +235,74 @@ export async function contourFocus(page: Page): Promise<number> {
 /** Le texte de la note en cours, tel qu'il est lu à l'écran (§12.4). */
 export async function noteAffichee(page: Page): Promise<string> {
   return (await page.locator("p.note").innerText()).trim();
+}
+
+/* -------------------------------------------------------------------------
+ * Le hors ligne (AIR-F-54) — les outils sont ici, pas dans la spec : les
+ * deux parcours (site local, adresse publique) doivent prouver le même
+ * chemin, avec un seul code.
+ * ---------------------------------------------------------------------- */
+
+/** Attend que le service worker soit installé, actif, et contrôle la page. */
+export async function attendWorkerActif(page: Page): Promise<string> {
+  await expect
+    .poll(async () =>
+      page.evaluate(async (portee: string) => {
+        const registre = await navigator.serviceWorker.getRegistration(portee);
+        if (registre === undefined) return "absent";
+        if (registre.active === null) return "installation";
+        return navigator.serviceWorker.controller === null ? "actif-non-controle" : "actif";
+      }, PORTEE),
+    )
+    .toBe("actif");
+  return page.evaluate(async (portee: string) => {
+    const registre = await navigator.serviceWorker.getRegistration(portee);
+    return registre?.scope ?? "";
+  }, PORTEE);
+}
+
+/** Compte, dans le cache nommé, combien des adresses données s'y trouvent. */
+export function compteEnCache(page: Page, adresses: string[]): Promise<number> {
+  return page.evaluate(
+    async ([nomCache, liste]: [string, string[]]) => {
+      if (!(await caches.has(nomCache))) return 0;
+      const cache = await caches.open(nomCache);
+      let trouves = 0;
+      for (const adresse of liste) {
+        if ((await cache.match(adresse)) !== undefined) trouves += 1;
+      }
+      return trouves;
+    },
+    [NOM_CACHE, adresses] as [string, string[]],
+  );
+}
+
+/** Ce qu'une lecture d'adresse rapporte : statut, origine déclarée, taille lue. */
+export interface Mesure {
+  readonly statut: number;
+  readonly source: string | null;
+  readonly octets: number;
+}
+
+/** Les adresses absolues des fichiers que le site charge, pour une base publiée. */
+export function adressesLourdes(base: string): string[] {
+  return LOURDS.map((chemin) => new URL(chemin, base).toString());
+}
+
+/** Les noms de cache présents dans la page : le worker n'en garde qu'un. */
+export function nomsDeCache(page: Page): Promise<string[]> {
+  return page.evaluate(() => caches.keys());
+}
+
+/** Lit une adresse et rapporte statut, origine déclarée et taille. */
+export function lisAdresse(page: Page, adresse: string): Promise<Mesure> {
+  return page.evaluate(async (url) => {
+    const reponse = await fetch(url);
+    const octets = await reponse.arrayBuffer();
+    return {
+      statut: reponse.status,
+      source: reponse.headers.get("x-thin-air-source"),
+      octets: octets.byteLength,
+    };
+  }, adresse);
 }
