@@ -1,0 +1,12 @@
+{
+  "take": "two-hands-cross",
+  "instrument": "Phantom",
+  "sampleRate": 48000,
+  "samples": 153600,
+  "durationS": 3.2,
+  "notes": [],
+  "peakDb": -56.18705055047506,
+  "rmsDb": -66.88719391224546,
+  "maxVoices": 1,
+  "silenceAfterMs": 1019.7083333333335
+}

@@ -1,0 +1,20 @@
+{
+  "take": "left-hand-only",
+  "instrument": "Phantom",
+  "sampleRate": 48000,
+  "samples": 153600,
+  "durationS": 3.2,
+  "notes": [
+    {
+      "t": 0.08,
+      "midi": 58.56,
+      "expectedHz": 240.74461427736273,
+      "measuredHz": 240.7447690027248,
+      "cents": 0.0011126551255641614
+    }
+  ],
+  "peakDb": -14.40482842921163,
+  "rmsDb": -22.687465157417705,
+  "maxVoices": 1,
+  "silenceAfterMs": 441.875
+}

@@ -1,0 +1,20 @@
+{
+  "take": "hand-leaves-mid-note",
+  "instrument": "Phantom",
+  "sampleRate": 48000,
+  "samples": 95200,
+  "durationS": 1.9833333333333334,
+  "notes": [
+    {
+      "t": 0.08,
+      "midi": 63.6,
+      "expectedHz": 322.0988531080376,
+      "measuredHz": 322.09933167201996,
+      "cents": 0.0025722092379252856
+    }
+  ],
+  "peakDb": -13.339942081969994,
+  "rmsDb": -20.54755271412164,
+  "maxVoices": 1,
+  "silenceAfterMs": 327
+}

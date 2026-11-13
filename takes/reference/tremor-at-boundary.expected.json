@@ -1,0 +1,20 @@
+{
+  "take": "tremor-at-boundary",
+  "instrument": "Phantom",
+  "sampleRate": 48000,
+  "samples": 201600,
+  "durationS": 4.2,
+  "notes": [
+    {
+      "t": 0.08,
+      "midi": 57,
+      "expectedHz": 220,
+      "measuredHz": 220.0000247708295,
+      "cents": 0.00019492773205859553
+    }
+  ],
+  "peakDb": -12.183475574380125,
+  "rmsDb": -17.365896871315154,
+  "maxVoices": 1,
+  "silenceAfterMs": 331.27083333333337
+}
